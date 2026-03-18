@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
 
 import "@/app/globals.css";
+import { AppStateProvider } from "@/src/lib/app-state";
 import { DemoStateProvider } from "@/src/lib/demo-state";
 
 const manrope = Manrope({
@@ -24,7 +25,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${manrope.variable} bg-app-bg text-app-text antialiased`}>
-        <DemoStateProvider>{children}</DemoStateProvider>
+        <DemoStateProvider>
+          <AppStateProvider>{children}</AppStateProvider>
+        </DemoStateProvider>
       </body>
     </html>
   );

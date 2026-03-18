@@ -42,10 +42,10 @@ export function candidateStatusTone(status: RoleStatus) {
 
 export function getPersonaPrimaryAction(persona: Persona) {
   if (persona === "host") {
-    return "Manage crew";
+    return "Open workspace";
   }
-  if (persona === "crew") {
-    return "Find roles";
+  if (persona === "creator") {
+    return "Join team";
   }
   return "Get ticket";
 }

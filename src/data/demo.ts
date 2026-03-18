@@ -4,7 +4,7 @@ import {
   createStoryCardDataUri
 } from "@/src/lib/demo-media";
 
-export type Persona = "host" | "crew" | "fan";
+export type Persona = "host" | "creator" | "fan";
 export type UserRoleType = "host" | "crew" | "creator" | "fan";
 export type RoleStatus = "open" | "invited" | "filled";
 
@@ -1323,7 +1323,7 @@ export const personaProfiles: Record<
   { label: string; userId: string; accent: string }
 > = {
   host: { label: "Host", userId: "user-zo", accent: "Create event" },
-  crew: { label: "Crew", userId: "user-noa", accent: "Find roles" },
+  creator: { label: "Creator", userId: "user-iris", accent: "Find openings" },
   fan: { label: "Fan", userId: "user-kai", accent: "Get tickets" }
 };
 
@@ -1331,12 +1331,12 @@ export function getEventById(eventId: string, eventList: DemoEvent[] = events) {
   return eventList.find((event) => event.id === eventId);
 }
 
-export function getUserById(userId?: string) {
+export function getUserById(userId?: string, userList: DemoUser[] = users) {
   if (!userId) {
     return undefined;
   }
 
-  return users.find((user) => user.id === userId);
+  return userList.find((user) => user.id === userId);
 }
 
 export function getRolesForEvent(roleList: DemoRole[], eventId: string) {
