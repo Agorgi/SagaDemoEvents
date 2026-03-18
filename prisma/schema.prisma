@@ -1,0 +1,185 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EligibilityStatus {
+  eligible
+  pending_review
+  ineligible
+  disqualified
+  unknown
+}
+
+enum VerificationState {
+  ranked
+  awaiting_verification
+  hidden
+}
+
+enum Platform {
+  saga
+  instagram
+  tiktok
+}
+
+enum FetchStatus {
+  success
+  review_required
+  auth_required
+  unsupported
+  private_post
+  rate_limited
+  not_found
+  parse_error
+  transient_error
+}
+
+enum MetricSourceType {
+  internal_api
+  official_api
+  manual_override
+  experimental_fallback
+}
+
+enum CommentCountBasis {
+  unique
+  total
+  unknown
+}
+
+enum FetchRunStatus {
+  running
+  success
+  partial_failure
+  failed
+}
+
+model ContestEntry {
+  id                     String                  @id @default(cuid())
+  externalEntryId        String                  @unique @map("external_entry_id")
+  creatorName            String                  @map("creator_name")
+  publicDisplayName      String                  @map("public_display_name")
+  profileImageUrl        String?                 @map("profile_image_url")
+  thumbnailUrl           String?                 @map("thumbnail_url")
+  sagaHandle             String?                 @map("saga_handle")
+  instagramHandle        String?                 @map("instagram_handle")
+  tiktokHandle           String?                 @map("tiktok_handle")
+  sagaPostUrl            String?                 @map("saga_post_url")
+  instagramPostUrl       String?                 @map("instagram_post_url")
+  tiktokPostUrl          String?                 @map("tiktok_post_url")
+  entryTitle             String?                 @map("entry_title")
+  contentType            String?                 @map("content_type")
+  eligibilityStatus      EligibilityStatus       @default(unknown) @map("eligibility_status")
+  createdAt              DateTime                @default(now()) @map("created_at")
+  updatedAt              DateTime                @updatedAt @map("updated_at")
+  sourceRowNumber        Int?                    @map("source_row_number")
+  latestScore            Int?                    @map("latest_score")
+  verificationState      VerificationState       @default(awaiting_verification) @map("verification_state")
+  lastVerifiedAt         DateTime?               @map("last_verified_at")
+  lastAttemptedRefreshAt DateTime?               @map("last_attempted_refresh_at")
+  publicRank             Int?                    @map("public_rank")
+  isTop25                Boolean                 @default(false) @map("is_top_25")
+  hiddenReason           String?                 @map("hidden_reason")
+  latestMetrics          PlatformMetricsLatest[]
+  metricHistory          MetricSnapshotHistory[]
+  adminOverrides         AdminOverride[]
+
+  @@index([eligibilityStatus, verificationState], map: "contest_entry_public_idx")
+  @@index([publicRank], map: "contest_entry_public_rank_idx")
+  @@index([verificationState], map: "contest_entry_verification_state_idx")
+  @@map("contest_entries")
+}
+
+model PlatformMetricsLatest {
+  id                   String            @id @default(cuid())
+  contestEntryId       String            @map("contest_entry_id")
+  platform             Platform
+  canonicalPostId      String?           @map("canonical_post_id")
+  canonicalPostUrl     String            @map("canonical_post_url")
+  likeCount            Int?              @map("like_count")
+  commentCount         Int?              @map("comment_count")
+  uniqueCommenterCount Int?              @map("unique_commenter_count")
+  shareCount           Int?              @map("share_count")
+  fetchStatus          FetchStatus       @default(review_required) @map("fetch_status")
+  fetchMessage         String?           @map("fetch_message")
+  fetchedAt            DateTime          @map("fetched_at")
+  sourceType           MetricSourceType  @map("source_type")
+  commentCountBasis    CommentCountBasis @default(unknown) @map("comment_count_basis")
+  rawPayloadJson       Json?             @map("raw_payload_json")
+  contestEntry         ContestEntry      @relation(fields: [contestEntryId], references: [id], onDelete: Cascade)
+
+  @@unique([contestEntryId, platform], map: "platform_metrics_entry_platform_key")
+  @@index([platform, fetchedAt], map: "platform_metrics_platform_fetched_idx")
+  @@map("platform_metrics_latest")
+}
+
+model MetricSnapshotHistory {
+  id                   String            @id @default(cuid())
+  contestEntryId       String            @map("contest_entry_id")
+  platform             Platform
+  likeCount            Int?              @map("like_count")
+  commentCount         Int?              @map("comment_count")
+  uniqueCommenterCount Int?              @map("unique_commenter_count")
+  shareCount           Int?              @map("share_count")
+  scoreContribution    Int?              @map("score_contribution")
+  fetchMessage         String?           @map("fetch_message")
+  fetchedAt            DateTime          @map("fetched_at")
+  sourceType           MetricSourceType  @map("source_type")
+  commentCountBasis    CommentCountBasis @default(unknown) @map("comment_count_basis")
+  fetchStatus          FetchStatus       @map("fetch_status")
+  contestEntry         ContestEntry      @relation(fields: [contestEntryId], references: [id], onDelete: Cascade)
+
+  @@index([contestEntryId, platform, fetchedAt], map: "metric_snapshot_entry_platform_idx")
+  @@map("metric_snapshot_history")
+}
+
+model FetchRun {
+  id                    String         @id @default(cuid())
+  jobName               String         @default("refresh_metrics") @map("job_name")
+  startedAt             DateTime       @default(now()) @map("started_at")
+  finishedAt            DateTime?      @map("finished_at")
+  status                FetchRunStatus @default(running)
+  totalRowsSeen         Int            @default(0) @map("total_rows_seen")
+  totalEntriesProcessed Int            @default(0) @map("total_entries_processed")
+  totalFailures         Int            @default(0) @map("total_failures")
+  summaryJson           Json?          @map("summary_json")
+
+  @@index([jobName, startedAt], map: "fetch_run_job_started_idx")
+  @@map("fetch_runs")
+}
+
+model AdminOverride {
+  id                   String       @id @default(cuid())
+  contestEntryId       String       @map("contest_entry_id")
+  platform             Platform
+  likeCount            Int?         @map("like_count")
+  commentCount         Int?         @map("comment_count")
+  uniqueCommenterCount Int?         @map("unique_commenter_count")
+  shareCount           Int?         @map("share_count")
+  reason               String
+  createdAt            DateTime     @default(now()) @map("created_at")
+  updatedAt            DateTime     @updatedAt @map("updated_at")
+  createdBy            String       @map("created_by")
+  contestEntry         ContestEntry @relation(fields: [contestEntryId], references: [id], onDelete: Cascade)
+
+  @@index([contestEntryId, platform, updatedAt], map: "admin_override_entry_platform_idx")
+  @@map("admin_overrides")
+}
+
+model AdminAuditLog {
+  id           String   @id @default(cuid())
+  actor        String
+  action       String
+  targetType   String   @map("target_type")
+  targetId     String   @map("target_id")
+  metadataJson Json?    @map("metadata_json")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([targetType, targetId, createdAt], map: "admin_audit_target_idx")
+  @@map("admin_audit_logs")
+}
