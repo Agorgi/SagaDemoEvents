@@ -15,6 +15,7 @@ type EventCardProps = {
   openRoles: number;
   thresholdCurrent: number;
   thresholdTarget: number;
+  thresholdLabel?: string;
   reasonLine: string;
   status: "draft" | "planning" | "recruiting" | "validating" | "live" | "completed" | "almost-there";
   href?: string;
@@ -34,6 +35,7 @@ export function EventCard({
   openRoles,
   thresholdCurrent,
   thresholdTarget,
+  thresholdLabel,
   reasonLine,
   status,
   href,
@@ -79,7 +81,12 @@ export function EventCard({
               {openRoles > 0 ? <MetaChip>{openRoles} openings</MetaChip> : null}
             </div>
             <div className="mt-4">
-              <ThresholdProgress compact current={thresholdCurrent} target={thresholdTarget} />
+              <ThresholdProgress
+                compact
+                current={thresholdCurrent}
+                label={thresholdLabel}
+                target={thresholdTarget}
+              />
             </div>
             <div className="mt-4 flex items-center justify-between gap-4">
               <div className="flex items-center gap-2">
@@ -174,7 +181,7 @@ export function EventCard({
         </div>
 
         <div className="mt-4">
-          <ThresholdProgress current={thresholdCurrent} target={thresholdTarget} />
+          <ThresholdProgress current={thresholdCurrent} label={thresholdLabel} target={thresholdTarget} />
         </div>
 
         <div className="mt-4 flex items-center gap-3">

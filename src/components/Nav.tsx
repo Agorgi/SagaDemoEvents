@@ -31,11 +31,13 @@ export function Nav() {
   const { currentUser, hasStartedLaunch, mode, setMode } = useAppState();
 
   const links = [
-    { href: "/explore", label: "Explore" },
-    { href: "/my-events", label: "My Events" },
-    ...(mode === "host" || hasStartedLaunch ? [{ href: "/studio", label: "Studio" }] : []),
-    { href: "/inbox", label: "Inbox" },
-    { href: "/profile", label: "Profile" }
+    { href: "/explore", label: "Explore", mobileLabel: "Explore" },
+    { href: "/my-events", label: "My Events", mobileLabel: "Events" },
+    ...(mode === "host" || hasStartedLaunch
+      ? [{ href: "/studio", label: "Studio", mobileLabel: "Studio" }]
+      : []),
+    { href: "/inbox", label: "Inbox", mobileLabel: "Inbox" },
+    { href: "/profile", label: "Profile", mobileLabel: "Profile" }
   ];
 
   function handleModeChange(nextMode: UserMode) {
@@ -124,13 +126,16 @@ export function Nav() {
         </div>
       </header>
 
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pb-4 md:hidden">
-        <div className="pointer-events-auto mx-auto space-y-2 max-w-[620px]">
-          <div className="flex items-center justify-between rounded-[20px] border border-white/8 bg-[#0f1320]/94 px-3 py-2 shadow-[0_18px_44px_rgba(0,0,0,0.38)] backdrop-blur-xl">
+      <div
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 md:hidden"
+        style={{ paddingBottom: "max(env(safe-area-inset-bottom), 12px)" }}
+      >
+        <div className="pointer-events-auto mx-auto max-w-[430px] space-y-2">
+          <div className="flex items-center justify-between rounded-[18px] border border-white/8 bg-[#0f1320]/94 px-3 py-2 shadow-[0_18px_44px_rgba(0,0,0,0.38)] backdrop-blur-xl">
             <span className="text-xs font-semibold uppercase tracking-[0.12em] text-app-muted">Flow</span>
             <select
               aria-label="Switch flow"
-              className="bg-transparent text-sm font-semibold text-white outline-none"
+              className="max-w-[160px] bg-transparent text-right text-sm font-semibold text-white outline-none"
               onChange={(event) => handleModeChange(event.target.value as UserMode)}
               value={mode}
             >
@@ -145,21 +150,24 @@ export function Nav() {
               </option>
             </select>
           </div>
-          <div className="grid gap-2 rounded-[24px] border border-white/8 bg-[#0f1320]/94 p-2 shadow-[0_18px_44px_rgba(0,0,0,0.38)] backdrop-blur-xl" style={{ gridTemplateColumns: `repeat(${links.length}, minmax(0, 1fr))` }}>
-          {links.map((link) => (
-            <Link
-              className={cn(
-                "rounded-[18px] px-2 py-3 text-center text-sm font-semibold transition",
-                isActive(pathname, link.href)
-                  ? "bg-app-purple text-white"
-                  : "text-app-muted hover:bg-white/[0.03] hover:text-white"
-              )}
-              href={link.href}
-              key={link.href}
-            >
-              {link.label}
-            </Link>
-          ))}
+          <div
+            className="grid gap-1.5 rounded-[20px] border border-white/8 bg-[#0f1320]/94 p-1.5 shadow-[0_18px_44px_rgba(0,0,0,0.38)] backdrop-blur-xl"
+            style={{ gridTemplateColumns: `repeat(${links.length}, minmax(0, 1fr))` }}
+          >
+            {links.map((link) => (
+              <Link
+                className={cn(
+                  "min-w-0 rounded-[16px] px-1.5 py-2.5 text-center text-[10px] font-semibold leading-none tracking-[-0.01em] whitespace-nowrap transition",
+                  isActive(pathname, link.href)
+                    ? "bg-app-purple text-white"
+                    : "text-app-muted hover:bg-white/[0.03] hover:text-white"
+                )}
+                href={link.href}
+                key={link.href}
+              >
+                {link.mobileLabel}
+              </Link>
+            ))}
           </div>
         </div>
       </div>

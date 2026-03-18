@@ -110,6 +110,7 @@ export default function MyEventsPage() {
                   saved={savedEventIds.includes(event.id)}
                   status={launch?.status ?? "live"}
                   thresholdCurrent={thresholdCurrent}
+                  thresholdLabel={activeTab === "tickets" ? "Tix sales needed" : undefined}
                   thresholdTarget={thresholdTarget}
                   variant="row"
                 />
