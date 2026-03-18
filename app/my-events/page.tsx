@@ -1,148 +1,130 @@
 "use client";
 
-import Link from "next/link";
-import { type ReactNode } from "react";
+import { useMemo, useState } from "react";
 
 import { EventCard } from "@/src/components/EventCard";
 import { Nav } from "@/src/components/Nav";
-import { getEventById } from "@/src/data/demo";
+import { useAppState } from "@/src/lib/app-state";
 import { useDemoState } from "@/src/lib/demo-state";
 
-export default function MyEventsPage() {
-  const { activeUserId, events, getEventCounts, joinedEventIds, roles, savedEventIds } =
-    useDemoState();
+type TabKey = "going" | "working" | "saved" | "tickets";
 
-  const goingEvents = events.filter((event) => joinedEventIds.includes(event.id));
-  const appliedEvents = Array.from(
+export default function MyEventsPage() {
+  const { currentUserId, launches, mode } = useAppState();
+  const { events, getEventCounts, joinedEventIds, roles, savedEventIds, toggleSavedEvent } =
+    useDemoState();
+  const [activeTab, setActiveTab] = useState<TabKey>(
+    mode === "creator"
+      ? roles.some(
+          (role) =>
+            role.applicants.some((entry) => entry.applicantUserId === currentUserId) ||
+            role.filledByUserId === currentUserId
+        )
+        ? "working"
+        : "going"
+      : "going"
+  );
+
+  const launchByEventId = useMemo(
+    () =>
+      new Map(
+        launches
+          .filter((launch) => launch.eventId)
+          .map((launch) => [launch.eventId as string, launch])
+      ),
+    [launches]
+  );
+
+  const going = events.filter((event) => joinedEventIds.includes(event.id));
+  const working = Array.from(
     new Set(
       roles
-        .filter((role) =>
-          role.applicants.some((entry) => entry.applicantUserId === activeUserId)
+        .filter(
+          (role) =>
+            role.applicants.some((entry) => entry.applicantUserId === currentUserId) ||
+            role.filledByUserId === currentUserId
         )
         .map((role) => role.eventId)
     )
   )
-    .map((eventId) => getEventById(eventId, events))
+    .map((eventId) => events.find((event) => event.id === eventId))
     .filter((event): event is NonNullable<typeof event> => Boolean(event));
-  const savedEvents = events.filter((event) => savedEventIds.includes(event.id));
+  const saved = events.filter((event) => savedEventIds.includes(event.id));
+  const tickets = going.filter((event) => !event.isFree);
+
+  const sections: Record<TabKey, { title: string; items: typeof events }> = {
+    going: { title: "Going", items: going },
+    working: { title: "Working", items: working },
+    saved: { title: "Saved", items: saved },
+    tickets: { title: "Tickets", items: tickets }
+  };
 
   return (
     <div className="min-h-screen">
       <Nav />
-
-      <main className="mx-auto w-full max-w-[860px] px-4 pb-28 pt-5 sm:px-6 sm:pb-10 sm:pt-8">
+      <main className="mx-auto w-full max-w-[900px] px-4 pb-28 pt-5 sm:px-6 sm:pb-12 sm:pt-8">
         <section className="space-y-2">
           <p className="text-sm uppercase tracking-[0.16em] text-app-muted">My Events</p>
           <h1 className="text-4xl font-semibold text-white sm:text-5xl">
-            Going, applied, saved
+            Keep your plans and commitments in one place
           </h1>
         </section>
 
-        <div className="mt-6 space-y-6">
-          <SectionBlock
-            emptyDescription="RSVP to an event and it will show up here."
-            eyebrow="Going"
-            items={goingEvents}
-            renderItem={(event) => (
-              <EventCard
-                event={event}
-                href={`/events/${event.id}`}
-                joined
-                key={event.id}
-                openRoles={getEventCounts(event.id).open}
-                primaryLabel="View ticket"
-                variant="row"
-              />
-            )}
-            title="Events you're going to"
-          />
-
-          <SectionBlock
-            emptyDescription="Apply to help on an event and your status will show up here."
-            eyebrow="Applied to help"
-            items={appliedEvents}
-            renderItem={(event) => (
-              <EventCard
-                applied
-                event={event}
-                href={`/events/${event.id}`}
-                key={event.id}
-                openRoles={getEventCounts(event.id).open}
-                primaryLabel="Open event"
-                secondaryLabel="Join room"
-                variant="row"
-              />
-            )}
-            title="Application status"
-          />
-
-          <SectionBlock
-            emptyDescription="Tap the save icon on Discover to keep an event here."
-            eyebrow="Saved"
-            items={savedEvents}
-            renderItem={(event) => (
-              <EventCard
-                event={event}
-                href={`/events/${event.id}`}
-                key={event.id}
-                openRoles={getEventCounts(event.id).open}
-                primaryLabel="Open event"
-                variant="row"
-              />
-            )}
-            title="Come back later"
-          />
-
-          <div className="surface-card p-5">
-            <p className="text-sm font-semibold text-white">Need something new?</p>
-            <div className="mt-4 flex flex-wrap gap-3">
-              <Link
-                className="rounded-2xl bg-app-purple px-4 py-3 text-sm font-semibold text-white transition hover:bg-app-purple-hover"
-                href="/explore"
-              >
-                Discover events
-              </Link>
-              <Link
-                className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
-                href="/profile"
-              >
-                Profile
-              </Link>
-            </div>
-          </div>
+        <div className="mt-6 flex gap-2 overflow-x-auto pb-1 subtle-scrollbar">
+          {Object.keys(sections).map((key) => (
+            <button
+              className={`pill ${activeTab === key ? "pill-active" : "text-app-muted hover:border-white/15 hover:text-white"}`}
+              key={key}
+              onClick={() => setActiveTab(key as TabKey)}
+              type="button"
+            >
+              {sections[key as TabKey].title}
+            </button>
+          ))}
         </div>
+
+        <section className="mt-6 space-y-4">
+          {sections[activeTab].items.length > 0 ? (
+            sections[activeTab].items.map((event) => {
+              const launch = launchByEventId.get(event.id);
+              const thresholdCurrent = (launch?.reserveCount ?? 0) + (launch?.ticketCount ?? 0);
+              const thresholdTarget = launch?.plan.thresholdTarget ?? 24;
+
+              return (
+                <EventCard
+                  event={event}
+                  href={`/events/${event.id}`}
+                  key={event.id}
+                  mode={mode}
+                  onPrimaryAction={() => {
+                    window.location.assign(activeTab === "tickets" ? "/my-events" : `/events/${event.id}`);
+                  }}
+                  onToggleSaved={() => toggleSavedEvent(event.id)}
+                  openRoles={getEventCounts(event.id).open}
+                  primaryLabel={activeTab === "tickets" ? "View ticket" : "See details"}
+                  reasonLine={
+                    activeTab === "working"
+                      ? "Open this launch to check your role status."
+                      : activeTab === "saved"
+                        ? "Saved so you can come back when you are ready."
+                        : "You are already on the list for this launch."
+                  }
+                  saved={savedEventIds.includes(event.id)}
+                  status={launch?.status ?? "live"}
+                  thresholdCurrent={thresholdCurrent}
+                  thresholdTarget={thresholdTarget}
+                  variant="row"
+                />
+              );
+            })
+          ) : (
+            <div className="surface-card p-5">
+              <p className="text-sm leading-6 text-app-muted">Nothing here yet. Your next action will appear once you reserve, buy, apply, or save a launch.</p>
+            </div>
+          )}
+        </section>
       </main>
     </div>
   );
 }
 
-function SectionBlock<T>({
-  eyebrow,
-  title,
-  items,
-  emptyDescription,
-  renderItem
-}: {
-  eyebrow: string;
-  title: string;
-  items: T[];
-  emptyDescription: string;
-  renderItem: (item: T) => ReactNode;
-}) {
-  return (
-    <section className="surface-card p-5 sm:p-6">
-      <p className="text-sm uppercase tracking-[0.16em] text-app-muted">{eyebrow}</p>
-      <h2 className="mt-2 text-2xl font-semibold text-white">{title}</h2>
-
-      <div className="mt-5 space-y-3">
-        {items.length > 0 ? (
-          items.map((item) => renderItem(item))
-        ) : (
-          <div className="rounded-[22px] border border-dashed border-white/10 bg-white/[0.02] p-5">
-            <p className="text-sm leading-6 text-app-muted">{emptyDescription}</p>
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}

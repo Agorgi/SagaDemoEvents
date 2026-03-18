@@ -8,6 +8,7 @@ import { Avatar } from "@/src/components/Avatar";
 import { ExpandableText } from "@/src/components/ExpandableText";
 import { Nav } from "@/src/components/Nav";
 import { getCommunityById, getEventById, getRolesForEvent, getUserById } from "@/src/data/demo";
+import { useAppState } from "@/src/lib/app-state";
 import { useDemoState } from "@/src/lib/demo-state";
 import { formatDateRange, formatTimeLabel } from "@/src/lib/utils";
 
@@ -16,7 +17,8 @@ type RoomTab = (typeof baseTabs)[number] | "Crew";
 
 export default function CommunityDetailPage() {
   const params = useParams<{ communityId: string }>();
-  const { activeUserId, commissions, events, joinedEventIds, roles } = useDemoState();
+  const { currentUserId, resolveUser } = useAppState();
+  const { commissions, events, joinedEventIds, roles } = useDemoState();
   const [activeTab, setActiveTab] = useState<RoomTab>("Updates");
 
   const event = getEventById(params.communityId, events);
@@ -51,20 +53,20 @@ export default function CommunityDetailPage() {
   }
 
   const roomEvent = event as NonNullable<typeof event>;
-  const host = getUserById(roomEvent.hostId);
+  const host = resolveUser(roomEvent.hostId) ?? getUserById(roomEvent.hostId);
   const eventRoles = getRolesForEvent(roles, roomEvent.id);
   const relatedCommission = commissions.find((commission) => commission.linkedEventId === roomEvent.id);
   const hasApplied = eventRoles.some((role) =>
-    role.applicants.some((entry) => entry.applicantUserId === activeUserId)
+    role.applicants.some((entry) => entry.applicantUserId === currentUserId)
   );
   const isContributor =
-    roomEvent.hostId === activeUserId ||
+    roomEvent.hostId === currentUserId ||
     eventRoles.some(
       (role) =>
-        role.filledByUserId === activeUserId ||
-        role.applicants.some((entry) => entry.applicantUserId === activeUserId)
+        role.filledByUserId === currentUserId ||
+        role.applicants.some((entry) => entry.applicantUserId === currentUserId)
     );
-  const isUnlocked = joinedEventIds.includes(roomEvent.id) || hasApplied || roomEvent.hostId === activeUserId;
+  const isUnlocked = joinedEventIds.includes(roomEvent.id) || hasApplied || roomEvent.hostId === currentUserId;
   const tabs: RoomTab[] = isContributor ? [...baseTabs, "Crew"] : [...baseTabs];
 
   const boostUpdates =
