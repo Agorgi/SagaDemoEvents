@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { Avatar } from "@/src/components/Avatar";
 import { ContextAwareHeader } from "@/src/components/ContextAwareHeader";
 import { useAppState } from "@/src/lib/app-state";
+import { type UserMode } from "@/src/data/launches";
 import { cn } from "@/src/lib/utils";
 
 function isActive(pathname: string, href: string) {
@@ -26,7 +27,8 @@ function isActive(pathname: string, href: string) {
 
 export function Nav() {
   const pathname = usePathname();
-  const { currentUser, hasStartedLaunch, mode } = useAppState();
+  const router = useRouter();
+  const { currentUser, hasStartedLaunch, mode, setMode } = useAppState();
 
   const links = [
     { href: "/explore", label: "Explore" },
@@ -35,6 +37,22 @@ export function Nav() {
     { href: "/inbox", label: "Inbox" },
     { href: "/profile", label: "Profile" }
   ];
+
+  function handleModeChange(nextMode: UserMode) {
+    setMode(nextMode);
+
+    if (nextMode === "host") {
+      router.push("/studio");
+      return;
+    }
+
+    if (nextMode === "creator") {
+      router.push("/explore?view=openings");
+      return;
+    }
+
+    router.push("/explore");
+  }
 
   return (
     <>
@@ -70,6 +88,25 @@ export function Nav() {
           </nav>
 
           <div className="ml-auto flex items-center gap-2.5">
+            <label className="hidden items-center gap-2 rounded-[16px] border border-white/8 bg-white/[0.03] px-3 py-2 md:flex">
+              <span className="text-xs font-semibold uppercase tracking-[0.12em] text-app-muted">Flow</span>
+              <select
+                aria-label="Switch flow"
+                className="bg-transparent text-sm font-semibold text-white outline-none"
+                onChange={(event) => handleModeChange(event.target.value as UserMode)}
+                value={mode}
+              >
+                <option className="bg-[#090b10]" value="host">
+                  Host
+                </option>
+                <option className="bg-[#090b10]" value="fan">
+                  Ticket buyer
+                </option>
+                <option className="bg-[#090b10]" value="creator">
+                  Contributor
+                </option>
+              </select>
+            </label>
             <ContextAwareHeader />
             <Link
               aria-label={`Open ${currentUser.handle} profile`}
@@ -88,7 +125,27 @@ export function Nav() {
       </header>
 
       <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pb-4 md:hidden">
-        <div className="pointer-events-auto mx-auto grid max-w-[620px] gap-2 rounded-[24px] border border-white/8 bg-[#0f1320]/94 p-2 shadow-[0_18px_44px_rgba(0,0,0,0.38)] backdrop-blur-xl" style={{ gridTemplateColumns: `repeat(${links.length}, minmax(0, 1fr))` }}>
+        <div className="pointer-events-auto mx-auto space-y-2 max-w-[620px]">
+          <div className="flex items-center justify-between rounded-[20px] border border-white/8 bg-[#0f1320]/94 px-3 py-2 shadow-[0_18px_44px_rgba(0,0,0,0.38)] backdrop-blur-xl">
+            <span className="text-xs font-semibold uppercase tracking-[0.12em] text-app-muted">Flow</span>
+            <select
+              aria-label="Switch flow"
+              className="bg-transparent text-sm font-semibold text-white outline-none"
+              onChange={(event) => handleModeChange(event.target.value as UserMode)}
+              value={mode}
+            >
+              <option className="bg-[#090b10]" value="host">
+                Host
+              </option>
+              <option className="bg-[#090b10]" value="fan">
+                Ticket buyer
+              </option>
+              <option className="bg-[#090b10]" value="creator">
+                Contributor
+              </option>
+            </select>
+          </div>
+          <div className="grid gap-2 rounded-[24px] border border-white/8 bg-[#0f1320]/94 p-2 shadow-[0_18px_44px_rgba(0,0,0,0.38)] backdrop-blur-xl" style={{ gridTemplateColumns: `repeat(${links.length}, minmax(0, 1fr))` }}>
           {links.map((link) => (
             <Link
               className={cn(
@@ -103,9 +160,9 @@ export function Nav() {
               {link.label}
             </Link>
           ))}
+          </div>
         </div>
       </div>
     </>
   );
 }
-

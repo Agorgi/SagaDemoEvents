@@ -148,7 +148,7 @@ const demoAssets = {
     accent2: "#FF6B96"
   }),
   avatarZo: createAvatarDataUri("Zo Park", "#FF7A00", "#1F1CB8"),
-  avatarRephos: createAvatarDataUri("Rephos Lin", "#FF6B96", "#1F1CB8")
+  avatarRephos: createAvatarDataUri("Aphex", "#FF6B96", "#1F1CB8")
 };
 
 const generatedAvatar = (
@@ -174,8 +174,8 @@ export const users: DemoUser[] = [
   },
   {
     id: "user-rephos",
-    name: "Rephos Lin",
-    handle: "@rephos",
+    name: "Aphex",
+    handle: "@aphex",
     roleType: "creator",
     city: "Los Angeles, CA",
     avatarUrl: demoAssets.avatarRephos,

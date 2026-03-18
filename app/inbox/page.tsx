@@ -29,7 +29,7 @@ export default function InboxPage() {
       <main className="mx-auto w-full max-w-[860px] px-4 pb-28 pt-5 sm:px-6 sm:pb-12 sm:pt-8">
         <section className="space-y-2">
           <p className="text-sm uppercase tracking-[0.16em] text-app-muted">Inbox</p>
-          <h1 className="text-4xl font-semibold text-white sm:text-5xl">Activity that needs you</h1>
+          <h1 className="text-4xl font-semibold text-white sm:text-5xl">Inbox</h1>
         </section>
 
         <div className="mt-6 flex gap-2 overflow-x-auto pb-1 subtle-scrollbar">
@@ -52,7 +52,7 @@ export default function InboxPage() {
             ))
           ) : (
             <div className="surface-card p-5">
-              <p className="text-sm leading-6 text-app-muted">Nothing in this queue right now.</p>
+              <p className="text-sm text-app-muted">Nothing here.</p>
             </div>
           )}
         </section>
@@ -60,4 +60,3 @@ export default function InboxPage() {
     </div>
   );
 }
-
