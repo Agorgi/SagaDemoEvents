@@ -13,12 +13,7 @@ import { useDemoState } from "@/src/lib/demo-state";
 
 const filters = [
   "This week",
-  "Nearby",
-  "Anime",
-  "Cosplay",
-  "Gaming",
-  "Mixers",
-  "Workshops"
+  "Nearby"
 ] as const;
 
 type ExploreFilter = (typeof filters)[number] | "All";
@@ -270,11 +265,17 @@ function ExplorePageContent() {
             </div>
           ) : null}
 
-          <div className="flex gap-2 overflow-x-auto pb-1 subtle-scrollbar">
-            <FilterChip active={activeFilter === "All"} label="All" onClick={() => setActiveFilter("All")} />
+          <div className="grid grid-cols-3 gap-2 sm:flex sm:gap-2 sm:overflow-x-auto sm:pb-1 sm:subtle-scrollbar">
+            <FilterChip
+              active={activeFilter === "All"}
+              className="min-w-0 justify-center !rounded-[14px] !px-2 !py-2 text-[11px] font-semibold leading-none whitespace-nowrap sm:!rounded-full sm:!px-3 sm:!py-2 sm:text-xs"
+              label="All"
+              onClick={() => setActiveFilter("All")}
+            />
             {filters.map((filter) => (
               <FilterChip
                 active={activeFilter === filter}
+                className="min-w-0 justify-center !rounded-[14px] !px-2 !py-2 text-[11px] font-semibold leading-none whitespace-nowrap sm:!rounded-full sm:!px-3 sm:!py-2 sm:text-xs"
                 key={filter}
                 label={filter}
                 onClick={() => setActiveFilter(filter)}

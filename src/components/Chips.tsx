@@ -5,15 +5,21 @@ import { cn } from "@/src/lib/utils";
 export function FilterChip({
   label,
   active = false,
-  onClick
+  onClick,
+  className
 }: {
   label: string;
   active?: boolean;
   onClick?: () => void;
+  className?: string;
 }) {
   return (
     <button
-      className={cn("pill", active ? "pill-active" : "text-app-muted hover:border-white/15 hover:text-white")}
+      className={cn(
+        "pill",
+        active ? "pill-active" : "text-app-muted hover:border-white/15 hover:text-white",
+        className
+      )}
       onClick={onClick}
       type="button"
     >
