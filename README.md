@@ -1,52 +1,106 @@
-# Court of Stars Giveaway
+# Saga Demo
 
-Launchable Court of Stars giveaway microsite with:
+Saga is a mobile-first demo for creator-led fandom events.
 
-- a polished public `/giveaway` page
-- an entry-level leaderboard backed by PostgreSQL
-- Google Sheets ingestion for Google Form responses
-- public CSV fallback for shared Google Drive sheets
-- hybrid platform verification for scoring
-- a private admin portal for retries, review, and manual overrides
+The product is organized around three clear paths:
+
+- `Host something`
+- `Join a team`
+- `Go to events`
+
+The demo uses local mock data, React state, and `localStorage` so the product feels stateful without a backend.
 
 ## Stack
 
 - Next.js 14 App Router
 - TypeScript
 - Tailwind CSS
-- PostgreSQL
-- Prisma
-- Google Sheets API
-- Vercel cron
 
-## Core model
+## Primary routes
 
-- One Google Sheet row maps to one `ContestEntry`.
-- One contest entry can include up to three direct post URLs:
-  - `saga_post_url`
-  - `instagram_post_url`
-  - `tiktok_post_url`
-- The leaderboard ranks entries, not creators.
-- All eligible entries are visible publicly.
-- Only entries with a verified score receive a numeric rank.
-- Eligible unresolved entries render in an `Awaiting verification` section.
+- `/`
+  - Welcome screen for first-time users
+  - Redirects returning users based on their saved mode
+- `/onboarding`
+  - Short, mode-aware onboarding flow
+- `/explore`
+  - Mode-aware event discovery
+- `/events/[eventId]`
+  - Public event page with mode-aware CTA hierarchy
+- `/my-events`
+  - Going, Working, Saved, Tickets
+- `/studio`
+  - Host home for launches in progress
+- `/studio/new`
+  - Structured launch builder
+- `/studio/[id]`
+  - Launch workspace with `Overview`, `Team`, `Demand`, `Run of Show`, and `Payouts`
+- `/profile/setup`
+  - First-time creator profile setup
+- `/creators/[slug]`
+  - Creator trust profile for host review
+- `/inbox`
+  - Updates, Team, Tickets, Payments
+- `/profile`
+  - User hub for identity, upcoming events, working roles, and saved items
 
-## Verification model
+## Product model
 
-Public entry states:
+### Visitor modes
 
-- `ranked`
-- `awaiting_verification`
-- `hidden`
+- `fan`
+  - discover events
+  - get tickets or reserve spots
+- `creator`
+  - find openings
+  - join teams
+- `host`
+  - start and manage launches
 
-An entry is fully verified when:
+### Core demo behaviors
 
-- Saga metrics are fetched successfully, and
-- every non-empty social URL has either:
-  - verified metrics from an approved integration, or
-  - a manual admin override
+- onboarding choices persist in `localStorage`
+- mode persists across sessions
+- starting a launch adds it to Studio
+- publishing a launch makes it discoverable in Explore
+- joining a team updates role/application state
+- booking an event updates ticket state and threshold progress
+- completing a launch reveals payout views
+- copying a launch to another city prefills the builder
 
-If a previously verified entry has a fresh fetch failure, the site keeps the last verified score live and only surfaces the issue in admin.
+## Suggested demo flow
+
+### Fan flow
+
+1. Open `/`
+2. Choose `Go to events`
+3. Complete onboarding
+4. Browse `/explore`
+5. Open an event
+6. `Get ticket` or `Reserve spot`
+7. Check status in `/my-events`
+
+### Creator flow
+
+1. Open `/`
+2. Choose `Join a team`
+3. Complete onboarding
+4. Finish `/profile/setup`
+5. Open `/explore?view=openings`
+6. Open an event
+7. `Join team`
+8. Track status in `/my-events` and `/inbox`
+
+### Host flow
+
+1. Open `/`
+2. Choose `Host something`
+3. Complete onboarding
+4. Land in `/studio`
+5. Click `Start a launch`
+6. Build a launch in `/studio/new`
+7. Open the workspace in `/studio/[id]`
+8. Publish, recruit a team, review payouts, or copy to another city
 
 ## Local development
 
@@ -56,65 +110,22 @@ If a previously verified entry has a fresh fetch failure, the site keeps the las
 npm install
 ```
 
-2. Generate Prisma client:
-
-```bash
-npm run db:generate
-```
-
-3. Fill `.env.local` using [.env.example](/Users/alexgorgi/Documents/Playground/.env.example).
-
-4. Push the schema to your database:
-
-```bash
-npm run db:push
-```
-
-5. Start the app:
+2. Start the app:
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000/giveaway](http://localhost:3000/giveaway).
-
-## Operations
-
-Sync sheet rows into Postgres:
-
-```bash
-npm run sync:entries
-```
-
-Refresh metrics and recompute ranking:
-
-```bash
-npm run refresh:metrics
-```
-
-Seed the review dataset into the database:
-
-```bash
-npm run seed:giveaway
-```
-
-Run the deterministic raffle utility after the contest closes:
-
-```bash
-npm run raffle -- --seed="COS-YYYY-MM" --winners=6
-```
+3. Open [http://localhost:3000](http://localhost:3000)
 
 ## Validation
 
 ```bash
 npm run lint
-npm run typecheck
 npm run build
 ```
 
-## Docs
+## Notes
 
-- [DEPLOY.md](/Users/alexgorgi/Documents/Playground/DEPLOY.md)
-- [SHEET_COLUMNS.md](/Users/alexgorgi/Documents/Playground/SHEET_COLUMNS.md)
-- [METRICS_PIPELINE.md](/Users/alexgorgi/Documents/Playground/METRICS_PIPELINE.md)
-- [ADMIN_GUIDE.md](/Users/alexgorgi/Documents/Playground/ADMIN_GUIDE.md)
+- This repo still contains some legacy routes for earlier demos, but the current product story is driven by `/`, `/onboarding`, `/explore`, `/events/[eventId]`, `/my-events`, and the `/studio` flow.
+- All core demo media used by the event experience is bundled locally.
