@@ -145,15 +145,22 @@ export default function StudioLaunchPage() {
             </div>
           </div>
 
-          <div className="mt-6 flex gap-2 overflow-x-auto pb-1 subtle-scrollbar">
+          <div className="mt-6 grid grid-cols-5 gap-1.5 sm:flex sm:gap-2 sm:overflow-x-auto sm:pb-1 sm:subtle-scrollbar">
             {tabs.map((item) => (
               <button
-                className={`pill ${tab === item ? "pill-active" : "text-app-muted hover:border-white/15 hover:text-white"}`}
+                className={`pill !rounded-[14px] !px-2 !py-2 text-[11px] font-semibold leading-none tracking-[-0.01em] whitespace-nowrap sm:!rounded-full sm:!px-3 sm:!py-2 sm:text-xs ${
+                  tab === item ? "pill-active" : "text-app-muted hover:border-white/15 hover:text-white"
+                }`}
                 key={item}
                 onClick={() => router.replace(`${pathname}?tab=${item}`)}
                 type="button"
               >
-                {item === "run-of-show" ? "Run of Show" : item.charAt(0).toUpperCase() + item.slice(1)}
+                <span className="sm:hidden">
+                  {item === "run-of-show" ? "Run" : item.charAt(0).toUpperCase() + item.slice(1)}
+                </span>
+                <span className="hidden sm:inline">
+                  {item === "run-of-show" ? "Run of Show" : item.charAt(0).toUpperCase() + item.slice(1)}
+                </span>
               </button>
             ))}
           </div>
