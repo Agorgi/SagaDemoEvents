@@ -28,7 +28,7 @@ function matchesFilter(filter: ExploreFilter, haystack: string, city: string, us
   if (filter === "Nearby") {
     return city === userCity || city.endsWith("CA");
   }
-  return haystack.toLowerCase().includes(filter.toLowerCase().replace(/\s+/g, " "));
+  return true;
 }
 
 function pageCopy(mode: UserMode) {
