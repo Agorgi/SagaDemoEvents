@@ -78,7 +78,7 @@ export default function EventDetailPage() {
 
   const ticketSection = (
     <section className="surface-card p-5 sm:p-6">
-      <p className="text-sm font-semibold text-white">Ticket options</p>
+      <p className="text-sm font-semibold text-white">Tickets</p>
       <div className="mt-4 grid gap-3">
         {(launch?.plan.ticketPlan ?? [
           { label: thresholdMet ? "General ticket" : "Reserve spot", price: event.isFree ? 0 : 24, description: "Hold a place in the launch." }
@@ -87,7 +87,7 @@ export default function EventDetailPage() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="font-semibold text-white">{tier.label}</p>
-                <p className="mt-2 text-sm text-app-muted">{tier.description}</p>
+                {tier.description ? <p className="mt-2 text-sm text-app-muted">{tier.description}</p> : null}
               </div>
               <span className="text-lg font-semibold text-white">{tier.price > 0 ? `$${tier.price}` : "Free"}</span>
             </div>
@@ -100,10 +100,7 @@ export default function EventDetailPage() {
   const rolesSection = openRoles.length > 0 ? (
     <section className="surface-card p-5 sm:p-6">
       <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-sm font-semibold text-white">Open roles</p>
-          <p className="mt-2 text-sm text-app-muted">Fast applications, clear fit, direct to the host.</p>
-        </div>
+        <p className="text-sm font-semibold text-white">Open roles</p>
         <button
           className="rounded-2xl bg-app-purple px-4 py-3 text-sm font-semibold text-white transition hover:bg-app-purple-hover"
           onClick={() => setApplyOpen(true)}
@@ -227,13 +224,8 @@ export default function EventDetailPage() {
         </div>
 
         <section className="mt-6 surface-card p-5 sm:p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-sm font-semibold text-white">Event status</p>
-              <p className="mt-2 text-sm text-app-muted">
-                {launch?.plan.turnoutOutlook ?? "This launch is already moving."}
-              </p>
-            </div>
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-sm font-semibold text-white">Threshold progress</p>
             <StatusChip
               status={
                 launch?.status === "completed"
@@ -247,6 +239,9 @@ export default function EventDetailPage() {
           <div className="mt-4">
             <ThresholdProgress current={thresholdCurrent} target={thresholdTarget} />
           </div>
+          <p className="mt-3 text-sm text-app-muted">
+            {thresholdCurrent} of {thresholdTarget} reserve / ticket actions
+          </p>
         </section>
 
         <div className="mt-6 space-y-6">
@@ -284,17 +279,17 @@ export default function EventDetailPage() {
                   );
                 })
               ) : (
-                <p className="text-sm leading-6 text-app-muted">The team will show up here as roles get confirmed.</p>
+                <p className="text-sm text-app-muted">Team details will show here.</p>
               )}
             </div>
           </section>
 
           <section className="surface-card p-5 sm:p-6">
-            <p className="text-sm font-semibold text-white">Venue, schedule, FAQ</p>
+            <p className="text-sm font-semibold text-white">Details</p>
             <div className="mt-4 space-y-3 text-sm text-app-muted">
               <p>{event.venue}, {event.city}</p>
               <p>{formatDateRange(event.startsAt, event.endsAt)} · {formatTimeLabel(event.startsAt)}</p>
-              <p>Plan to arrive 20 minutes early. The room opens after you reserve or join the team.</p>
+              <p>Room unlocks after you reserve or join the team.</p>
             </div>
           </section>
 
@@ -303,7 +298,7 @@ export default function EventDetailPage() {
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-sm font-semibold text-white">Room unlocked</p>
-                  <p className="mt-2 text-sm text-app-muted">Updates and chat are now available for this event.</p>
+                  <p className="mt-2 text-sm text-app-muted">Updates and chat are ready.</p>
                 </div>
                 <Link
                   className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"

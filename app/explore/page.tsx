@@ -118,20 +118,8 @@ function ExplorePageContent() {
       });
   }, [activeFilter, currentUser.city, events, getEventCounts, query, view]);
 
-  const recommended = filteredEvents.slice(0, 4);
-  const almostThere = filteredEvents.filter((event) => {
-    const launch = launchByEventId.get(event.id);
-    if (!launch) {
-      return false;
-    }
-    const progress = (launch.reserveCount + launch.ticketCount) / Math.max(launch.plan.thresholdTarget, 1);
-    return progress >= 0.75 && progress < 1;
-  });
-  const needsTeam = filteredEvents.filter((event) => getEventCounts(event.id).open > 0);
-  const nearby = filteredEvents.filter((event) => event.city === currentUser.city);
-  const basedOnFandoms = filteredEvents.filter((event) =>
-    event.fandomTags.some((tag) => currentUser.fandomTags.includes(tag))
-  );
+  const featuredEvent = filteredEvents[0] ?? null;
+  const remainingEvents = filteredEvents.slice(1);
   const selectedApplyEvent =
     applyEventId ? events.find((event) => event.id === applyEventId) ?? null : null;
 
@@ -192,7 +180,7 @@ function ExplorePageContent() {
     const openRoles = getEventCounts(event.id).open;
 
     return (
-      <EventCard
+        <EventCard
         className={featured ? "" : ""}
         event={event}
         href={`/events/${event.id}`}
@@ -228,11 +216,10 @@ function ExplorePageContent() {
         primaryLabel={primaryLabel}
         reasonLine={reasonLineFor(event.id, event.title)}
         saved={savedEventIds.includes(event.id)}
-        secondaryLabel="See details"
         status={statusFor(event.id)}
         thresholdCurrent={thresholdCurrent}
         thresholdTarget={thresholdTarget}
-        variant={featured ? "featured" : "stacked"}
+        variant={featured ? "featured" : "row"}
       />
     );
   }
@@ -264,22 +251,24 @@ function ExplorePageContent() {
             />
           </label>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              className={`pill ${view === "events" ? "pill-active" : "text-app-muted hover:border-white/15 hover:text-white"}`}
-              onClick={() => setView("events")}
-              type="button"
-            >
-              Events
-            </button>
-            <button
-              className={`pill ${view === "openings" ? "pill-active" : "text-app-muted hover:border-white/15 hover:text-white"}`}
-              onClick={() => setView("openings")}
-              type="button"
-            >
-              Team openings
-            </button>
-          </div>
+          {mode !== "fan" ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                className={`pill ${view === "events" ? "pill-active" : "text-app-muted hover:border-white/15 hover:text-white"}`}
+                onClick={() => setView("events")}
+                type="button"
+              >
+                Events
+              </button>
+              <button
+                className={`pill ${view === "openings" ? "pill-active" : "text-app-muted hover:border-white/15 hover:text-white"}`}
+                onClick={() => setView("openings")}
+                type="button"
+              >
+                Team openings
+              </button>
+            </div>
+          ) : null}
 
           <div className="flex gap-2 overflow-x-auto pb-1 subtle-scrollbar">
             <FilterChip active={activeFilter === "All"} label="All" onClick={() => setActiveFilter("All")} />
@@ -294,25 +283,23 @@ function ExplorePageContent() {
           </div>
         </section>
 
-        <Section title="Recommended">
-          {recommended.slice(0, 1).map((event) => renderEventCard(event, true))}
-        </Section>
+        {featuredEvent ? (
+          <>
+            <Section title={mode === "creator" ? "Top opening" : "Featured"}>
+              {renderEventCard(featuredEvent, true)}
+            </Section>
 
-        <Section title="Almost there">
-          {almostThere.length > 0 ? almostThere.slice(0, 2).map((event) => renderEventCard(event)) : <Empty text="Nothing is close to unlocking right now." />}
-        </Section>
-
-        <Section title="Needs team">
-          {needsTeam.length > 0 ? needsTeam.slice(0, 3).map((event) => renderEventCard(event)) : <Empty text="Current launches already have the team they need." />}
-        </Section>
-
-        <Section title="This week nearby">
-          {nearby.length > 0 ? nearby.slice(0, 3).map((event) => renderEventCard(event)) : <Empty text="No nearby launches matched your filters." />}
-        </Section>
-
-        <Section title="Based on your fandoms">
-          {basedOnFandoms.length > 0 ? basedOnFandoms.slice(0, 3).map((event) => renderEventCard(event)) : <Empty text="Pick a few more fandoms in your profile and this will sharpen fast." />}
-        </Section>
+            {remainingEvents.length > 0 ? (
+              <Section title={mode === "creator" ? "More openings" : "More this week"}>
+                {remainingEvents.slice(0, 6).map((event) => renderEventCard(event))}
+              </Section>
+            ) : null}
+          </>
+        ) : (
+          <Section title={view === "openings" ? "No openings" : "No events"}>
+            <Empty text="Try another filter or search." />
+          </Section>
+        )}
       </main>
 
       {selectedApplyEvent ? (

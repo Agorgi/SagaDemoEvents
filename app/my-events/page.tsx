@@ -65,9 +65,7 @@ export default function MyEventsPage() {
       <main className="mx-auto w-full max-w-[900px] px-4 pb-28 pt-5 sm:px-6 sm:pb-12 sm:pt-8">
         <section className="space-y-2">
           <p className="text-sm uppercase tracking-[0.16em] text-app-muted">My Events</p>
-          <h1 className="text-4xl font-semibold text-white sm:text-5xl">
-            Keep your plans and commitments in one place
-          </h1>
+          <h1 className="text-4xl font-semibold text-white sm:text-5xl">Your list</h1>
         </section>
 
         <div className="mt-6 flex gap-2 overflow-x-auto pb-1 subtle-scrollbar">
@@ -119,7 +117,7 @@ export default function MyEventsPage() {
             })
           ) : (
             <div className="surface-card p-5">
-              <p className="text-sm leading-6 text-app-muted">Nothing here yet. Your next action will appear once you reserve, buy, apply, or save a launch.</p>
+              <p className="text-sm text-app-muted">Nothing here yet.</p>
             </div>
           )}
         </section>
@@ -127,4 +125,3 @@ export default function MyEventsPage() {
     </div>
   );
 }
-

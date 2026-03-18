@@ -40,7 +40,7 @@ export function EventCard({
   className,
   variant = "stacked",
   primaryLabel,
-  secondaryLabel = "See details",
+  secondaryLabel,
   saved = false,
   onPrimaryAction,
   onSecondaryAction,
@@ -68,7 +68,7 @@ export function EventCard({
                 <Link href={cardHref}>
                   <h3 className="truncate text-lg font-semibold text-white">{event.title}</h3>
                 </Link>
-                <p className="mt-1 truncate text-sm text-app-muted">{reasonLine}</p>
+            <p className="mt-1 truncate text-sm text-app-muted">{reasonLine}</p>
               </div>
               <StatusChip status={status === "live" && thresholdCurrent >= thresholdTarget ? "almost-there" : status} />
             </div>
@@ -182,12 +182,12 @@ export function EventCard({
           <span className="text-sm text-app-muted">{hostName}</span>
         </div>
 
-        <div className="mt-5 flex items-center gap-4">
-          <button
-            className="rounded-2xl bg-app-purple px-4 py-3 text-sm font-semibold text-white transition hover:bg-app-purple-hover"
-            onClick={onPrimaryAction}
-            type="button"
-          >
+          <div className="mt-5 flex items-center gap-4">
+            <button
+              className="rounded-2xl bg-app-purple px-4 py-3 text-sm font-semibold text-white transition hover:bg-app-purple-hover"
+              onClick={onPrimaryAction}
+              type="button"
+            >
             {primaryLabel}
           </button>
           {secondaryLabel ? (

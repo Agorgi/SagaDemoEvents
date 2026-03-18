@@ -13,30 +13,31 @@ export function LaunchSummaryCard({
   onAction?: () => void;
 }) {
   return (
-    <article className="surface-card p-5">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-sm text-app-muted">{formatDateRange(launch.startsAt)}</p>
-          <h3 className="mt-2 text-2xl font-semibold text-white">{launch.title}</h3>
-          <p className="mt-2 text-sm text-app-muted">{launch.city}</p>
+    <article className="surface-card p-4 sm:p-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusChip status={launch.status} />
+            <p className="text-sm text-app-muted">{formatDateRange(launch.startsAt)}</p>
+          </div>
+          <h3 className="mt-3 text-xl font-semibold text-white">{launch.title}</h3>
+          <p className="mt-1 text-sm text-app-muted">{launch.city}</p>
         </div>
-        <StatusChip status={launch.status} />
+        <button
+          className="shrink-0 rounded-2xl bg-app-purple px-4 py-3 text-sm font-semibold text-white transition hover:bg-app-purple-hover"
+          onClick={onAction}
+          type="button"
+        >
+          {actionLabel}
+        </button>
       </div>
-      <div className="mt-5">
+      <div className="mt-4">
         <ThresholdProgress
           compact
           current={launch.reserveCount + launch.ticketCount}
           target={launch.plan.thresholdTarget}
         />
       </div>
-      <button
-        className="mt-5 rounded-2xl bg-app-purple px-4 py-3 text-sm font-semibold text-white transition hover:bg-app-purple-hover"
-        onClick={onAction}
-        type="button"
-      >
-        {actionLabel}
-      </button>
     </article>
   );
 }
-

@@ -118,7 +118,6 @@ export default function StudioLaunchPage() {
                 <p className="text-sm text-app-muted">{formatDateRange(launch.startsAt)}</p>
               </div>
               <h1 className="mt-3 text-4xl font-semibold text-white sm:text-5xl">{launch.title}</h1>
-              <p className="mt-3 max-w-[58ch] text-sm leading-6 text-app-muted">{launch.plan.summary}</p>
             </div>
             <div className="flex flex-wrap gap-3">
               {!launch.published ? (
@@ -160,13 +159,12 @@ export default function StudioLaunchPage() {
           </div>
         </section>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(300px,0.8fr)]">
-          <div className="space-y-6">
+        <div className="mt-6 space-y-6">
             {tab === "overview" ? (
               <>
                 <NextActionPanel
                   actionLabel={!launch.published ? "Publish launch" : launch.plan.bestNextMove}
-                  body={launch.plan.turnoutOutlook}
+                  body={launch.published ? launch.plan.turnoutOutlook : "Review the plan, then publish when it feels ready."}
                   onAction={() => {
                     if (!launch.published) {
                       publishLaunch(launch.id);
@@ -178,7 +176,7 @@ export default function StudioLaunchPage() {
                 />
 
                 <section className="surface-card p-5 sm:p-6">
-                  <p className="text-sm font-semibold text-white">Built from your brief</p>
+                  <p className="text-sm font-semibold text-white">Plan</p>
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
                     <Metric label="Venue recommendation" value={launch.plan.venueRecommendation} />
                     <Metric label="Turnout outlook" value={launch.plan.turnoutOutlook} />
@@ -188,11 +186,10 @@ export default function StudioLaunchPage() {
                 </section>
 
                 <section className="surface-card p-5 sm:p-6">
-                  <p className="text-sm font-semibold text-white">Draft launch copy</p>
+                  <p className="text-sm font-semibold text-white">Launch copy</p>
                   <div className="mt-4 space-y-3 rounded-[24px] border border-white/8 bg-[#0d1119] p-4">
                     <p className="text-lg font-semibold text-white">{launch.plan.launchCopy.headline}</p>
                     <p className="text-sm text-app-muted">{launch.plan.launchCopy.socialBlurb}</p>
-                    <p className="text-sm text-app-muted">{launch.plan.launchCopy.inviteLine}</p>
                   </div>
                 </section>
               </>
@@ -203,14 +200,7 @@ export default function StudioLaunchPage() {
                 {roleBuckets.map((bucket) => (
                   <section className="surface-card p-5 sm:p-6" key={bucket.roleName}>
                     <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <p className="text-sm font-semibold text-white">{bucket.roleName}</p>
-                        <p className="mt-2 text-sm text-app-muted">
-                          {bucket.matches.length > 0
-                            ? "Suggested matches ranked by fandom fit, city, and event history."
-                            : "No matches surfaced yet."}
-                        </p>
-                      </div>
+                      <p className="text-sm font-semibold text-white">{bucket.roleName}</p>
                     </div>
                     <div className="mt-5 space-y-4">
                       {bucket.matches.slice(0, 3).map((match) => (
@@ -312,7 +302,7 @@ export default function StudioLaunchPage() {
                           )
                         : (
                             <div className="mt-5 border-t border-white/8 pt-5">
-                              <p className="text-sm text-app-muted">No applicants on this role yet.</p>
+                              <p className="text-sm text-app-muted">No applicants yet.</p>
                             </div>
                           )
                       : null}
@@ -471,50 +461,6 @@ export default function StudioLaunchPage() {
                 )}
               </section>
             ) : null}
-          </div>
-
-          <div className="space-y-6">
-            <aside className="surface-card p-5">
-              <p className="text-sm font-semibold text-white">Launch summary</p>
-              <div className="mt-4 space-y-3 text-sm text-app-muted">
-                <Row label="Format" value={launch.format} />
-                <Row label="City" value={launch.city} />
-                <Row label="Venue" value={launch.venue} />
-                <Row label="Budget" value={launch.budgetRange} />
-              </div>
-            </aside>
-
-            <aside className="surface-card p-5">
-              <p className="text-sm font-semibold text-white">Key risks</p>
-              <div className="mt-4 space-y-3">
-                {launch.plan.keyRisks.map((item) => (
-                  <p className="text-sm leading-6 text-app-muted" key={item}>
-                    {item}
-                  </p>
-                ))}
-              </div>
-            </aside>
-
-            {linkedEvent ? (
-              <aside className="surface-card p-5">
-                <p className="text-sm font-semibold text-white">Public page</p>
-                <div className="mt-4 flex flex-wrap gap-3">
-                  <Link
-                    className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
-                    href={`/events/${linkedEvent.id}`}
-                  >
-                    Open public page
-                  </Link>
-                  <Link
-                    className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
-                    href={`/communities/${linkedEvent.id}`}
-                  >
-                    Open room
-                  </Link>
-                </div>
-              </aside>
-            ) : null}
-          </div>
         </div>
       </main>
     </div>
@@ -524,17 +470,8 @@ export default function StudioLaunchPage() {
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-[22px] border border-white/8 bg-[#0d1119] p-4">
-      <p className="text-xs uppercase tracking-[0.14em] text-app-muted">{label}</p>
-      <p className="mt-3 text-sm font-semibold text-white">{value}</p>
-    </div>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between gap-3">
-      <span>{label}</span>
-      <span className="font-semibold text-white">{value}</span>
+      <p className="text-xs uppercase tracking-[0.12em] text-app-muted">{label}</p>
+      <p className="mt-2 text-sm font-semibold text-white">{value}</p>
     </div>
   );
 }
