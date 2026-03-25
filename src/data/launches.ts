@@ -749,7 +749,7 @@ export const seedLaunches: DemoLaunch[] = [
     status: "confirmed",
     teamRoleNames: ["Photographer", "Host Support", "Guest Experience"],
     published: true,
-    coverImageUrl: "/event-love-and-deepspace.jpg",
+    coverImageUrl: "/event-love-and-deepspace-rafayel.png",
     softLaunchSummary: "This fandom mixer already graduated from soft launch into a confirmed room with a locked date.",
     vibeNote: "Romance-game mood lighting, premium check-in, and a social flow built for photo moments.",
     guestLine: "Guest hosts and photo capture already slotted."
@@ -801,6 +801,7 @@ export const seedLaunches: DemoLaunch[] = [
     status: "live_soft_launch",
     teamRoleNames: ["Social Promo", "Photographer"],
     published: true,
+    coverImageUrl: "/launch-jujutsu-rooftop-screening.png",
     softLaunchSummary: "This one is still proving demand. Fans are locking early spots and voting on the best rooftop date.",
     vibeNote: "Big-screen energy, night skyline, and a crowd loud enough to justify the full build.",
     inspiration: ["Skyline terrace", "Projection wall", "Character cocktails"],
@@ -824,6 +825,7 @@ export const seedLaunches: DemoLaunch[] = [
     status: "near_goal",
     teamRoleNames: ["Guest Experience", "Social Promo", "Photographer"],
     published: true,
+    coverImageUrl: "/launch-starlit-idol-social.png",
     softLaunchSummary: "Almost there. One last wave of pledges should be enough to push this into venue pairing.",
     vibeNote: "Glossy, friendly, and set up to feel like a fandom afterparty with better photos."
   }),
@@ -845,6 +847,7 @@ export const seedLaunches: DemoLaunch[] = [
     status: "funded",
     teamRoleNames: ["Host Support", "Social Promo", "Photographer", "Event Ops"],
     published: true,
+    coverImageUrl: "/event-marvel-rivals-night-shift.png",
     softLaunchSummary: "The threshold is already cleared. The next move is choosing the best room and confirming the first run.",
     vibeNote: "A sharper, more spectator-friendly take on a fandom tournament night.",
     guestLine: "Commentator pair and creator host available once venue is paired."

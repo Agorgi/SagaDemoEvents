@@ -115,13 +115,7 @@ export type DemoFeedPost = {
 };
 
 const demoAssets = {
-  universeMarvel: createPosterDataUri({
-    title: "Rivals Lobby Chat",
-    subtitle: "Hero draft debates, watch-party plans, and tournament calls",
-    eyebrow: "community",
-    accent: "#A23737",
-    accent2: "#1F1CB8"
-  }),
+  universeMarvel: "/event-marvel-rivals-night-shift.png",
   universeGenshin: createPosterDataUri({
     title: "Digimon Night",
     subtitle: "Retro fandom mixer with projection battles and trading tables",
@@ -131,7 +125,7 @@ const demoAssets = {
   }),
   eventCosplay: "/event-genshin-scavenger-hunt.png",
   eventCourt: "/cosplay-live-drawing-poster.png",
-  eventDeepSpace: "/event-love-and-deepspace.jpg",
+  eventDeepSpace: "/event-love-and-deepspace-rafayel.png",
   eventUma: createPosterDataUri({
     title: "Uma Musume Dachi Meetup",
     subtitle: "Trackside social with merch tables and watch party energy",
@@ -140,13 +134,7 @@ const demoAssets = {
     accent2: "#7ED99C"
   }),
   eventGenshin: "/event-genshin-scavenger-hunt.png",
-  eventCollab: createPosterDataUri({
-    title: "Jujutsu Kaisen Night Out",
-    subtitle: "Late-night fandom social with creator tables",
-    eyebrow: "recommended",
-    accent: "#6D5EF3",
-    accent2: "#FF6B96"
-  }),
+  eventCollab: "/event-jujutsu-night-out.png",
   avatarZo: createAvatarDataUri("Zo Park", "#FF7A00", "#1F1CB8"),
   avatarRephos: createAvatarDataUri("Aphex", "#FF6B96", "#1F1CB8")
 };

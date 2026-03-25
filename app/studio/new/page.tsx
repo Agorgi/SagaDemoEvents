@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { Nav } from "@/src/components/Nav";
@@ -28,7 +28,7 @@ export default function NewStudioLaunchPage() {
 function NewStudioLaunchPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { createLaunch, launches, publishLaunch } = useAppState();
+  const { createLaunch, launches, publishLaunch, setMode } = useAppState();
   const copyId = searchParams.get("copy");
   const copySource = launches.find((launch) => launch.id === copyId);
   const [step, setStep] = useState(0);
@@ -84,6 +84,10 @@ function NewStudioLaunchPageContent() {
     [city, dateOptions, fandomTags, inspiration, teamRoleNames, thresholdTarget, ticketPrice, title]
   );
 
+  useEffect(() => {
+    setMode("host");
+  }, [setMode]);
+
   return (
     <div className="min-h-screen">
       <Nav />
@@ -91,10 +95,8 @@ function NewStudioLaunchPageContent() {
         <section className="surface-card-strong p-6 sm:p-8">
           <p className="text-sm uppercase tracking-[0.16em] text-app-muted">Create</p>
           <div className="mt-3">
-            <h1 className="text-4xl font-semibold text-white sm:text-5xl">Launch an idea</h1>
-            <p className="mt-3 max-w-[56ch] text-sm leading-6 text-app-muted">
-              Start with the concept. Fans can lock interest, pick the best date, and help push it into a real event.
-            </p>
+            <h1 className="text-4xl font-semibold text-white sm:text-5xl">Start a launch</h1>
+            <p className="mt-3 text-sm text-app-muted">Turn an idea into a real night.</p>
           </div>
         </section>
 

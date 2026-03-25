@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Avatar } from "@/src/components/Avatar";
 import { Nav } from "@/src/components/Nav";
@@ -50,11 +50,16 @@ export default function StudioLaunchPage() {
     addLaunchUpdate,
     acceptLaunchMatch,
     removeLaunchMatch,
-    acceptVenuePairing
+    acceptVenuePairing,
+    setMode
   } = useAppState();
   const { events, roles, inviteCandidate, confirmRole, passApplicant } = useDemoState();
   const [updateTitle, setUpdateTitle] = useState("");
   const [updateBody, setUpdateBody] = useState("");
+
+  useEffect(() => {
+    setMode("host");
+  }, [setMode]);
 
   const launch = launches.find((item) => item.id === params.id);
 
@@ -154,7 +159,7 @@ export default function StudioLaunchPage() {
                 <p className="text-sm text-app-muted">{formatDateRange(launch.startsAt)}</p>
               </div>
               <h1 className="mt-3 text-4xl font-semibold text-white sm:text-5xl">{launch.title}</h1>
-              <p className="mt-3 max-w-[60ch] text-sm leading-6 text-app-muted">{launch.softLaunchSummary}</p>
+              <p className="mt-3 text-sm text-app-muted">Turn an idea into a real night.</p>
             </div>
             <div className="flex flex-wrap gap-3">
               <button

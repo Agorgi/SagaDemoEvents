@@ -5,17 +5,12 @@ import { usePathname } from "next/navigation";
 
 import { Avatar } from "@/src/components/Avatar";
 import { ContextAwareHeader } from "@/src/components/ContextAwareHeader";
-import { PersonaSwitcher } from "@/src/components/PersonaSwitcher";
 import { useAppState } from "@/src/lib/app-state";
 import { cn } from "@/src/lib/utils";
 
 function isActive(pathname: string, href: string) {
   if (href === "/explore") {
-    return pathname === "/" || pathname.startsWith("/explore");
-  }
-
-  if (href === "/discover") {
-    return pathname.startsWith("/discover");
+    return pathname === "/" || pathname.startsWith("/explore") || pathname.startsWith("/discover");
   }
 
   if (href === "/work") {
@@ -25,6 +20,14 @@ function isActive(pathname: string, href: string) {
       pathname.startsWith("/listings/") ||
       pathname.startsWith("/businesses/")
     );
+  }
+
+  if (href === "/studio") {
+    return pathname.startsWith("/studio") || pathname.startsWith("/host");
+  }
+
+  if (href === "/my-events") {
+    return pathname.startsWith("/my-events") || pathname.startsWith("/saved");
   }
 
   if (href === "/profile") {
@@ -41,23 +44,17 @@ function isActive(pathname: string, href: string) {
 
 export function Nav() {
   const pathname = usePathname();
-  const { currentUser } = useAppState();
+  const { currentUser, inbox } = useAppState();
+  const unreadCount = inbox.filter((item) => item.unread).length;
 
   const desktopLinks = [
     { href: "/explore", label: "Home", mobileLabel: "Home" },
-    { href: "/discover", label: "Discover", mobileLabel: "Discover" },
     { href: "/work", label: "Work", mobileLabel: "Work" },
-    { href: "/my-events", label: "Plans", mobileLabel: "Plans" },
-    { href: "/inbox", label: "Activity", mobileLabel: "Activity" },
-    { href: "/profile", label: "Profile", mobileLabel: "Profile" }
-  ];
-  const mobileLinks = [
-    { href: "/explore", label: "Home", mobileLabel: "Home" },
-    { href: "/discover", label: "Discover", mobileLabel: "Discover" },
-    { href: "/work", label: "Work", mobileLabel: "Work" },
+    { href: "/studio", label: "Launch", mobileLabel: "Launch" },
     { href: "/my-events", label: "Plans", mobileLabel: "Plans" },
     { href: "/profile", label: "Profile", mobileLabel: "Profile" }
   ];
+  const mobileLinks = desktopLinks;
 
   return (
     <>
@@ -93,8 +90,19 @@ export function Nav() {
           </nav>
 
           <div className="ml-auto flex items-center gap-2.5">
-            <PersonaSwitcher className="hidden md:flex" />
             <ContextAwareHeader />
+            <Link
+              aria-label="Open updates"
+              className="relative inline-flex h-[42px] w-[42px] items-center justify-center rounded-full border border-white/8 bg-white/[0.03] text-white transition hover:border-white/16 hover:bg-white/[0.05]"
+              href="/inbox"
+            >
+              <BellIcon />
+              {unreadCount > 0 ? (
+                <span className="absolute right-1.5 top-1.5 inline-flex min-h-[16px] min-w-[16px] items-center justify-center rounded-full bg-app-purple px-1 text-[10px] font-bold text-white">
+                  {Math.min(unreadCount, 9)}
+                </span>
+              ) : null}
+            </Link>
             <Link
               aria-label={`Open ${currentUser.handle} profile`}
               className="rounded-full transition hover:scale-[1.02]"
@@ -116,7 +124,6 @@ export function Nav() {
         style={{ paddingBottom: "max(env(safe-area-inset-bottom), 12px)" }}
       >
         <div className="pointer-events-auto mx-auto max-w-[430px] space-y-2">
-          <PersonaSwitcher compact className="justify-between" />
           <div
             className="grid gap-1.5 rounded-[20px] border border-white/8 bg-[#0f1320]/94 p-1.5 shadow-[0_18px_44px_rgba(0,0,0,0.38)] backdrop-blur-xl"
             style={{ gridTemplateColumns: `repeat(${mobileLinks.length}, minmax(0, 1fr))` }}
@@ -139,5 +146,31 @@ export function Nav() {
         </div>
       </div>
     </>
+  );
+}
+
+function BellIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      fill="none"
+      height="18"
+      viewBox="0 0 24 24"
+      width="18"
+    >
+      <path
+        d="M12 4.75a4.25 4.25 0 0 0-4.25 4.25v2.06c0 .77-.2 1.53-.58 2.21l-1.07 1.92a1 1 0 0 0 .87 1.49h10.16a1 1 0 0 0 .87-1.49l-1.07-1.92a4.54 4.54 0 0 1-.58-2.21V9A4.25 4.25 0 0 0 12 4.75Z"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.7"
+      />
+      <path
+        d="M9.75 18.25a2.25 2.25 0 0 0 4.5 0"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.7"
+      />
+    </svg>
   );
 }
