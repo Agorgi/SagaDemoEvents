@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { Avatar } from "@/src/components/Avatar";
-import { ContextAwareHeader } from "@/src/components/ContextAwareHeader";
 import { useAppState } from "@/src/lib/app-state";
 import { cn } from "@/src/lib/utils";
 
@@ -92,7 +91,6 @@ export function Nav() {
           </nav>
 
           <div className="ml-auto flex items-center gap-2.5">
-            <ContextAwareHeader />
             <Link
               aria-label="Open updates"
               className="relative inline-flex h-[42px] w-[42px] items-center justify-center rounded-full border border-white/8 bg-white/[0.03] text-white transition hover:border-white/16 hover:bg-white/[0.05]"
