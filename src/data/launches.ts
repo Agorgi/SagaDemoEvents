@@ -826,7 +826,7 @@ export const seedLaunches: DemoLaunch[] = [
     teamRoleNames: ["Guest Experience", "Social Promo", "Photographer"],
     published: true,
     coverImageUrl: "/launch-starlit-idol-social.png",
-    softLaunchSummary: "Almost there. One last wave of pledges should be enough to push this into venue pairing.",
+    softLaunchSummary: "Almost there. One last wave of reserves should be enough to push this into venue pairing.",
     vibeNote: "Glossy, friendly, and set up to feel like a fandom afterparty with better photos."
   }),
   createSeedLaunch({

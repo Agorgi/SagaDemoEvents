@@ -65,8 +65,8 @@ export default function CampaignDetailPage() {
           ? "Host"
           : "Support"
         : currentPledge?.kind === "pledged"
-          ? "View launch"
-          : "Pledge";
+          ? "Reserved"
+          : "Reserve";
 
   return (
     <div className="min-h-screen">
@@ -84,31 +84,14 @@ export default function CampaignDetailPage() {
               <div className="absolute left-4 top-4">
                 <StatusChip status={launch.status} />
               </div>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <h1 className="text-[32px] font-semibold leading-tight text-white sm:text-[42px]">
-                {launch.title}
-              </h1>
-              <p className="text-sm leading-6 text-white/78">{launch.softLaunchSummary}</p>
-            </div>
-
-            <div className="flex items-center justify-between gap-3">
-              <Link className="flex min-w-0 items-center gap-3" href={`/profiles/${host?.id ?? launch.hostId}`}>
-                <Avatar name={host?.name ?? "Host"} size="sm" src={host?.avatarUrl} />
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-white">{host?.name ?? "Host"}</p>
-                  <p className="text-xs text-app-muted">{launch.guestLine || "Building momentum"}</p>
-                </div>
-              </Link>
-              <div className="flex items-center gap-2">
+              <div className="absolute right-4 top-4 z-[2] flex items-center gap-2">
                 {!isOwner && !isConfirmed ? (
                   <IconActionButton
                     ariaLabel={isSaved ? "Saved launch" : "Save launch"}
                     onClick={() => {
-                      watchLaunch(launch.id, launch.dateOptions[0]?.id);
+                      if (!isSaved) {
+                        watchLaunch(launch.id, launch.dateOptions[0]?.id);
+                      }
                     }}
                     selected={isSaved}
                   >
@@ -126,6 +109,25 @@ export default function CampaignDetailPage() {
                   <ShareIcon />
                 </IconActionButton>
               </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <h1 className="text-[32px] font-semibold leading-tight text-white sm:text-[42px]">
+                {launch.title}
+              </h1>
+              <p className="text-sm leading-6 text-white/78">{launch.softLaunchSummary}</p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Link className="flex min-w-0 items-center gap-3" href={`/profiles/${host?.id ?? launch.hostId}`}>
+                <Avatar name={host?.name ?? "Host"} size="sm" src={host?.avatarUrl} />
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-white">{host?.name ?? "Host"}</p>
+                  <p className="text-xs text-app-muted">{launch.guestLine || "Building momentum"}</p>
+                </div>
+              </Link>
             </div>
 
             <div className="rounded-[24px] border border-white/8 bg-[#0d1119] px-4 py-4">
@@ -173,7 +175,7 @@ export default function CampaignDetailPage() {
             <div className="mt-4">
               <ThresholdProgress
                 current={progress.current}
-                label="Pledges to unlock"
+                label="Reserves to unlock"
                 target={progress.target}
               />
             </div>
@@ -254,10 +256,14 @@ function IconActionButton({
       aria-label={ariaLabel}
       className={`flex h-10 w-10 items-center justify-center rounded-full border transition ${
         selected
-          ? "border-app-purple/60 bg-app-purple/12 text-white"
-          : "border-white/10 bg-white/[0.03] text-white/82 hover:border-white/20"
+          ? "border-app-purple/60 bg-app-purple/20 text-white shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-sm"
+          : "border-white/12 bg-[#0a0d14]/72 text-white/88 shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-sm hover:border-white/24"
       }`}
-      onClick={onClick}
+      onClick={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        onClick();
+      }}
       type="button"
     >
       {children}

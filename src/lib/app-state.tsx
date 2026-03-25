@@ -1614,8 +1614,8 @@ export function AppStateProvider({
             updates: [
               {
                 id: `${launch.id}-pledge-${Date.now()}`,
-                title: "New pledge came in",
-                body: "A supporter locked a spot and helped push the event toward confirmation.",
+                title: "New reserve came in",
+                body: "A supporter reserved a spot and helped push the event toward confirmation.",
                 createdAt: new Date().toISOString()
               },
               ...launch.updates
@@ -1628,7 +1628,7 @@ export function AppStateProvider({
           {
             id: `inbox-pledge-${launchId}-${Date.now()}`,
             kind: "tickets",
-            title: "Pledge saved",
+            title: "Reserve saved",
             body: "Your spot is pending until the launch clears threshold and confirms.",
             href: `/campaigns/${launchId}`,
             createdAt: new Date().toISOString(),
@@ -1640,7 +1640,7 @@ export function AppStateProvider({
           createActivityEntry({
             kind: "event",
             actorIds: [currentUserId],
-            title: "Pledged a soft launch",
+            title: "Reserved a soft launch",
             body: "You picked a date and helped move the event toward venue pairing.",
             href: `/campaigns/${launchId}`
           }),
@@ -1784,7 +1784,7 @@ export function AppStateProvider({
                   {
                     id: `${item.id}-launch-${Date.now()}`,
                     title: "Soft launch is live",
-                    body: "Fans can now watch it, pledge early, and vote on the best date.",
+                    body: "Fans can now watch it, reserve early, and vote on the best date.",
                     createdAt: new Date().toISOString()
                   },
                   ...item.updates

@@ -39,7 +39,7 @@ export function LaunchSummaryCard({
         <ThresholdProgress
           compact
           current={progress.current}
-          label={launch.eventId ? "Confirmed turnout" : "Pledges to unlock"}
+          label={launch.eventId ? "Confirmed turnout" : "Reserves to unlock"}
           target={progress.target}
         />
       </div>

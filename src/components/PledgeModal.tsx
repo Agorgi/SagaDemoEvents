@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Modal } from "@/src/components/Modal";
 import { type DemoLaunch } from "@/src/data/launches";
@@ -22,16 +22,20 @@ export function PledgeModal({
     launch.dateOptions[0]?.id ?? ""
   );
 
+  useEffect(() => {
+    setSelectedDateOptionId(launch.dateOptions[0]?.id ?? "");
+  }, [launch.id, launch.dateOptions]);
+
   return (
     <Modal
-      description="Nothing charges now. You lock your price, pick the date that works best, and we confirm once the launch clears its threshold."
+      description="Nothing charges now. Choose the date that works best, then submit your reserve."
       onClose={onClose}
       open={open}
-      title="Back this launch"
+      title="Reserve your spot"
     >
       <div className="space-y-5">
         <div className="rounded-[24px] border border-white/8 bg-[#0d1119] p-4">
-          <p className="text-sm text-app-muted">Locked ticket</p>
+          <p className="text-sm text-app-muted">Pending ticket</p>
           <p className="mt-2 text-3xl font-semibold text-white">${launch.ticketPrice}</p>
           <p className="mt-2 text-sm leading-6 text-app-muted">{launch.softLaunchSummary}</p>
         </div>
@@ -77,7 +81,7 @@ export function PledgeModal({
             }}
             type="button"
           >
-            Pledge spot
+            Submit
           </button>
         </div>
       </div>

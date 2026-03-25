@@ -24,7 +24,7 @@ type AppliedItem = {
 
 const tabs: Array<{ label: string; value: PlansTab }> = [
   { label: "Going", value: "going" },
-  { label: "Pledged", value: "pledged" },
+  { label: "Reserved", value: "pledged" },
   { label: "Saved", value: "saved" },
   { label: "Applied", value: "applied" }
 ];
@@ -119,7 +119,7 @@ function PlansPageContent() {
         <section className="space-y-2">
           <p className="text-sm uppercase tracking-[0.16em] text-app-muted">Plans</p>
           <h1 className="text-4xl font-semibold text-white sm:text-5xl">Plans</h1>
-          <p className="text-sm text-app-muted">Saved, pledged, and going.</p>
+          <p className="text-sm text-app-muted">Saved, reserved, and going.</p>
         </section>
 
         <div className="mt-6 flex gap-2 overflow-x-auto pb-1 subtle-scrollbar">
@@ -215,7 +215,7 @@ function PlansPageContent() {
             (activeTab === "applied" && appliedItems.length === 0)) ? (
             <div className="surface-card p-5">
               <p className="text-sm font-semibold text-white">Nothing here yet.</p>
-              <p className="mt-2 text-sm text-app-muted">When you save, pledge, or apply, it lands here.</p>
+              <p className="mt-2 text-sm text-app-muted">When you save, reserve, or apply, it lands here.</p>
             </div>
           ) : null}
         </section>

@@ -6,6 +6,7 @@ import { CampaignCard } from "@/src/components/CampaignCard";
 import { EventCard } from "@/src/components/EventCard";
 import { FilterChip } from "@/src/components/Chips";
 import { Nav } from "@/src/components/Nav";
+import { PledgeModal } from "@/src/components/PledgeModal";
 import { getUserById } from "@/src/data/demo";
 import { useAppState } from "@/src/lib/app-state";
 import { useDemoState } from "@/src/lib/demo-state";
@@ -20,6 +21,7 @@ export default function ExplorePage() {
     currentUserId,
     homeCity,
     launches,
+    pledgeLaunch,
     preferredFandoms,
     resolveUser,
     savedEventIds,
@@ -30,6 +32,7 @@ export default function ExplorePage() {
   const { events } = useDemoState();
   const [activeFilter, setActiveFilter] = useState<HomeFilter>("All");
   const [query, setQuery] = useState("");
+  const [reserveLaunchId, setReserveLaunchId] = useState<string | null>(null);
 
   useEffect(() => {
     setMode("fan");
@@ -68,6 +71,9 @@ export default function ExplorePage() {
     activeFilter === "Soft launch" ? [] : confirmedEvents;
   const visibleLaunches =
     activeFilter === "Happening" ? [] : softLaunches;
+  const reserveLaunch = reserveLaunchId
+    ? launches.find((launch) => launch.id === reserveLaunchId)
+    : null;
 
   async function handleShare(path: string, title: string, text: string) {
     if (typeof window === "undefined") {
@@ -196,7 +202,7 @@ export default function ExplorePage() {
                       launch={launch}
                       metadataLine={`${launch.city} · ${launch.dateOptions.length} date options`}
                       onPrimaryAction={() => {
-                        window.location.assign(`/campaigns/${launch.id}`);
+                        setReserveLaunchId(launch.id);
                       }}
                       onShareAction={() =>
                         handleShare(`/campaigns/${launch.id}`, launch.title, launch.softLaunchSummary)
@@ -209,7 +215,7 @@ export default function ExplorePage() {
                           }
                         }
                       }}
-                      primaryLabel="Pledge"
+                      primaryLabel={currentPledge?.kind === "pledged" ? "Reserved" : "Reserve"}
                       reasonLine={launch.softLaunchSummary}
                       saved={Boolean(currentPledge)}
                       socialLine={`${
@@ -229,6 +235,16 @@ export default function ExplorePage() {
             </div>
           ) : null}
         </section>
+
+        {reserveLaunch ? (
+          <PledgeModal
+            launch={reserveLaunch}
+            onClose={() => setReserveLaunchId(null)}
+            onPledge={(dateOptionId) => pledgeLaunch(reserveLaunch.id, dateOptionId)}
+            onWatch={(dateOptionId) => watchLaunch(reserveLaunch.id, dateOptionId)}
+            open={Boolean(reserveLaunch)}
+          />
+        ) : null}
       </main>
     </div>
   );

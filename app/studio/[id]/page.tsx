@@ -104,7 +104,7 @@ export default function StudioLaunchPage() {
     launch.status === "draft"
       ? {
           title: "Launch the interest check",
-          body: "The concept is staged. Open it to fans so date votes and early pledges can start rolling in.",
+          body: "The concept is staged. Open it to fans so date votes and early reserves can start rolling in.",
           label: "Launch soft launch",
           action: () => publishLaunch(launch.id)
         }
@@ -240,13 +240,13 @@ export default function StudioLaunchPage() {
                 <div className="mt-4">
                   <ThresholdProgress
                     current={funding.current}
-                    label="Pledges to unlock"
+                    label="Reserves to unlock"
                     target={funding.target}
                   />
                 </div>
                 <div className="mt-4 grid gap-3 sm:grid-cols-3">
                   <MetricCard label="Watching" value={String(funding.watchers)} />
-                  <MetricCard label="Pledged" value={String(funding.pledges)} />
+                  <MetricCard label="Reserved" value={String(funding.pledges)} />
                   <MetricCard label="Status" value={funding.statusLine} />
                 </div>
               </section>

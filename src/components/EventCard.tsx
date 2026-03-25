@@ -67,36 +67,8 @@ export function EventCard({
           <div className="absolute left-4 top-4">
             <StatusChip status={status} />
           </div>
-        </div>
-      </Link>
-
-      <div className="space-y-3 p-4 sm:p-5">
-        <div className="space-y-1.5">
-          <Link href={cardHref}>
-            <h3 className="line-clamp-2 text-2xl font-semibold leading-tight text-white sm:text-[28px]">
-              {event.title}
-            </h3>
-          </Link>
-          <p className="text-sm text-white/68">{metadataLine}</p>
-          <p className="line-clamp-1 text-sm text-white/76">{reasonLine}</p>
-        </div>
-
-        {hostName || onToggleSaved || onShareAction ? (
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-3">
-              {hostName ? (
-                <>
-                  <Avatar name={hostName} size="sm" src={hostAvatarUrl} />
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-white">{hostName}</p>
-                    <p className="truncate text-xs text-app-muted">{hostSubline ?? socialLine}</p>
-                  </div>
-                </>
-              ) : (
-                <p className="line-clamp-1 text-sm text-app-muted">{socialLine}</p>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
+          {onToggleSaved || onShareAction ? (
+            <div className="absolute right-4 top-4 z-[2] flex items-center gap-2">
               {onToggleSaved ? (
                 <IconActionButton
                   ariaLabel={saved ? "Unsave event" : "Save event"}
@@ -111,6 +83,30 @@ export function EventCard({
                   <ShareIcon />
                 </IconActionButton>
               ) : null}
+            </div>
+          ) : null}
+        </div>
+      </Link>
+
+      <div className="space-y-3 p-4 sm:p-5">
+        <div className="space-y-1.5">
+          <Link href={cardHref}>
+            <h3 className="line-clamp-2 text-2xl font-semibold leading-tight text-white sm:text-[28px]">
+              {event.title}
+            </h3>
+          </Link>
+          <p className="text-sm text-white/68">{metadataLine}</p>
+          <p className="line-clamp-1 text-sm text-white/76">{reasonLine}</p>
+        </div>
+
+        {hostName ? (
+          <div className="flex items-center gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <Avatar name={hostName} size="sm" src={hostAvatarUrl} />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-white">{hostName}</p>
+                <p className="truncate text-xs text-app-muted">{hostSubline ?? socialLine}</p>
+              </div>
             </div>
           </div>
         ) : (
@@ -144,12 +140,16 @@ function IconActionButton({
     <button
       aria-label={ariaLabel}
       className={cn(
-        "flex h-10 w-10 items-center justify-center rounded-full border transition",
+        "flex h-10 w-10 items-center justify-center rounded-full border shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-sm transition",
         selected
-          ? "border-app-purple/60 bg-app-purple/12 text-white"
-          : "border-white/10 bg-white/[0.03] text-white/82 hover:border-white/20"
+          ? "border-app-purple/60 bg-app-purple/20 text-white"
+          : "border-white/12 bg-[#0a0d14]/72 text-white/88 hover:border-white/24"
       )}
-      onClick={onClick}
+      onClick={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        onClick();
+      }}
       type="button"
     >
       {children}
