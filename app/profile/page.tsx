@@ -199,8 +199,10 @@ export default function ProfilePage() {
 
         <div className="mt-8">
           <ServicesSection
-            actionLabel="Manage"
-            onAction={() => setManageOpen(true)}
+            actionLabel="Add service"
+            onAction={() => router.push("/profile/services/new")}
+            onSecondaryAction={() => setManageOpen(true)}
+            secondaryActionLabel="Manage"
             services={profile.services}
             title="Available services"
           />

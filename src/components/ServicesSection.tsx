@@ -8,26 +8,43 @@ export function ServicesSection({
   services,
   publicView = false,
   actionLabel,
-  onAction
+  onAction,
+  secondaryActionLabel,
+  onSecondaryAction
 }: {
   title: string;
   services: ProfileService[];
   publicView?: boolean;
   actionLabel?: string;
   onAction?: () => void;
+  secondaryActionLabel?: string;
+  onSecondaryAction?: () => void;
 }) {
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-base font-semibold text-white">{title}</h2>
-        {actionLabel && onAction ? (
-          <button
-            className="text-sm font-medium text-app-muted transition hover:text-white"
-            onClick={onAction}
-            type="button"
-          >
-            {actionLabel}
-          </button>
+        {(actionLabel && onAction) || (secondaryActionLabel && onSecondaryAction) ? (
+          <div className="flex items-center gap-3">
+            {secondaryActionLabel && onSecondaryAction ? (
+              <button
+                className="text-sm font-medium text-app-muted transition hover:text-white"
+                onClick={onSecondaryAction}
+                type="button"
+              >
+                {secondaryActionLabel}
+              </button>
+            ) : null}
+            {actionLabel && onAction ? (
+              <button
+                className="inline-flex min-h-[36px] items-center rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-sm font-semibold text-white transition hover:border-white/20 hover:bg-white/[0.05]"
+                onClick={onAction}
+                type="button"
+              >
+                {actionLabel}
+              </button>
+            ) : null}
+          </div>
         ) : null}
       </div>
 

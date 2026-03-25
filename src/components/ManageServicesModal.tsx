@@ -7,16 +7,6 @@ import { type ProfileService } from "@/src/data/creator-profiles";
 
 type EditableService = ProfileService;
 
-function createEmptyService(): EditableService {
-  return {
-    id: `service-${Math.random().toString(36).slice(2, 8)}`,
-    title: "",
-    pricingLabel: "",
-    shortDescription: "",
-    visibleOnPublicProfile: true
-  };
-}
-
 export function ManageServicesModal({
   open,
   services,
@@ -141,14 +131,6 @@ export function ManageServicesModal({
             </div>
           </div>
         ))}
-
-        <button
-          className="inline-flex min-h-[46px] items-center rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
-          onClick={() => setDraftServices((current) => [...current, createEmptyService()])}
-          type="button"
-        >
-          Add service
-        </button>
 
         <button
           className="inline-flex min-h-[48px] w-full items-center justify-center rounded-2xl bg-app-purple px-4 py-3 text-sm font-semibold text-white transition hover:bg-app-purple-hover"
