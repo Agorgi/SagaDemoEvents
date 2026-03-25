@@ -6,12 +6,6 @@ import { useEffect } from "react";
 import { getOnboardingLandingPath } from "@/src/data/onboarding";
 import { useAppState } from "@/src/lib/app-state";
 
-const UNGATED_PREFIXES = ["/onboarding", "/admin", "/giveaway"];
-
-function isUngatedPath(pathname: string) {
-  return UNGATED_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
-}
-
 export function OnboardingGate({
   children
 }: {
@@ -28,7 +22,9 @@ export function OnboardingGate({
 
     const completed = onboarding.completed || onboarding.hasCompletedOnboarding;
 
-    if (!completed && !isUngatedPath(pathname)) {
+    // In the demo, onboarding should be the entry experience from root,
+    // not a blocking guard on every route people click through.
+    if (!completed && pathname === "/") {
       router.replace("/onboarding");
       return;
     }
