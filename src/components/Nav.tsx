@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 import { Avatar } from "@/src/components/Avatar";
 import { useAppState } from "@/src/lib/app-state";
@@ -43,7 +42,6 @@ function isActive(pathname: string, href: string) {
 
 export function Nav() {
   const pathname = usePathname();
-  const router = useRouter();
   const { currentUser, inbox } = useAppState();
   const unreadCount = inbox.filter((item) => item.unread).length;
 
@@ -60,7 +58,7 @@ export function Nav() {
     <>
       <header className="sticky top-0 z-40 border-b border-white/6 bg-[#090b10]/92 backdrop-blur-xl">
         <div className="mx-auto flex min-h-[60px] w-full max-w-[1240px] items-center gap-3 px-4 py-2 sm:min-h-[68px] sm:px-6">
-          <Link
+          <a
             aria-label="Saga home"
             className="flex shrink-0 items-center"
             href="/explore"
@@ -71,11 +69,11 @@ export function Nav() {
               className="block h-[38px] w-auto max-w-none object-contain sm:h-[42px]"
               src="/group-88462-v2.png"
             />
-          </Link>
+          </a>
 
           <nav className="ml-3 hidden items-center gap-1 md:flex">
             {desktopLinks.map((link) => (
-              <Link
+              <a
                 aria-label={`Open ${link.label}`}
                 className={cn(
                   "rounded-[16px] px-3 py-2 text-sm font-medium transition",
@@ -87,12 +85,12 @@ export function Nav() {
                 key={link.href}
               >
                 {link.label}
-              </Link>
+              </a>
             ))}
           </nav>
 
           <div className="ml-auto flex items-center gap-2.5">
-            <Link
+            <a
               aria-label="Open updates"
               className="relative inline-flex h-[42px] w-[42px] items-center justify-center rounded-full border border-white/8 bg-white/[0.03] text-white transition hover:border-white/16 hover:bg-white/[0.05]"
               href="/inbox"
@@ -103,8 +101,8 @@ export function Nav() {
                   {Math.min(unreadCount, 9)}
                 </span>
               ) : null}
-            </Link>
-            <Link
+            </a>
+            <a
               aria-label={`Open ${currentUser.handle} profile`}
               className="rounded-full transition hover:scale-[1.02]"
               href="/profile"
@@ -115,7 +113,7 @@ export function Nav() {
                 size="sm"
                 src={currentUser.avatarUrl}
               />
-            </Link>
+            </a>
           </div>
         </div>
       </header>
@@ -130,7 +128,7 @@ export function Nav() {
             style={{ gridTemplateColumns: `repeat(${mobileLinks.length}, minmax(0, 1fr))` }}
           >
             {mobileLinks.map((link) => (
-              <button
+              <a
                 aria-label={`Open ${link.mobileLabel}`}
                 className={cn(
                   "min-h-[40px] min-w-0 rounded-[16px] px-1.5 py-2.5 text-center text-[10px] font-semibold leading-none tracking-[-0.01em] whitespace-nowrap transition",
@@ -138,12 +136,11 @@ export function Nav() {
                     ? "bg-app-purple text-white"
                     : "text-app-muted hover:bg-white/[0.03] hover:text-white"
                 )}
+                href={link.href}
                 key={link.href}
-                onClick={() => router.push(link.href)}
-                type="button"
               >
                 {link.mobileLabel}
-              </button>
+              </a>
             ))}
           </div>
         </div>
