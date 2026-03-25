@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useState } from "react";
 
 import { Avatar } from "@/src/components/Avatar";
 import { Nav } from "@/src/components/Nav";
-import { PortfolioStrip } from "@/src/components/PortfolioStrip";
+import { PortfolioLightboxModal } from "@/src/components/PortfolioLightboxModal";
 import { ProfileStatsCard } from "@/src/components/ProfileStatsCard";
 import { ServicesSection } from "@/src/components/ServicesSection";
 import { TagChip } from "@/src/components/Chips";
@@ -17,6 +18,7 @@ export default function UserProfilePage() {
   const params = useParams<{ userId: string }>();
   const { currentUserId, followingIds, resolveCreatorProfile, resolveUser, toggleFollow } = useAppState();
   const { events } = useDemoState();
+  const [activePortfolioItemId, setActivePortfolioItemId] = useState<string | null>(null);
 
   const user = resolveUser(params.userId);
   const profile = resolveCreatorProfile(params.userId);
@@ -35,6 +37,8 @@ export default function UserProfilePage() {
   const isCurrentUser = currentUserId === user.id;
   const isFollowing = followingIds.includes(user.id);
   const visibleServices = profile.services.filter((service) => service.visibleOnPublicProfile);
+  const activePortfolioItem =
+    profile.portfolio.find((item) => item.id === activePortfolioItemId) ?? null;
   const featuredEvents = events
     .filter(
       (event) =>
@@ -146,7 +150,24 @@ export default function UserProfilePage() {
         <div className="mt-6 space-y-8">
           <section className="space-y-3">
             <h2 className="text-base font-semibold text-white">Portfolio</h2>
-            <PortfolioStrip items={profile.portfolio} />
+            {profile.portfolio.length > 0 ? (
+              <div className="flex gap-3 overflow-x-auto pb-1 subtle-scrollbar">
+                {profile.portfolio.map((item) => (
+                  <button
+                    className="w-[180px] shrink-0 overflow-hidden rounded-[24px] border border-white/8 bg-[#0d1119] transition hover:border-white/14"
+                    key={item.id}
+                    onClick={() => setActivePortfolioItemId(item.id)}
+                    type="button"
+                  >
+                    <img
+                      alt={item.title ?? "Portfolio item"}
+                      className="h-[220px] w-full object-cover"
+                      src={item.image}
+                    />
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </section>
 
           <ServicesSection publicView services={visibleServices} title="Services" />
@@ -179,6 +200,12 @@ export default function UserProfilePage() {
           ) : null}
         </div>
       </main>
+
+      <PortfolioLightboxModal
+        item={activePortfolioItem}
+        onClose={() => setActivePortfolioItemId(null)}
+        open={Boolean(activePortfolioItem)}
+      />
     </div>
   );
 }
