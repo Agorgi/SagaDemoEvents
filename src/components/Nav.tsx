@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { Avatar } from "@/src/components/Avatar";
 import { useAppState } from "@/src/lib/app-state";
@@ -43,6 +43,7 @@ function isActive(pathname: string, href: string) {
 
 export function Nav() {
   const pathname = usePathname();
+  const router = useRouter();
   const { currentUser, inbox } = useAppState();
   const unreadCount = inbox.filter((item) => item.unread).length;
 
@@ -120,28 +121,29 @@ export function Nav() {
       </header>
 
       <div
-        className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 md:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 px-3 md:hidden"
         style={{ paddingBottom: "max(env(safe-area-inset-bottom), 12px)" }}
       >
-        <div className="pointer-events-auto mx-auto max-w-[430px] space-y-2">
+        <div className="mx-auto max-w-[430px] space-y-2">
           <div
             className="grid gap-1.5 rounded-[20px] border border-white/8 bg-[#0f1320]/94 p-1.5 shadow-[0_18px_44px_rgba(0,0,0,0.38)] backdrop-blur-xl"
             style={{ gridTemplateColumns: `repeat(${mobileLinks.length}, minmax(0, 1fr))` }}
           >
             {mobileLinks.map((link) => (
-              <Link
+              <button
                 aria-label={`Open ${link.mobileLabel}`}
                 className={cn(
-                  "min-w-0 rounded-[16px] px-1.5 py-2.5 text-center text-[10px] font-semibold leading-none tracking-[-0.01em] whitespace-nowrap transition",
+                  "min-h-[40px] min-w-0 rounded-[16px] px-1.5 py-2.5 text-center text-[10px] font-semibold leading-none tracking-[-0.01em] whitespace-nowrap transition",
                   isActive(pathname, link.href)
                     ? "bg-app-purple text-white"
                     : "text-app-muted hover:bg-white/[0.03] hover:text-white"
                 )}
-                href={link.href}
                 key={link.href}
+                onClick={() => router.push(link.href)}
+                type="button"
               >
                 {link.mobileLabel}
-              </Link>
+              </button>
             ))}
           </div>
         </div>
