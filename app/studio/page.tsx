@@ -2,15 +2,18 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
+import { LaunchChoiceCard } from "@/src/components/LaunchChoiceCard";
 import { LaunchSummaryCard } from "@/src/components/LaunchSummaryCard";
-import { type DemoLaunch } from "@/src/data/launches";
 import { Nav } from "@/src/components/Nav";
 import { useAppState } from "@/src/lib/app-state";
 import { HOST_DEMO_USER_ID } from "@/src/lib/host-mode";
+import { formatDateLabel } from "@/src/lib/utils";
 
 export default function StudioPage() {
-  const { launches, setMode } = useAppState();
+  const router = useRouter();
+  const { launchDrafts, launches, setMode, startLaunchDraft } = useAppState();
 
   useEffect(() => {
     setMode("host");
@@ -20,94 +23,106 @@ export default function StudioPage() {
     .filter((launch) => launch.hostId === HOST_DEMO_USER_ID)
     .sort((left, right) => Number(left.status === "completed") - Number(right.status === "completed"));
 
-  const drafts = hostLaunches.filter((launch) => launch.status === "draft");
-  const liveSoftLaunches = hostLaunches.filter((launch) => launch.status === "live_soft_launch");
-  const nearGoalLaunches = hostLaunches.filter((launch) => launch.status === "near_goal");
-  const confirmedLaunches = hostLaunches.filter(
-    (launch) => launch.status === "confirmed" || launch.status === "paired" || Boolean(launch.eventId)
-  );
+  const continueDrafts = launchDrafts
+    .filter((draft) => draft.hostId === HOST_DEMO_USER_ID && draft.draftStatus !== "published")
+    .sort((left, right) => Date.parse(right.updatedAt) - Date.parse(left.updatedAt));
+
+  function beginDraft(mode: "soft" | "happening") {
+    const draftId = startLaunchDraft(mode);
+    router.push(`/studio/new?draft=${draftId}`);
+  }
 
   return (
     <div className="min-h-screen">
       <Nav />
-      <main className="mx-auto w-full max-w-[860px] px-4 pb-28 pt-5 sm:px-6 sm:pb-12 sm:pt-8">
-        <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
+      <main className="mx-auto w-full max-w-[760px] px-4 pb-28 pt-5 sm:px-6 sm:pb-12 sm:pt-8">
+        <section className="space-y-4">
+          <div className="space-y-2">
             <p className="text-sm uppercase tracking-[0.16em] text-app-muted">Launch</p>
-            <h1 className="mt-3 text-4xl font-semibold text-white sm:text-5xl">Launch</h1>
-            <p className="mt-2 text-sm text-app-muted">Turn an idea into a real night.</p>
+            <h1 className="text-4xl font-semibold text-white sm:text-5xl">Launch new event</h1>
+            <p className="text-sm text-app-muted">
+              Start with the basics. We’ll turn it into a draft you can review.
+            </p>
           </div>
-          <Link
-            className="inline-flex min-h-[46px] items-center rounded-2xl bg-app-purple px-4 py-3 text-sm font-semibold text-white transition hover:bg-app-purple-hover"
-            href="/studio/new"
-          >
-            Start a launch
-          </Link>
+
+          <div className="space-y-4">
+            <LaunchChoiceCard
+              accentClassName="bg-[radial-gradient(circle_at_top,rgba(31,28,184,0.3),transparent_58%),linear-gradient(180deg,rgba(18,23,40,0.96),rgba(11,14,24,0.98))]"
+              onClick={() => beginDraft("soft")}
+              subtitle="Gauge interest before it’s locked in"
+              title="Soft launch"
+            />
+            <LaunchChoiceCard
+              accentClassName="bg-[radial-gradient(circle_at_top,rgba(102,84,255,0.24),transparent_56%),linear-gradient(180deg,rgba(18,23,40,0.96),rgba(11,14,24,0.98))]"
+              onClick={() => beginDraft("happening")}
+              subtitle="Publish something that’s already on"
+              title="Happening"
+            />
+          </div>
         </section>
 
-        <div className="mt-8 space-y-8">
-          <LaunchSection
-            actionLabel="Manage"
-            launches={drafts}
-            title="Drafts"
-          />
-          <LaunchSection
-            actionLabel="Manage"
-            launches={liveSoftLaunches}
-            title="Live soft launches"
-          />
-          <LaunchSection
-            actionLabel="Manage"
-            launches={nearGoalLaunches}
-            title="Near goal"
-          />
-          <LaunchSection
-            actionLabel="View launch"
-            launches={confirmedLaunches}
-            title="Funded and confirmed"
-          />
-        </div>
+        {continueDrafts.length > 0 ? (
+          <section className="mt-10 space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-lg font-semibold text-white">Continue draft</h2>
+              <Link
+                className="text-sm font-semibold text-app-muted transition hover:text-white"
+                href={`/studio/review/${continueDrafts[0].id}`}
+              >
+                Review latest
+              </Link>
+            </div>
+            <div className="space-y-3">
+              {continueDrafts.slice(0, 3).map((draft) => (
+                <button
+                  className="surface-card w-full p-4 text-left transition hover:border-white/12"
+                  key={draft.id}
+                  onClick={() => router.push(`/studio/new?draft=${draft.id}`)}
+                  type="button"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="text-base font-semibold text-white">{draft.generatedDraft.title}</p>
+                      <p className="mt-1 text-sm text-app-muted">{draft.generatedDraft.metadataLine}</p>
+                    </div>
+                    <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs font-semibold text-app-muted">
+                      {draft.draftStatus === "saved" ? "Saved" : "In progress"}
+                    </span>
+                  </div>
+                  <p className="mt-3 text-sm text-white/76">{draft.generatedDraft.summary}</p>
+                  <p className="mt-3 text-xs text-app-muted">
+                    Updated {formatDateLabel(draft.updatedAt)}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {hostLaunches.length > 0 ? (
+          <section className="mt-10 space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-lg font-semibold text-white">My launches</h2>
+              <Link
+                className="text-sm font-semibold text-app-muted transition hover:text-white"
+                href={hostLaunches[0]?.id ? `/studio/${hostLaunches[0].id}` : "/studio"}
+              >
+                Open latest
+              </Link>
+            </div>
+            <div className="grid gap-4">
+              {hostLaunches.map((launch) => (
+                <LaunchSummaryCard
+                  actionLabel="Manage"
+                  key={launch.id}
+                  launch={launch}
+                  onAction={() => router.push(`/studio/${launch.id}`)}
+                />
+              ))}
+            </div>
+          </section>
+        ) : null}
       </main>
     </div>
-  );
-}
-
-function LaunchSection({
-  launches,
-  title,
-  actionLabel
-}: {
-  launches: DemoLaunch[];
-  title: string;
-  actionLabel: string;
-}) {
-  if (!launches.length) {
-    return null;
-  }
-
-  return (
-    <section className="space-y-3">
-      <h2 className="text-lg font-semibold text-white">{title}</h2>
-      <div className="grid gap-4">
-        {launches.map((launch) => (
-          <LaunchSummaryCard
-            actionLabel={actionLabel}
-            key={launch.id}
-            launch={launch}
-            onAction={() => {
-              if (launch.status === "completed") {
-                window.location.assign(`/studio/${launch.id}?tab=payouts`);
-                return;
-              }
-              if (launch.eventId) {
-                window.location.assign(`/studio/${launch.id}`);
-                return;
-              }
-              window.location.assign(`/studio/${launch.id}`);
-            }}
-          />
-        ))}
-      </div>
-    </section>
   );
 }

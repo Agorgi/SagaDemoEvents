@@ -29,6 +29,13 @@ import {
   seedLaunches
 } from "@/src/data/launches";
 import {
+  createEmptyLaunchDraft,
+  mapDraftToCreateLaunchPayload,
+  syncLaunchDraft,
+  type LaunchModeType,
+  type LaunchWizardDraft
+} from "@/src/data/launch-builder";
+import {
   demoPersonaPresets,
   getDefaultPersonaIdForMode,
   getModeForIntent,
@@ -125,6 +132,7 @@ type PersistedAppState = {
   activePersonaId: string;
   onboarding: OnboardingState;
   launches: DemoLaunch[];
+  launchDrafts: LaunchWizardDraft[];
   inbox: DemoInboxItem[];
   profileDrafts: Record<string, ProfileDraft>;
   hasStartedLaunch: boolean;
@@ -148,6 +156,7 @@ type AppStateValue = PersistedAppState & {
   homeCity: string;
   preferredFandoms: string[];
   users: Array<DemoUser & { draft?: ProfileDraft }>;
+  launchDrafts: LaunchWizardDraft[];
   opportunities: Opportunity[];
   listings: Listing[];
   businessProfiles: BusinessProfile[];
@@ -180,6 +189,10 @@ type AppStateValue = PersistedAppState & {
   completeOnboarding: (payload: CompleteOnboardingPayload) => void;
   activateSampleProfile: (mode?: UserMode) => void;
   finishProfileSetup: (payload: ProfileDraft) => void;
+  startLaunchDraft: (mode: LaunchModeType) => string;
+  updateLaunchDraft: (draftId: string, payload: Partial<LaunchWizardDraft>) => void;
+  saveLaunchDraft: (draftId: string) => void;
+  publishLaunchDraft: (draftId: string) => { launchId: string; eventId?: string } | null;
   createLaunch: (payload: CreateLaunchPayload) => string;
   updateLaunch: (launchId: string, payload: Partial<CreateLaunchPayload>) => void;
   addLaunchUpdate: (launchId: string, payload: { title: string; body: string }) => void;
@@ -199,7 +212,7 @@ type AppStateValue = PersistedAppState & {
   resolveUser: (userId?: string) => (DemoUser & { draft?: ProfileDraft }) | undefined;
 };
 
-const STORAGE_KEY = "saga-app-state-v4";
+const STORAGE_KEY = "saga-app-state-v5";
 
 const buildInitialSocialState = (): SocialStateByPersona =>
   structuredClone(seedInterestStateByPersona);
@@ -209,6 +222,7 @@ const initialState: PersistedAppState = {
   activePersonaId: "persona-fan",
   onboarding: onboardingDefaults,
   launches: seedLaunches,
+  launchDrafts: [],
   inbox: seedInboxItems,
   profileDrafts: {},
   hasStartedLaunch: false,
@@ -378,6 +392,22 @@ function getBestNextMoveForLaunch(launch: DemoLaunch) {
   return launch.plan.bestNextMove;
 }
 
+function buildLaunchDraftGuestLine(draft: LaunchWizardDraft) {
+  if (draft.alreadySetSelections.includes("host")) {
+    return "Host already attached.";
+  }
+  if (
+    draft.alreadySetSelections.includes("DJ / performers") ||
+    draft.alreadySetSelections.includes("lineup")
+  ) {
+    return "Part of the lineup is already in place.";
+  }
+  if (draft.alreadySetSelections.includes("vendors")) {
+    return "Vendor lineup is starting to take shape.";
+  }
+  return "Built from your answers and ready to share.";
+}
+
 function syncLaunchShape(launch: DemoLaunch) {
   const safePledges = launch.pledges ?? [];
   const safeDateOptions = launch.dateOptions ?? [];
@@ -464,6 +494,9 @@ export function AppStateProvider({
             ...parsed.onboarding
           },
           launches: syncLaunches(parsed.launches ?? initialState.launches, demo.events),
+          launchDrafts: (parsed.launchDrafts ?? initialState.launchDrafts).map((draft) =>
+            syncLaunchDraft(draft)
+          ),
           inbox: parsed.inbox ?? initialState.inbox,
           profileDrafts: parsed.profileDrafts ?? initialState.profileDrafts,
           hasStartedLaunch: parsed.hasStartedLaunch ?? initialState.hasStartedLaunch,
@@ -481,7 +514,8 @@ export function AppStateProvider({
       } else {
         setState((current) => ({
           ...current,
-          launches: syncLaunches(current.launches, demo.events)
+          launches: syncLaunches(current.launches, demo.events),
+          launchDrafts: current.launchDrafts.map((draft) => syncLaunchDraft(draft))
         }));
       }
     } catch {
@@ -628,6 +662,7 @@ export function AppStateProvider({
     homeCity,
     preferredFandoms,
     users,
+    launchDrafts: state.launchDrafts,
     opportunities: seedOpportunities,
     listings: state.listings,
     businessProfiles: state.businessProfiles,
@@ -1075,6 +1110,163 @@ export function AppStateProvider({
           }
         }
       }));
+    },
+    startLaunchDraft: (mode) => {
+      const draft = createEmptyLaunchDraft(mode, currentUserId);
+
+      setState((current) => ({
+        ...current,
+        mode: "host",
+        activePersonaId: "persona-host",
+        launchDrafts: [draft, ...current.launchDrafts.filter((item) => item.id !== draft.id)]
+      }));
+
+      return draft.id;
+    },
+    updateLaunchDraft: (draftId, payload) => {
+      setState((current) => ({
+        ...current,
+        mode: "host",
+        activePersonaId: "persona-host",
+        launchDrafts: current.launchDrafts.map((draft) =>
+          draft.id === draftId
+            ? syncLaunchDraft({
+                ...draft,
+                ...payload,
+                draftStatus:
+                  payload.draftStatus ??
+                  (draft.draftStatus === "published" ? "published" : draft.draftStatus)
+              })
+            : draft
+        )
+      }));
+    },
+    saveLaunchDraft: (draftId) => {
+      setState((current) => ({
+        ...current,
+        mode: "host",
+        activePersonaId: "persona-host",
+        launchDrafts: current.launchDrafts.map((draft) =>
+          draft.id === draftId
+            ? syncLaunchDraft({
+                ...draft,
+                draftStatus: "saved"
+              })
+            : draft
+        )
+      }));
+    },
+    publishLaunchDraft: (draftId) => {
+      const draft = state.launchDrafts.find((item) => item.id === draftId);
+      if (!draft) {
+        return null;
+      }
+
+      const syncedDraft = syncLaunchDraft(draft);
+      const payload = mapDraftToCreateLaunchPayload(syncedDraft);
+      const launchId = `launch-${payload.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "") || "new"}-${Math.random().toString(36).slice(2, 6)}`;
+
+      const eventId =
+        syncedDraft.launchMode === "happening"
+          ? demo.createEvent(
+              {
+                name: payload.title,
+                dateTime: payload.startsAt,
+                location: payload.venue,
+                description: payload.description,
+                communities: payload.fandomTags.join(", "),
+                eventFormat: payload.format,
+                sourceCrew: payload.teamRoleNames.length > 0,
+                posterUrl: payload.coverImageUrl
+              },
+              HOST_DEMO_USER_ID
+            )
+          : undefined;
+
+      const nextLaunch = createSeedLaunch({
+        id: launchId,
+        eventId,
+        hostId: HOST_DEMO_USER_ID,
+        title: payload.title,
+        format: payload.format,
+        city: payload.city,
+        venue: payload.venue,
+        startsAt: payload.startsAt,
+        description: payload.description,
+        fandomTags: payload.fandomTags,
+        budgetRange: payload.budgetRange,
+        attendanceGoal: payload.attendanceGoal,
+        thresholdTarget: payload.thresholdTarget,
+        reserveCount: syncedDraft.launchMode === "soft" ? 0 : Math.max(8, Math.round(payload.attendanceGoal * 0.08)),
+        ticketCount: syncedDraft.launchMode === "happening" ? Math.max(18, Math.round(payload.attendanceGoal * 0.14)) : 0,
+        status: syncedDraft.launchMode === "soft" ? "live_soft_launch" : "confirmed",
+        teamRoleNames: payload.teamRoleNames,
+        published: true,
+        coverImageUrl: payload.coverImageUrl,
+        softLaunchSummary: syncedDraft.generatedDraft.summary,
+        vibeNote: syncedDraft.generatedDraft.summary,
+        inspiration: syncedDraft.guestExperienceSelections.slice(0, 4),
+        guestLine: buildLaunchDraftGuestLine(syncedDraft),
+        ticketPrice: payload.ticketPrice,
+        dateOptions: payload.dateOptions,
+        updates: [
+          {
+            title: syncedDraft.launchMode === "soft" ? "Soft launch is live" : "Event is live",
+            body:
+              syncedDraft.launchMode === "soft"
+                ? "Fans can now back the idea, pick a date, and help turn it into a confirmed night."
+                : "The event is now published and ready to share.",
+            createdAt: new Date().toISOString()
+          }
+        ]
+      });
+
+      setState((current) => ({
+        ...current,
+        mode: "host",
+        activePersonaId: "persona-host",
+        hasStartedLaunch: true,
+        launches: [nextLaunch, ...current.launches],
+        launchDrafts: current.launchDrafts.map((item) =>
+          item.id === draftId
+            ? syncLaunchDraft({
+                ...item,
+                draftStatus: "published"
+              })
+            : item
+        ),
+        inbox: [
+          {
+            id: `inbox-draft-publish-${launchId}`,
+            kind: "updates",
+            title: syncedDraft.launchMode === "soft" ? "Soft launch published" : "Event published",
+            body:
+              syncedDraft.launchMode === "soft"
+                ? `${payload.title} is now live for early support.`
+                : `${payload.title} is now live as a confirmed event.`,
+            href: syncedDraft.launchMode === "soft" ? `/campaigns/${launchId}` : `/events/${eventId}`,
+            createdAt: new Date().toISOString(),
+            unread: true
+          },
+          ...current.inbox
+        ],
+        activityLog: [
+          createActivityEntry({
+            kind: "event",
+            actorIds: [HOST_DEMO_USER_ID],
+            title: syncedDraft.launchMode === "soft" ? `${payload.title} soft launch is live` : `${payload.title} is live`,
+            body: syncedDraft.generatedDraft.summary,
+            href: syncedDraft.launchMode === "soft" ? `/campaigns/${launchId}` : `/events/${eventId}`,
+            imageUrl: payload.coverImageUrl
+          }),
+          ...current.activityLog
+        ]
+      }));
+
+      return { launchId, eventId };
     },
     createLaunch: (payload) => {
       const id = `launch-${payload.title

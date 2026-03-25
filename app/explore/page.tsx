@@ -137,22 +137,38 @@ export default function ExplorePage() {
                 </p>
               ) : null}
               {visibleEvents.map((event) => (
-                <EventCard
-                  event={event}
-                  href={`/events/${event.id}`}
-                  key={event.id}
-                  metadataLine={`${formatDateRange(event.startsAt, event.endsAt)} · ${formatTimeLabel(event.startsAt)} · ${event.city}`}
-                  onPrimaryAction={() => {
-                    window.location.assign(`/events/${event.id}`);
-                  }}
-                  onToggleSaved={() => toggleSavedEvent(event.id)}
-                  primaryLabel="View event"
-                  reasonLine={event.subtitle}
-                  saved={savedEventIds.includes(event.id)}
-                  socialLine={`${getUserById(event.hostId)?.name ?? "Host"} · ${event.mutualsCount > 0 ? `${event.mutualsCount} friends interested` : "Hosted in your scene"}`}
-                  status="confirmed"
-                  variant="feed"
-                />
+                (() => {
+                  const host = getUserById(event.hostId);
+
+                  return (
+                    <EventCard
+                      event={event}
+                      hostAvatarUrl={host?.avatarUrl}
+                      hostName={host?.name ?? "Host"}
+                      hostSubline={
+                        event.mutualsCount > 0 ? `${event.mutualsCount} friends interested` : "Hosted in your scene"
+                      }
+                      href={`/events/${event.id}`}
+                      key={event.id}
+                      metadataLine={`${formatDateRange(event.startsAt, event.endsAt)} · ${formatTimeLabel(event.startsAt)} · ${event.city}`}
+                      onPrimaryAction={() => {
+                        window.location.assign(`/events/${event.id}`);
+                      }}
+                      onShareAction={() =>
+                        handleShare(`/events/${event.id}`, event.title, event.subtitle)
+                      }
+                      onToggleSaved={() => toggleSavedEvent(event.id)}
+                      primaryLabel="View event"
+                      reasonLine={event.subtitle}
+                      saved={savedEventIds.includes(event.id)}
+                      socialLine={`${host?.name ?? "Host"} · ${
+                        event.mutualsCount > 0 ? `${event.mutualsCount} friends interested` : "Hosted in your scene"
+                      }`}
+                      status="confirmed"
+                      variant="feed"
+                    />
+                  );
+                })()
               ))}
             </div>
           ) : null}
