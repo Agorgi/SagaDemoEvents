@@ -11,9 +11,9 @@ import { useAppState } from "@/src/lib/app-state";
 import { useDemoState } from "@/src/lib/demo-state";
 import { formatDateRange, formatTimeLabel } from "@/src/lib/utils";
 
-type HomeFilter = "All" | "Hard launch" | "Soft launch";
+type HomeFilter = "All" | "Happening" | "Soft launch";
 
-const filters: HomeFilter[] = ["All", "Hard launch", "Soft launch"];
+const filters: HomeFilter[] = ["All", "Happening", "Soft launch"];
 
 export default function ExplorePage() {
   const {
@@ -65,7 +65,7 @@ export default function ExplorePage() {
   const visibleEvents =
     activeFilter === "Soft launch" ? [] : confirmedEvents;
   const visibleLaunches =
-    activeFilter === "Hard launch" ? [] : softLaunches;
+    activeFilter === "Happening" ? [] : softLaunches;
 
   return (
     <div className="min-h-screen">
@@ -108,7 +108,7 @@ export default function ExplorePage() {
             <div className="space-y-4">
               {activeFilter === "All" ? (
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-app-muted">
-                  Hard launch
+                  Happening
                 </p>
               ) : null}
               {visibleEvents.map((event) => (

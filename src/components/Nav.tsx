@@ -63,7 +63,8 @@ export function Nav() {
           <Link
             aria-label="Saga home"
             className="flex shrink-0 items-center"
-            href={pathname.startsWith("/studio") ? "/studio" : "/explore"}
+            href="/explore"
+            title="Go to Home"
           >
             <img
               alt="Saga logo"
@@ -75,6 +76,7 @@ export function Nav() {
           <nav className="ml-3 hidden items-center gap-1 md:flex">
             {desktopLinks.map((link) => (
               <Link
+                aria-label={`Open ${link.label}`}
                 className={cn(
                   "rounded-[16px] px-3 py-2 text-sm font-medium transition",
                   isActive(pathname, link.href)
@@ -130,6 +132,7 @@ export function Nav() {
           >
             {mobileLinks.map((link) => (
               <Link
+                aria-label={`Open ${link.mobileLabel}`}
                 className={cn(
                   "min-w-0 rounded-[16px] px-1.5 py-2.5 text-center text-[10px] font-semibold leading-none tracking-[-0.01em] whitespace-nowrap transition",
                   isActive(pathname, link.href)
