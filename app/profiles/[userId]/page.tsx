@@ -9,6 +9,7 @@ import { Nav } from "@/src/components/Nav";
 import { PortfolioLightboxModal } from "@/src/components/PortfolioLightboxModal";
 import { ProfileStatsCard } from "@/src/components/ProfileStatsCard";
 import { ServicesSection } from "@/src/components/ServicesSection";
+import { StarRatingValue } from "@/src/components/StarRatingValue";
 import { TagChip } from "@/src/components/Chips";
 import { useAppState } from "@/src/lib/app-state";
 import { useDemoState } from "@/src/lib/demo-state";
@@ -99,7 +100,10 @@ export default function UserProfilePage() {
                 <ProfileStatsCard
                   items={[
                     { label: "Projects", value: profile.stats.privateProjects ?? profile.portfolio.length },
-                    { label: "Followers", value: profile.stats.publicFollowers ?? 0 },
+                    {
+                      label: "Rating",
+                      value: <StarRatingValue rating={profile.stats.privateRating ?? 4.8} />
+                    },
                     { label: "Services", value: visibleServices.length }
                   ]}
                 />
