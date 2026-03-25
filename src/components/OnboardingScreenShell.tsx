@@ -28,19 +28,19 @@ export function OnboardingScreenShell({
   const progress = total > 0 ? ((current + 1) / total) * 100 : 0;
 
   return (
-    <main className="min-h-screen bg-app-grid px-4 pb-10 pt-6 sm:px-6 sm:pb-12 sm:pt-8">
-      <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-[720px] flex-col">
+    <main className="onboarding-shell min-h-screen bg-app-grid px-4 pb-10 pt-6 sm:px-6 sm:pb-12 sm:pt-8">
+      <div className="onboarding-stage mx-auto flex min-h-[calc(100vh-3rem)] max-w-[720px] flex-col">
         <header className="space-y-5">
           <div className="flex items-center justify-between gap-3">
             <button
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.02] text-white transition hover:border-white/20"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white transition hover:border-white/20 hover:bg-white/[0.05]"
               onClick={onBack}
               type="button"
             >
               ←
             </button>
             <button
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.02] text-white transition hover:border-white/20"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white transition hover:border-white/20 hover:bg-white/[0.05]"
               onClick={onClose}
               type="button"
             >
@@ -49,9 +49,9 @@ export function OnboardingScreenShell({
           </div>
 
           <div className="space-y-2">
-            <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
+            <div className="onboarding-progress-track h-2 overflow-hidden rounded-full bg-white/[0.06]">
               <div
-                className="h-full rounded-full bg-app-purple transition-[width] duration-300"
+                className="onboarding-progress-fill h-full rounded-full transition-[width] duration-300"
                 style={{ width: `${Math.max(progress, 4)}%` }}
               />
             </div>
@@ -113,16 +113,16 @@ export function OnboardingChoiceCard({
   return (
     <button
       className={cn(
-        "w-full rounded-[28px] border bg-[#0d1119] text-left transition hover:-translate-y-0.5",
+        "onboarding-choice-card w-full rounded-[28px] border bg-[#0d1119] text-left transition hover:-translate-y-0.5",
         selected
-          ? "border-app-purple/40 bg-app-purple/10 shadow-[0_18px_42px_rgba(31,28,184,0.2)]"
+          ? "border-app-purple/40 bg-[linear-gradient(180deg,rgba(31,28,184,0.18),rgba(13,17,25,0.96))] shadow-[0_18px_42px_rgba(31,28,184,0.2)]"
           : "border-white/8 hover:border-white/16 hover:bg-[#101522]",
         compact ? "px-4 py-4" : "px-5 py-5"
       )}
       onClick={onClick}
       type="button"
     >
-      <div className="space-y-2">
+      <div className="relative z-[1] space-y-2">
         <p className={cn("font-semibold text-white", compact ? "text-base" : "text-xl")}>{title}</p>
         {description ? (
           <p className="max-w-[34ch] text-sm leading-6 text-app-muted">{description}</p>
@@ -146,7 +146,7 @@ export function StickyFooter({
   onSecondary?: () => void;
 }) {
   return (
-    <div className="rounded-[28px] border border-white/8 bg-[#0d1119]/94 p-3 backdrop-blur-xl">
+    <div className="rounded-[28px] border border-white/8 bg-[linear-gradient(180deg,rgba(13,17,25,0.94),rgba(13,17,25,0.84))] p-3 backdrop-blur-xl shadow-[0_18px_44px_rgba(0,0,0,0.32)]">
       <div className="flex items-center gap-3">
         <button
           className="min-h-[48px] flex-1 rounded-[18px] bg-app-purple px-4 py-3 text-sm font-semibold text-white transition hover:bg-app-purple-hover disabled:cursor-not-allowed disabled:opacity-45"

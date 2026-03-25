@@ -448,10 +448,12 @@ function OnboardingPageContent() {
         title="You’re in"
         total={questions.length}
       >
-        <div className="surface-card-strong mx-auto w-full max-w-[460px] p-5">
-          <div className="h-[220px] animate-pulse rounded-[26px] bg-white/[0.05]" />
-          <div className="mt-4 h-7 w-2/3 animate-pulse rounded-full bg-white/[0.05]" />
-          <div className="mt-3 h-4 w-1/2 animate-pulse rounded-full bg-white/[0.05]" />
+        <div className="onboarding-success-card surface-card-strong mx-auto w-full max-w-[460px] p-5">
+          <div className="relative z-[1] h-[220px] animate-pulse overflow-hidden rounded-[26px] bg-[linear-gradient(180deg,rgba(31,28,184,0.2),rgba(13,17,25,0.96))]">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.18),transparent_42%)]" />
+          </div>
+          <div className="relative z-[1] mt-4 h-7 w-2/3 animate-pulse rounded-full bg-white/[0.05]" />
+          <div className="relative z-[1] mt-3 h-4 w-1/2 animate-pulse rounded-full bg-white/[0.05]" />
         </div>
       </OnboardingScreenShell>
     );
@@ -477,14 +479,16 @@ function OnboardingPageContent() {
         ) : undefined
       }
     >
-      <QuestionRenderer
-        codeValue={codeValue}
-        onboarding={onboarding}
-        onAutoAdvance={goNext}
-        question={question}
-        setCodeValue={setCodeValue}
-        onAnswer={applyAnswer}
-      />
+      <div className="onboarding-question-enter">
+        <QuestionRenderer
+          codeValue={codeValue}
+          onboarding={onboarding}
+          onAutoAdvance={goNext}
+          question={question}
+          setCodeValue={setCodeValue}
+          onAnswer={applyAnswer}
+        />
+      </div>
     </OnboardingScreenShell>
   );
 }
@@ -619,14 +623,39 @@ function QuestionRenderer({
       );
     case "completion":
       return (
-        <div className="surface-card-strong overflow-hidden p-5">
-          <div className="relative h-[220px] overflow-hidden rounded-[24px] bg-[#111627]">
+        <div className="onboarding-success-card surface-card-strong overflow-hidden p-5">
+          <div className="relative z-[1] h-[240px] overflow-hidden rounded-[24px] bg-[linear-gradient(180deg,rgba(31,28,184,0.22),rgba(13,17,25,0.94))]">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.16),transparent_38%)]" />
             <img
               alt="Saga"
-              className="h-full w-full object-cover opacity-70"
+              className="absolute inset-0 h-full w-full object-cover opacity-[0.18] mix-blend-screen"
               src="/group-88462-v2.png"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#07090f] via-[#07090f]/25 to-transparent" />
+            <div className="absolute inset-x-0 top-5 flex justify-center">
+              <span className="onboarding-success-pill rounded-full border border-white/10 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/78">
+                Ready to go
+              </span>
+            </div>
+            <div className="absolute inset-x-0 bottom-0 space-y-4 p-5">
+              <div className="space-y-2">
+                <p className="text-3xl font-semibold text-white">
+                  {onboarding.displayName || "You’re in"}
+                </p>
+                <p className="max-w-[28ch] text-sm leading-6 text-white/72">
+                  {getCompletionSupportCopy(onboarding)}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {getCompletionHighlights(onboarding).map((item) => (
+                  <span
+                    className="onboarding-success-pill rounded-full border border-white/10 px-3 py-1.5 text-sm text-white/88"
+                    key={item}
+                  >
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       );
@@ -1166,4 +1195,32 @@ function resolveQuestionCopy(
     title: question.title,
     subcopy: question.subcopy
   };
+}
+
+function getCompletionSupportCopy(onboarding: OnboardingState) {
+  if (onboarding.primaryBranch === "talent") {
+    return "Your work lane is set. We’ll lead with jobs, scenes, and organizers that fit your style.";
+  }
+
+  if (onboarding.primaryBranch === "organizer") {
+    return "You’re ready to build. The next step will open straight into the launch flow that fits what you want to make.";
+  }
+
+  if (onboarding.primaryBranch === "business") {
+    return "You’ve got a business-facing setup now. We’ll start with talent and event fits that match your space.";
+  }
+
+  return "Your feed is tuned. We’ll start with nights, fandoms, and people that feel closer to your scene.";
+}
+
+function getCompletionHighlights(onboarding: OnboardingState) {
+  const items = [
+    ...(onboarding.city ? [onboarding.city] : []),
+    ...onboarding.fandomTags.slice(0, 2),
+    ...(onboarding.skills.length > 0
+      ? onboarding.skills.slice(0, 2)
+      : onboarding.eventTypePreferences.slice(0, 2))
+  ];
+
+  return Array.from(new Set(items)).slice(0, 4);
 }

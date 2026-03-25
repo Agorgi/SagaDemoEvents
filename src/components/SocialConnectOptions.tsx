@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   type SocialConnection,
@@ -40,6 +40,19 @@ export function SocialConnectOptions({
   const [activePlatform, setActivePlatform] = useState<SocialPlatform | null>(null);
   const [manualPlatform, setManualPlatform] = useState<SocialPlatform | null>(null);
   const [manualValue, setManualValue] = useState("");
+  const [justConnectedPlatform, setJustConnectedPlatform] = useState<SocialPlatform | null>(null);
+
+  useEffect(() => {
+    if (!justConnectedPlatform) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setJustConnectedPlatform(null);
+    }, 1800);
+
+    return () => window.clearTimeout(timeout);
+  }, [justConnectedPlatform]);
 
   const byPlatform = useMemo(
     () =>
@@ -67,6 +80,7 @@ export function SocialConnectOptions({
         value: `@${platform === "instagram" ? "saga.scene" : "saga.scene.edit"}`
       })
     );
+    setJustConnectedPlatform(platform);
     setActivePlatform(null);
   }
 
@@ -84,6 +98,7 @@ export function SocialConnectOptions({
           : `@${manualValue.trim()}`
       })
     );
+    setJustConnectedPlatform(manualPlatform);
     setManualPlatform(null);
     setManualValue("");
   }
@@ -99,7 +114,7 @@ export function SocialConnectOptions({
               className={cn(
                 "rounded-[24px] border p-4 transition",
                 connected
-                  ? "border-app-purple/30 bg-app-purple/10"
+                  ? "social-connected-badge border-app-purple/30 bg-app-purple/10"
                   : "border-white/8 bg-[#0d1119] hover:border-white/16"
               )}
               key={item.platform}
@@ -123,7 +138,19 @@ export function SocialConnectOptions({
                 </button>
               </div>
               {connected ? (
-                <p className="mt-3 text-sm text-white/84">{connected.value}</p>
+                <div className="mt-3 flex items-center gap-2 text-sm text-white/84">
+                  <span
+                    className={cn(
+                      "inline-flex h-6 w-6 items-center justify-center rounded-full border text-[11px] font-semibold",
+                      justConnectedPlatform === item.platform
+                        ? "border-app-purple/35 bg-app-purple/15 text-white"
+                        : "border-white/12 bg-white/[0.04] text-white/76"
+                    )}
+                  >
+                    ✓
+                  </span>
+                  <span>{connected.value}</span>
+                </div>
               ) : null}
             </div>
           );
@@ -172,17 +199,17 @@ export function SocialConnectOptions({
 
       {activePlatform ? (
         <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60 px-4 pb-6 pt-12">
-          <div className="w-full max-w-[460px] rounded-[30px] border border-white/10 bg-[#0d1119] p-5 shadow-soft">
+          <div className="onboarding-success-card w-full max-w-[460px] rounded-[30px] border border-white/10 bg-[#0d1119] p-5 shadow-soft">
             <p className="text-sm uppercase tracking-[0.16em] text-app-muted">
               Mock connect
             </p>
-            <h2 className="mt-3 text-2xl font-semibold text-white">
+            <h2 className="relative z-[1] mt-3 text-2xl font-semibold text-white">
               Connect {activePlatform === "instagram" ? "Instagram" : "TikTok"}
             </h2>
-            <p className="mt-3 text-sm leading-6 text-app-muted">
+            <p className="relative z-[1] mt-3 text-sm leading-6 text-app-muted">
               This demo will store a connected state so your profile feels more real right away.
             </p>
-            <div className="mt-6 flex gap-3">
+            <div className="relative z-[1] mt-6 flex gap-3">
               <button
                 className="min-h-[48px] flex-1 rounded-[18px] bg-app-purple px-4 py-3 text-sm font-semibold text-white transition hover:bg-app-purple-hover"
                 onClick={() => connectPlatform(activePlatform)}
