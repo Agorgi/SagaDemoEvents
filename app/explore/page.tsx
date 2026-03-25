@@ -17,9 +17,11 @@ const filters: HomeFilter[] = ["All", "Happening", "Soft launch"];
 
 export default function ExplorePage() {
   const {
+    currentUserId,
     homeCity,
     launches,
     preferredFandoms,
+    resolveUser,
     savedEventIds,
     setMode,
     toggleSavedEvent,
@@ -66,6 +68,29 @@ export default function ExplorePage() {
     activeFilter === "Soft launch" ? [] : confirmedEvents;
   const visibleLaunches =
     activeFilter === "Happening" ? [] : softLaunches;
+
+  async function handleShare(path: string, title: string, text: string) {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const shareUrl = `${window.location.origin}${path}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title,
+          text,
+          url: shareUrl
+        });
+        return;
+      } catch {
+        // fall through to clipboard copy
+      }
+    }
+
+    await navigator.clipboard?.writeText(shareUrl);
+  }
 
   return (
     <div className="min-h-screen">
@@ -140,27 +165,43 @@ export default function ExplorePage() {
                 </p>
               ) : null}
               {visibleLaunches.map((launch) => (
-                <CampaignCard
-                  compact
-                  href={`/campaigns/${launch.id}`}
-                  key={launch.id}
-                  launch={launch}
-                  metadataLine={`${launch.city} · ${launch.dateOptions.length} date options`}
-                  onPrimaryAction={() => {
-                    if (launch.pledges.length > 0) {
-                      window.location.assign(`/campaigns/${launch.id}`);
-                      return;
-                    }
-                    const firstDate = launch.dateOptions[0]?.id;
-                    if (firstDate) {
-                      watchLaunch(launch.id, firstDate);
-                    }
-                    window.location.assign(`/campaigns/${launch.id}`);
-                  }}
-                  primaryLabel="Pledge"
-                  reasonLine={launch.softLaunchSummary}
-                  socialLine={`${preferredFandoms.find((tag) => launch.fandomTags.includes(tag)) ?? launch.fandomTags[0]} · ${launch.pledges.length} backers`}
-                />
+                (() => {
+                  const host = resolveUser(launch.hostId);
+                  const currentPledge = launch.pledges.find((pledge) => pledge.userId === currentUserId);
+
+                  return (
+                    <CampaignCard
+                      compact
+                      hostAvatarUrl={host?.avatarUrl}
+                      hostName={host?.name ?? "Host"}
+                      hostSubline={`${launch.pledges.length} backers`}
+                      href={`/campaigns/${launch.id}`}
+                      key={launch.id}
+                      launch={launch}
+                      metadataLine={`${launch.city} · ${launch.dateOptions.length} date options`}
+                      onPrimaryAction={() => {
+                        window.location.assign(`/campaigns/${launch.id}`);
+                      }}
+                      onShareAction={() =>
+                        handleShare(`/campaigns/${launch.id}`, launch.title, launch.softLaunchSummary)
+                      }
+                      onToggleSaved={() => {
+                        if (!currentPledge) {
+                          const firstDate = launch.dateOptions[0]?.id;
+                          if (firstDate) {
+                            watchLaunch(launch.id, firstDate);
+                          }
+                        }
+                      }}
+                      primaryLabel="Pledge"
+                      reasonLine={launch.softLaunchSummary}
+                      saved={Boolean(currentPledge)}
+                      socialLine={`${
+                        preferredFandoms.find((tag) => launch.fandomTags.includes(tag)) ?? launch.fandomTags[0]
+                      } · ${launch.pledges.length} backers`}
+                    />
+                  );
+                })()
               ))}
             </div>
           ) : null}

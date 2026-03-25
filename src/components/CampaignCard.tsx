@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { Avatar } from "@/src/components/Avatar";
 import { StatusChip } from "@/src/components/StatusChip";
 import { ThresholdProgress } from "@/src/components/ThresholdProgress";
 import { type DemoLaunch, getLaunchFundingProgress } from "@/src/data/launches";
@@ -16,6 +17,12 @@ type CampaignCardProps = {
   reasonLine: string;
   socialLine: string;
   primaryLabel: string;
+  hostName?: string;
+  hostAvatarUrl?: string;
+  hostSubline?: string;
+  saved?: boolean;
+  onToggleSaved?: () => void;
+  onShareAction?: () => void;
   onPrimaryAction?: () => void;
 };
 
@@ -28,6 +35,12 @@ export function CampaignCard({
   reasonLine,
   socialLine,
   primaryLabel,
+  hostName,
+  hostAvatarUrl,
+  hostSubline,
+  saved = false,
+  onToggleSaved,
+  onShareAction,
   onPrimaryAction
 }: CampaignCardProps) {
   const progress = getLaunchFundingProgress(launch);
@@ -66,9 +79,44 @@ export function CampaignCard({
             </h3>
           </Link>
           <p className="text-sm text-white/68">{metadataLine}</p>
-          <p className="line-clamp-1 text-sm text-app-muted">{socialLine}</p>
           <p className="line-clamp-1 text-sm text-white/76">{reasonLine}</p>
         </div>
+
+        {hostName || onToggleSaved || onShareAction ? (
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              {hostName ? (
+                <>
+                  <Avatar name={hostName} size="sm" src={hostAvatarUrl} />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-white">{hostName}</p>
+                    <p className="truncate text-xs text-app-muted">{hostSubline ?? socialLine}</p>
+                  </div>
+                </>
+              ) : (
+                <p className="line-clamp-1 text-sm text-app-muted">{socialLine}</p>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {onToggleSaved ? (
+                <IconActionButton
+                  ariaLabel={saved ? "Saved launch" : "Save launch"}
+                  onClick={onToggleSaved}
+                  selected={saved}
+                >
+                  <BookmarkIcon />
+                </IconActionButton>
+              ) : null}
+              {onShareAction ? (
+                <IconActionButton ariaLabel="Share launch" onClick={onShareAction}>
+                  <ShareIcon />
+                </IconActionButton>
+              ) : null}
+            </div>
+          </div>
+        ) : (
+          <p className="line-clamp-1 text-sm text-app-muted">{socialLine}</p>
+        )}
 
         <ThresholdProgress
           compact
@@ -86,5 +134,61 @@ export function CampaignCard({
         </button>
       </div>
     </article>
+  );
+}
+
+function IconActionButton({
+  ariaLabel,
+  children,
+  onClick,
+  selected = false
+}: {
+  ariaLabel: string;
+  children: React.ReactNode;
+  onClick: () => void;
+  selected?: boolean;
+}) {
+  return (
+    <button
+      aria-label={ariaLabel}
+      className={cn(
+        "flex h-10 w-10 items-center justify-center rounded-full border transition",
+        selected
+          ? "border-app-purple/60 bg-app-purple/12 text-white"
+          : "border-white/10 bg-white/[0.03] text-white/82 hover:border-white/20"
+      )}
+      onClick={onClick}
+      type="button"
+    >
+      {children}
+    </button>
+  );
+}
+
+function BookmarkIcon() {
+  return (
+    <svg aria-hidden="true" className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24">
+      <path
+        d="M7 4.75C7 4.336 7.336 4 7.75 4h8.5c.414 0 .75.336.75.75v14.432c0 .617-.694.976-1.195.618L12 16.922 7.945 19.8c-.501.358-1.195-.001-1.195-.618V4.75Z"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.7"
+      />
+    </svg>
+  );
+}
+
+function ShareIcon() {
+  return (
+    <svg aria-hidden="true" className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24">
+      <path
+        d="M12 15V5m0 0 3.5 3.5M12 5 8.5 8.5M6.75 13.5v3.75c0 .414.336.75.75.75h9c.414 0 .75-.336.75-.75V13.5"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.7"
+      />
+    </svg>
   );
 }
