@@ -27,6 +27,7 @@ function WorkPageContent() {
     currentBusinessProfile,
     getApplicationForCurrentUser,
     homeCity,
+    onboarding,
     opportunities,
     preferredFandoms,
     respondToBusinessMatch,
@@ -50,14 +51,42 @@ function WorkPageContent() {
         (item) =>
           item.city === homeCity ||
           item.fandomTags.some((tag) => preferredFandoms.includes(tag))
-      ),
-    [homeCity, opportunities, preferredFandoms]
+      ).sort((left, right) => {
+        const leftScore =
+          left.skillTags.filter((tag) => onboarding.skills.includes(tag)).length * 3 +
+          left.fandomTags.filter((tag) => preferredFandoms.includes(tag)).length * 2 +
+          (left.city === homeCity ? 2 : 0) +
+          onboarding.workEventTypes.filter((tag) =>
+            `${left.title} ${left.summary} ${left.schema.eventFormats.join(" ")}`.toLowerCase().includes(tag.toLowerCase())
+          ).length;
+        const rightScore =
+          right.skillTags.filter((tag) => onboarding.skills.includes(tag)).length * 3 +
+          right.fandomTags.filter((tag) => preferredFandoms.includes(tag)).length * 2 +
+          (right.city === homeCity ? 2 : 0) +
+          onboarding.workEventTypes.filter((tag) =>
+            `${right.title} ${right.summary} ${right.schema.eventFormats.join(" ")}`.toLowerCase().includes(tag.toLowerCase())
+          ).length;
+
+        return rightScore - leftScore;
+      }),
+    [homeCity, onboarding.skills, onboarding.workEventTypes, opportunities, preferredFandoms]
   );
 
   const activeBusiness = currentBusinessProfile ?? businessProfiles[0] ?? seedBusinessProfiles[0];
   const businessMatches = useMemo(
-    () => matchExplanations.filter((item) => item.businessId === activeBusiness?.id),
-    [activeBusiness]
+    () =>
+      matchExplanations
+        .filter((item) => item.businessId === activeBusiness?.id)
+        .sort((left, right) => {
+          const leftScore = left.chips.filter((chip) =>
+            onboarding.businessSceneTags.includes(chip)
+          ).length;
+          const rightScore = right.chips.filter((chip) =>
+            onboarding.businessSceneTags.includes(chip)
+          ).length;
+          return rightScore - leftScore;
+        }),
+    [activeBusiness, onboarding.businessSceneTags]
   );
 
   function matchHref(match: (typeof businessMatches)[number]) {

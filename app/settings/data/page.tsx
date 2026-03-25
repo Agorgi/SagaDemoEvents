@@ -4,7 +4,7 @@ import { Nav } from "@/src/components/Nav";
 import { useAppState } from "@/src/lib/app-state";
 
 export default function DataSettingsPage() {
-  const { importedDataSettings, updateImportedDataSettings } = useAppState();
+  const { importedDataSettings, resetOnboarding, updateImportedDataSettings } = useAppState();
 
   const toggles = [
     {
@@ -76,6 +76,23 @@ export default function DataSettingsPage() {
                 </button>
               ))}
             </div>
+          </div>
+
+          <div className="surface-card p-5">
+            <p className="text-lg font-semibold text-white">Demo replay</p>
+            <p className="mt-2 text-sm text-app-muted">
+              Reset onboarding if you want to walk the first-run flow again.
+            </p>
+            <button
+              className="mt-4 min-h-[46px] rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
+              onClick={() => {
+                resetOnboarding();
+                window.location.assign("/onboarding");
+              }}
+              type="button"
+            >
+              Replay onboarding
+            </button>
           </div>
         </div>
       </main>

@@ -21,6 +21,7 @@ export default function ExplorePage() {
     currentUserId,
     homeCity,
     launches,
+    onboarding,
     pledgeLaunch,
     preferredFandoms,
     resolveUser,
@@ -40,18 +41,39 @@ export default function ExplorePage() {
 
   const confirmedEvents = useMemo(() => {
     const search = query.trim().toLowerCase();
+    const preferredNightTypes = onboarding.eventTypePreferences;
 
     return [...events]
-      .sort((left, right) => right.attendeesCount - left.attendeesCount)
+      .sort((left, right) => {
+        const leftHaystack =
+          `${left.title} ${left.subtitle} ${left.fandomTags.join(" ")}`.toLowerCase();
+        const rightHaystack =
+          `${right.title} ${right.subtitle} ${right.fandomTags.join(" ")}`.toLowerCase();
+        const leftScore =
+          (left.city === homeCity ? 3 : 0) +
+          left.fandomTags.filter((tag) => preferredFandoms.includes(tag)).length * 2 +
+          preferredNightTypes.filter((tag) => leftHaystack.includes(tag.toLowerCase())).length;
+        const rightScore =
+          (right.city === homeCity ? 3 : 0) +
+          right.fandomTags.filter((tag) => preferredFandoms.includes(tag)).length * 2 +
+          preferredNightTypes.filter((tag) => rightHaystack.includes(tag.toLowerCase())).length;
+
+        if (rightScore === leftScore) {
+          return right.attendeesCount - left.attendeesCount;
+        }
+
+        return rightScore - leftScore;
+      })
       .filter((event) => {
         const haystack =
           `${event.title} ${event.subtitle} ${event.city} ${event.fandomTags.join(" ")}`.toLowerCase();
         return search ? haystack.includes(search) : true;
       });
-  }, [events, query]);
+  }, [events, homeCity, onboarding.eventTypePreferences, preferredFandoms, query]);
 
   const softLaunches = useMemo(() => {
     const search = query.trim().toLowerCase();
+    const preferredNightTypes = onboarding.eventTypePreferences;
 
     return launches
       .filter((launch) => !launch.eventId)
@@ -63,9 +85,26 @@ export default function ExplorePage() {
       .sort((left, right) => {
         const leftMomentum = left.ticketCount + left.reserveCount + left.pledges.length;
         const rightMomentum = right.ticketCount + right.reserveCount + right.pledges.length;
-        return rightMomentum - leftMomentum;
+        const leftScore =
+          (left.city === homeCity ? 3 : 0) +
+          left.fandomTags.filter((tag) => preferredFandoms.includes(tag)).length * 2 +
+          preferredNightTypes.filter((tag) =>
+            `${left.title} ${left.description}`.toLowerCase().includes(tag.toLowerCase())
+          ).length;
+        const rightScore =
+          (right.city === homeCity ? 3 : 0) +
+          right.fandomTags.filter((tag) => preferredFandoms.includes(tag)).length * 2 +
+          preferredNightTypes.filter((tag) =>
+            `${right.title} ${right.description}`.toLowerCase().includes(tag.toLowerCase())
+          ).length;
+
+        if (rightScore === leftScore) {
+          return rightMomentum - leftMomentum;
+        }
+
+        return rightScore - leftScore;
       });
-  }, [launches, query]);
+  }, [homeCity, launches, onboarding.eventTypePreferences, preferredFandoms, query]);
 
   const visibleEvents =
     activeFilter === "Soft launch" ? [] : confirmedEvents;

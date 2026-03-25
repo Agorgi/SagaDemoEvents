@@ -20,11 +20,9 @@ import {
   type DemoLaunch,
   forecastTurnout,
   getLaunchFundingProgress,
-  type OnboardingState,
   type UserMode,
   buildLaunchPlan,
   createSeedLaunch,
-  onboardingDefaults,
   seedInboxItems,
   seedLaunches
 } from "@/src/data/launches";
@@ -36,17 +34,25 @@ import {
   type LaunchWizardDraft
 } from "@/src/data/launch-builder";
 import {
+  type OnboardingBranch,
+  type OnboardingIntent,
+  type OnboardingState,
+  ONBOARDING_VERSION,
+  deriveOnboardingGraphs,
+  getModeForBranch,
+  onboardingDefaults,
+  resolveBranch
+} from "@/src/data/onboarding";
+import {
   demoPersonaPresets,
   getDefaultPersonaIdForMode,
-  getModeForIntent,
   getPersonaPresetById,
   getProfileByUserId,
   seedInterestStateByPersona,
   socialActivityItems,
   type DemoPersonaPreset,
   type InterestState,
-  type SocialActivityItem,
-  type UserIntent
+  type SocialActivityItem
 } from "@/src/data/social";
 import {
   businessProfiles as seedBusinessProfiles,
@@ -91,22 +97,7 @@ type ProfileDraft = {
 
 type SocialStateByPersona = Record<string, InterestState>;
 
-type CompleteOnboardingPayload = {
-  authMethod: "google" | "discord" | "email";
-  city: string;
-  fandoms: string[];
-  primaryIntent: UserIntent;
-  mode?: UserMode;
-  hostFormat?: CreateLaunchPayload["format"];
-  budgetRange?: string;
-  creatorRoles?: string[];
-  portfolioLink?: string;
-  availability?: string;
-  fanEventTypes?: string[];
-  travelDistance?: string;
-  budgetComfort?: string;
-  usedSampleProfile?: boolean;
-};
+type CompleteOnboardingPayload = Partial<OnboardingState>;
 
 type CreateListingPayload = {
   type: Listing["type"];
@@ -186,7 +177,9 @@ type AppStateValue = PersistedAppState & {
   updateImportedDataSettings: (payload: Partial<ImportedDataSettings>) => void;
   setMode: (mode: UserMode) => void;
   switchPersona: (personaId: string) => void;
+  updateOnboarding: (payload: Partial<OnboardingState>) => void;
   completeOnboarding: (payload: CompleteOnboardingPayload) => void;
+  resetOnboarding: () => void;
   activateSampleProfile: (mode?: UserMode) => void;
   finishProfileSetup: (payload: ProfileDraft) => void;
   startLaunchDraft: (mode: LaunchModeType) => string;
@@ -212,7 +205,7 @@ type AppStateValue = PersistedAppState & {
   resolveUser: (userId?: string) => (DemoUser & { draft?: ProfileDraft }) | undefined;
 };
 
-const STORAGE_KEY = "saga-app-state-v5";
+const STORAGE_KEY = "saga-app-state-v6";
 
 const buildInitialSocialState = (): SocialStateByPersona =>
   structuredClone(seedInterestStateByPersona);
@@ -344,6 +337,109 @@ function createActivityEntry(
     createdAt: new Date().toISOString(),
     ...overrides
   };
+}
+
+function formatDisplayLocation(city: string, neighborhood?: string) {
+  if (neighborhood?.trim()) {
+    return `${neighborhood.trim()}, ${city}`;
+  }
+
+  return city;
+}
+
+function buildProfileDraftFromOnboarding(
+  onboarding: OnboardingState,
+  currentDraft?: ProfileDraft
+): ProfileDraft {
+  const fandoms =
+    onboarding.fandomTags.length > 0
+      ? onboarding.fandomTags
+      : onboarding.businessSceneTags.length > 0
+        ? onboarding.businessSceneTags
+        : currentDraft?.fandoms;
+
+  const roles =
+    onboarding.skills.length > 0
+      ? onboarding.skills
+      : onboarding.organizerEventTypes.length > 0
+        ? ["host", ...onboarding.organizerEventTypes.slice(0, 2)]
+        : onboarding.businessTalentNeeds.length > 0
+          ? ["business", ...onboarding.businessTalentNeeds.slice(0, 2)]
+          : currentDraft?.roles;
+
+  const socialLine = onboarding.socials
+    .filter(Boolean)
+    .map((entry) => entry?.value)
+    .filter(Boolean)
+    .slice(0, 2)
+    .join(" · ");
+
+  const bioSource =
+    onboarding.primaryBranch === "organizer"
+      ? `Building ${onboarding.organizerEventTypes.slice(0, 2).join(" and ") || "fandom nights"} in ${onboarding.city}.`
+      : onboarding.primaryBranch === "talent"
+        ? `Open to ${onboarding.workOpenness.slice(0, 2).join(" and ") || "the right gigs"} across ${onboarding.workEventTypes.slice(0, 2).join(" and ") || "live events"}.`
+        : onboarding.primaryBranch === "business"
+          ? `Looking for ${onboarding.businessTalentNeeds.slice(0, 2).join(" and ") || "the right talent"} that fits ${onboarding.businessSceneTags.slice(0, 2).join(" and ") || "the local scene"}.`
+          : `Into ${onboarding.fandomTags.slice(0, 3).join(", ") || "nights worth leaving the house for"}.`;
+
+  return {
+    ...currentDraft,
+    name: onboarding.displayName || currentDraft?.name,
+    city: formatDisplayLocation(onboarding.city, onboarding.neighborhood) || currentDraft?.city,
+    fandoms,
+    roles,
+    portfolioLinks: onboarding.portfolioLink
+      ? [onboarding.portfolioLink]
+      : currentDraft?.portfolioLinks,
+    availability:
+      onboarding.travelRadius?.replaceAll("_", " ") || currentDraft?.availability,
+    bio: socialLine ? `${bioSource} ${socialLine}` : bioSource
+  };
+}
+
+function buildSeededOnboarding(
+  partial: Partial<OnboardingState>,
+  fallbackMode: UserMode
+): OnboardingState {
+  const primaryBranch =
+    partial.primaryBranch ??
+    resolveBranch(partial.primaryIntent, partial.collaborationRoute) ??
+    (fallbackMode === "host"
+      ? "organizer"
+      : fallbackMode === "creator"
+        ? "talent"
+        : fallbackMode === "business"
+          ? "business"
+          : "explorer");
+  const mode = getModeForBranch(primaryBranch);
+  const baseProfile: OnboardingState = {
+    ...onboardingDefaults,
+    ...partial,
+    mode,
+    primaryBranch,
+    completed: true,
+    hasCompletedOnboarding: true,
+    onboardingVersion: ONBOARDING_VERSION,
+    profileSetupCompleted: true,
+    authMethod: "phone"
+  };
+  const graphs = deriveOnboardingGraphs(baseProfile);
+
+  return {
+    ...baseProfile,
+    ...graphs
+  };
+}
+
+function toBusinessType(value?: string) {
+  if (value === "venue" || value === "studio" || value === "brand") {
+    return value;
+  }
+  if (value === "café") {
+    return "cafe" as const;
+  }
+  return undefined;
 }
 
 function getNextLaunchStatus(launch: DemoLaunch) {
@@ -486,13 +582,28 @@ export function AppStateProvider({
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as Partial<PersistedAppState>;
+        const parsedOnboarding = {
+          ...onboardingDefaults,
+          ...parsed.onboarding
+        };
+        const upgradedOnboarding = {
+          ...parsedOnboarding,
+          onboardingVersion: ONBOARDING_VERSION,
+          completed:
+            parsedOnboarding.completed || parsedOnboarding.hasCompletedOnboarding || false,
+          hasCompletedOnboarding:
+            parsedOnboarding.hasCompletedOnboarding || parsedOnboarding.completed || false,
+          mode:
+            parsedOnboarding.mode ??
+            getModeForBranch(
+              resolveBranch(parsedOnboarding.primaryIntent, parsedOnboarding.collaborationRoute)
+            ),
+          ...deriveOnboardingGraphs(parsedOnboarding)
+        };
         setState({
           mode: parsed.mode ?? initialState.mode,
           activePersonaId: parsed.activePersonaId ?? initialState.activePersonaId,
-          onboarding: {
-            ...onboardingDefaults,
-            ...parsed.onboarding
-          },
+          onboarding: upgradedOnboarding,
           launches: syncLaunches(parsed.launches ?? initialState.launches, demo.events),
           launchDrafts: (parsed.launchDrafts ?? initialState.launchDrafts).map((draft) =>
             syncLaunchDraft(draft)
@@ -570,8 +681,10 @@ export function AppStateProvider({
   const currentStorefront = getStorefrontForUser(currentUserId);
   const homeCity = state.onboarding.city || currentUser.city;
   const preferredFandoms =
-    state.onboarding.fandoms.length > 0
-      ? state.onboarding.fandoms
+    state.onboarding.fandomTags.length > 0
+      ? state.onboarding.fandomTags
+      : state.onboarding.businessSceneTags.length > 0
+        ? state.onboarding.businessSceneTags
       : currentProfile?.fandoms ?? currentUser.fandomTags;
   const socialActivity = useMemo(
     () =>
@@ -1023,75 +1136,197 @@ export function AppStateProvider({
         mode: preset.mode
       }));
     },
-    completeOnboarding: (payload) => {
-      const mode = payload.mode ?? getModeForIntent(payload.primaryIntent);
-      const nextPersonaId = getDefaultPersonaIdForMode(mode);
+    updateOnboarding: (payload) => {
+      setState((current) => {
+        const merged = {
+          ...current.onboarding,
+          ...payload
+        };
+        const primaryBranch =
+          merged.primaryBranch ??
+          resolveBranch(merged.primaryIntent, merged.collaborationRoute);
+        const mode = merged.mode ?? getModeForBranch(primaryBranch);
 
-      setState((current) => ({
-        ...current,
-        mode,
-        activePersonaId: nextPersonaId,
-        onboarding: {
-          completed: true,
+        return {
+          ...current,
+          onboarding: {
+            ...merged,
+            primaryBranch,
+            mode,
+            onboardingVersion: ONBOARDING_VERSION,
+            ...deriveOnboardingGraphs(merged)
+          }
+        };
+      });
+    },
+    completeOnboarding: (payload) => {
+      setState((current) => {
+        const merged = {
+          ...current.onboarding,
+          ...payload
+        };
+        const primaryBranch =
+          merged.primaryBranch ??
+          resolveBranch(merged.primaryIntent, merged.collaborationRoute);
+        const mode = merged.mode ?? getModeForBranch(primaryBranch);
+        const nextPersonaId = getDefaultPersonaIdForMode(mode);
+        const nextUserId = resolveCurrentUserId(nextPersonaId, mode);
+        const completedOnboarding: OnboardingState = {
+          ...merged,
+          primaryBranch,
           mode,
-          primaryIntent: payload.primaryIntent,
-          authMethod: payload.authMethod,
-          city: payload.city,
-          fandoms: payload.fandoms,
-          hostFormat: payload.hostFormat,
-          budgetRange: payload.budgetRange,
-          creatorRoles: payload.creatorRoles ?? [],
-          portfolioLink: payload.portfolioLink ?? "",
-          availability: payload.availability ?? "",
-          fanEventTypes: payload.fanEventTypes ?? [],
-          travelDistance: payload.travelDistance ?? "",
-          budgetComfort: payload.budgetComfort ?? "",
-          profileSetupCompleted: mode !== "creator",
-          usedSampleProfile: payload.usedSampleProfile ?? false
-        }
-      }));
+          authMethod: "phone",
+          completed: true,
+          hasCompletedOnboarding: true,
+          profileSetupCompleted: true,
+          usedSampleProfile: merged.usedSampleProfile ?? false,
+          onboardingVersion: ONBOARDING_VERSION,
+          secondaryAddOnStatus:
+            merged.secondaryIntent && merged.secondaryAddOnStatus === "accepted"
+              ? "completed"
+              : merged.secondaryAddOnStatus ?? null,
+          ...deriveOnboardingGraphs(merged)
+        };
+
+        return {
+          ...current,
+          mode,
+          activePersonaId: nextPersonaId,
+          onboarding: completedOnboarding,
+          profileDrafts: {
+            ...current.profileDrafts,
+            [nextUserId]: buildProfileDraftFromOnboarding(
+              completedOnboarding,
+              current.profileDrafts[nextUserId]
+            )
+          },
+          businessProfiles:
+            mode === "business"
+              ? current.businessProfiles.map((profile) =>
+                  profile.ownerUserId === nextUserId
+                    ? {
+                        ...profile,
+                        city: completedOnboarding.city || profile.city,
+                        area: completedOnboarding.neighborhood || profile.area,
+                        businessType:
+                          toBusinessType(completedOnboarding.businessType) ??
+                          profile.businessType,
+                        fandomInterests:
+                          completedOnboarding.businessSceneTags.length > 0
+                            ? completedOnboarding.businessSceneTags
+                            : profile.fandomInterests,
+                        supportInterests:
+                          completedOnboarding.businessGoals.length > 0
+                            ? completedOnboarding.businessGoals
+                            : profile.supportInterests,
+                        hostingPreferences:
+                          completedOnboarding.businessTalentNeeds.length > 0
+                            ? completedOnboarding.businessTalentNeeds
+                            : profile.hostingPreferences,
+                        summary: completedOnboarding.businessGoals.length > 0
+                          ? `Looking for ${completedOnboarding.businessGoals.slice(0, 2).join(" and ")} in ${completedOnboarding.city || profile.city}.`
+                          : profile.summary
+                      }
+                    : profile
+                )
+              : current.businessProfiles
+        };
+      });
+    },
+    resetOnboarding: () => {
+      setState((current) => {
+        const demoUserIds = [
+          FAN_DEMO_USER_ID,
+          CREATOR_DEMO_USER_ID,
+          HOST_DEMO_USER_ID,
+          BUSINESS_DEMO_USER_ID
+        ];
+
+        const nextProfileDrafts = Object.fromEntries(
+          Object.entries(current.profileDrafts).filter(([userId]) => !demoUserIds.includes(userId))
+        );
+
+        return {
+          ...current,
+          mode: "fan",
+          activePersonaId: "persona-fan",
+          onboarding: onboardingDefaults,
+          profileDrafts: nextProfileDrafts,
+          businessProfiles: seedBusinessProfiles
+        };
+      });
     },
     activateSampleProfile: (mode = "fan") => {
+      const partial =
+        mode === "host"
+          ? {
+              displayName: "Zo Park",
+              city: "Pasadena, CA",
+              primaryIntent: "throw_event" as OnboardingIntent,
+              primaryBranch: "organizer" as OnboardingBranch,
+              organizerGoal: "another_event" as const,
+              organizerExperience: "regular" as const,
+              organizerEventTypes: ["raves", "themed balls"],
+              fandomTags: ["Cosplay", "Fantasy"],
+              socials: [{ platform: "instagram" as const, mode: "connected" as const, value: "@zo.afterdark" }]
+            }
+          : mode === "creator"
+            ? {
+                displayName: "Aphex",
+                city: "Los Angeles, CA",
+                primaryIntent: "get_booked" as OnboardingIntent,
+                primaryBranch: "talent" as OnboardingBranch,
+                skills: ["photographer", "social promo"],
+                workEventTypes: ["live shows", "nightlife"],
+                fandomTags: ["Cosplay", "JJK", "Marvel"],
+                travelRadius: "city" as const,
+                socials: [{ platform: "instagram" as const, mode: "connected" as const, value: "@aphex.scene" }],
+                portfolioLink: "portfolio.example/saga"
+              }
+            : mode === "business"
+              ? {
+                  displayName: "Neon Shrine",
+                  city: "Los Angeles, CA",
+                  primaryIntent: "book_talent_or_business" as OnboardingIntent,
+                  primaryBranch: "business" as OnboardingBranch,
+                  businessType: "venue",
+                  businessGoals: ["host events", "find talent"],
+                  businessTalentNeeds: ["DJs", "photographers", "event organizers"],
+                  businessSceneTags: ["Anime", "Gaming", "Nightlife"],
+                  socials: [{ platform: "instagram" as const, mode: "connected" as const, value: "@neonshrine.la" }]
+                }
+              : {
+                  displayName: "Kai",
+                  city: "Los Angeles, CA",
+                  primaryIntent: "explore" as OnboardingIntent,
+                  primaryBranch: "explorer" as OnboardingBranch,
+                  fandomTags: ["Jujutsu Kaisen", "Cosplay", "Love and Deepspace"],
+                  eventTypePreferences: ["meetups", "watch parties"],
+                  outingStyleTags: ["solo-friendly", "plan-ahead nights"],
+                  socials: [{ platform: "instagram" as const, mode: "handle" as const, value: "@kai.afterhours" }]
+                };
+
+      const completed = buildSeededOnboarding(
+        {
+          ...partial,
+          usedSampleProfile: true
+        },
+        mode
+      );
       const nextPersonaId = getDefaultPersonaIdForMode(mode);
+      const nextUserId = resolveCurrentUserId(nextPersonaId, mode);
 
       setState((current) => ({
         ...current,
         mode,
         activePersonaId: nextPersonaId,
-        onboarding: {
-          ...current.onboarding,
-          completed: true,
-          mode,
-          primaryIntent:
-            mode === "host"
-              ? "host"
-              : mode === "creator"
-                ? "perform"
-                : mode === "business"
-                  ? "discover people"
-                  : "attend events",
-          city:
-            mode === "host"
-              ? "Pasadena, CA"
-              : mode === "creator"
-                ? "New York, NY"
-                : "Los Angeles, CA",
-          fandoms:
-            mode === "host"
-              ? ["Cosplay", "Fan Mixers"]
-              : mode === "creator"
-                ? ["Marvel Rivals", "Creator Collabs"]
-                : mode === "business"
-                  ? ["One Piece", "Marvel Rivals", "Creator Events"]
-                  : ["Jujutsu Kaisen", "Cosplay"],
-          creatorRoles: mode === "creator" ? ["social promo", "photographer"] : [],
-          portfolioLink: mode === "creator" ? "portfolio.example/saga" : "",
-          availability: mode === "creator" ? "Weeknights + weekends" : "",
-          fanEventTypes: mode === "fan" ? ["mixers", "creator showcases"] : [],
-          travelDistance: mode === "fan" ? "Up to 45 minutes" : "",
-          budgetComfort: mode === "fan" ? "$20 - $40" : "",
-          profileSetupCompleted: mode !== "creator",
-          usedSampleProfile: true
+        onboarding: completed,
+        profileDrafts: {
+          ...current.profileDrafts,
+          [nextUserId]: buildProfileDraftFromOnboarding(
+            completed,
+            current.profileDrafts[nextUserId]
+          )
         }
       }));
     },

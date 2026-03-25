@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import "@/app/globals.css";
+import { OnboardingGate } from "@/src/components/OnboardingGate";
 import { AppStateProvider } from "@/src/lib/app-state";
 import { DemoStateProvider } from "@/src/lib/demo-state";
 
@@ -19,7 +20,9 @@ export default function RootLayout({
     <html lang="en">
       <body className="bg-app-bg text-app-text antialiased">
         <DemoStateProvider>
-          <AppStateProvider>{children}</AppStateProvider>
+          <AppStateProvider>
+            <OnboardingGate>{children}</OnboardingGate>
+          </AppStateProvider>
         </DemoStateProvider>
       </body>
     </html>
