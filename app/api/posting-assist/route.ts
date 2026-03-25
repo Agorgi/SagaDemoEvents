@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
 
 import {
   buildPostingAssistFallback,
@@ -118,20 +117,32 @@ export async function POST(request: Request) {
   }
 
   try {
-    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    const response = await client.responses.create({
-      model: process.env.OPENAI_POSTING_MODEL ?? "gpt-4.1-mini",
-      instructions,
-      input: draft,
-      text: {
-        format: {
-          type: "json_schema",
-          ...postingAssistSchema
+    const response = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: process.env.OPENAI_POSTING_MODEL ?? "gpt-4.1-mini",
+        instructions,
+        input: draft,
+        text: {
+          format: {
+            type: "json_schema",
+            ...postingAssistSchema
+          }
         }
-      }
+      })
     });
 
-    const outputText = response.output_text?.trim();
+    if (!response.ok) {
+      return NextResponse.json(fallback);
+    }
+
+    const payload = await response.json();
+    const outputText =
+      typeof payload.output_text === "string" ? payload.output_text.trim() : "";
     if (!outputText) {
       return NextResponse.json(fallback);
     }

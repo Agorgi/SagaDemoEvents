@@ -81,6 +81,7 @@ type CreateEventPayload = {
   communities: string;
   eventFormat: string;
   sourceCrew: boolean;
+  posterUrl?: string;
 };
 
 type CreatePostPayload = {
@@ -343,13 +344,15 @@ function buildEventPayload(
     venue: location.venue,
     startsAt: start.toISOString(),
     endsAt: end.toISOString(),
-    posterUrl: createPosterDataUri({
-      title: payload.name.trim(),
-      subtitle: payload.description.trim().slice(0, 54) || payload.eventFormat,
-      eyebrow: communities[0] ?? payload.eventFormat,
-      accent: "#1F1CB8",
-      accent2: "#5E8BFF"
-    }),
+    posterUrl:
+      payload.posterUrl ??
+      createPosterDataUri({
+        title: payload.name.trim(),
+        subtitle: payload.description.trim().slice(0, 54) || payload.eventFormat,
+        eyebrow: communities[0] ?? payload.eventFormat,
+        accent: "#1F1CB8",
+        accent2: "#5E8BFF"
+      }),
     hostId: payload.hostId,
     attendeesCount: 84,
     mutualsCount: 6,

@@ -6,15 +6,24 @@ import { useParams } from "next/navigation";
 import { Avatar } from "@/src/components/Avatar";
 import { ExpandableText } from "@/src/components/ExpandableText";
 import { TagChip } from "@/src/components/Chips";
+import { FeedPostCard } from "@/src/components/FeedPostCard";
 import { Nav } from "@/src/components/Nav";
-import { getEventById, getUserById } from "@/src/data/demo";
+import {
+  getFollowersForUser,
+  getFollowingForUser,
+  getPortfolioForUser,
+  getProfileByUserId
+} from "@/src/data/social";
+import { businessProfiles, getListingsForUser, getStorefrontForUser } from "@/src/data/economy";
+import { useAppState } from "@/src/lib/app-state";
 import { useDemoState } from "@/src/lib/demo-state";
-import { formatCompactNumber, formatDateRange } from "@/src/lib/utils";
+import { formatDateRange } from "@/src/lib/utils";
 
 export default function UserProfilePage() {
   const params = useParams<{ userId: string }>();
-  const { activeUserId, events, roles } = useDemoState();
-  const user = getUserById(params.userId);
+  const { currentUserId, followingIds, listings, resolveUser, toggleFollow } = useAppState();
+  const { events, posts, roles } = useDemoState();
+  const user = resolveUser(params.userId);
 
   if (!user) {
     return (
@@ -27,128 +36,105 @@ export default function UserProfilePage() {
     );
   }
 
-  const hostedEvents = events.filter((event) => event.hostId === user.id);
-  const roleEvents = roles
-    .filter((role) => role.filledByUserId === user.id)
-    .map((role) => {
-      const event = getEventById(role.eventId, events);
-      return event ? { role, event } : null;
-    })
-    .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry));
-
-  const upcomingEvents = [...hostedEvents, ...roleEvents.map((entry) => entry.event)]
-    .sort((left, right) => Date.parse(left.startsAt) - Date.parse(right.startsAt))
-    .filter((event, index, list) => list.findIndex((entry) => entry.id === event.id) === index)
+  const profile = getProfileByUserId(user.id);
+  const portfolio = getPortfolioForUser(user.id);
+  const followerCount = getFollowersForUser(user.id).length;
+  const followingCount = getFollowingForUser(user.id).length;
+  const recentPosts = posts.filter((post) => post.authorId === user.id).slice(0, 2);
+  const relatedRoles = roles.filter(
+    (role) =>
+      role.filledByUserId === user.id ||
+      role.applicants.some((entry) => entry.applicantUserId === user.id)
+  );
+  const upcomingEvents = events
+    .filter(
+      (event) =>
+        event.hostId === user.id ||
+        relatedRoles.some((role) => role.eventId === event.id)
+    )
     .slice(0, 3);
 
-  const collaborators = Array.from(
-    new Set(
-      [
-        ...hostedEvents.flatMap((event) =>
-          roles
-            .filter((role) => role.eventId === event.id)
-            .map((role) => role.filledByUserId)
-            .filter(Boolean)
-        ),
-        ...roleEvents.map(({ event }) => event.hostId)
-      ].filter((userId) => userId && userId !== user.id)
-    )
-  )
-    .map((userId) => getUserById(userId))
-    .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry))
-    .slice(0, 4);
-
-  const portfolio = [
-    ...hostedEvents.map((event) => ({
-      id: `host-${event.id}`,
-      title: event.title,
-      imageUrl: event.posterUrl,
-      meta: "Hosted",
-      href: `/events/${event.id}`
-    })),
-    ...roleEvents.map(({ role, event }) => ({
-      id: `role-${role.id}`,
-      title: event.title,
-      imageUrl: event.posterUrl,
-      meta: role.roleName,
-      href: `/events/${event.id}`
-    }))
-  ].slice(0, 6);
+  const isCurrentUser = currentUserId === user.id;
+  const isFollowing = followingIds.includes(user.id);
+  const storefront = getStorefrontForUser(user.id);
+  const storefrontListings = getListingsForUser(user.id, listings);
+  const businessProfile = businessProfiles.find((profile) => profile.ownerUserId === user.id);
 
   return (
     <div className="min-h-screen">
       <Nav />
 
-      <main className="mx-auto max-w-[960px] px-4 pb-28 pt-5 sm:px-6 sm:pb-10 sm:pt-8">
-        <section className="surface-card-strong p-6 sm:p-8">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
-            <Avatar
-              className="h-24 w-24 text-2xl sm:h-28 sm:w-28"
-              name={user.name}
-              src={user.avatarUrl}
+      <main className="mx-auto max-w-[980px] px-4 pb-28 pt-5 sm:px-6 sm:pb-14 sm:pt-8">
+        <section className="overflow-hidden rounded-[34px] border border-white/8 bg-[#0f1320] shadow-soft">
+          <div className="relative h-[220px]">
+            <img
+              alt={user.name}
+              className="h-full w-full object-cover"
+              src={profile?.coverImageUrl ?? user.avatarUrl}
             />
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <h1 className="text-3xl font-semibold text-white sm:text-4xl">
-                    {user.name}
-                  </h1>
+            <div className="absolute inset-0 bg-gradient-to-t from-[#07090f] via-[#07090f]/30 to-transparent" />
+          </div>
+          <div className="relative px-5 pb-6 sm:px-8">
+            <div className="-mt-10 flex flex-col gap-5 sm:-mt-12 sm:flex-row sm:items-end sm:justify-between">
+              <div className="flex items-end gap-4">
+                <Avatar
+                  className="h-20 w-20 border-4 border-[#0f1320] text-xl sm:h-24 sm:w-24"
+                  name={user.name}
+                  size="lg"
+                  src={user.avatarUrl}
+                />
+                <div className="pb-1">
+                  <h1 className="text-4xl font-semibold text-white">{user.name}</h1>
                   <p className="mt-1 text-sm text-app-muted">
                     {user.handle} · {user.city}
                   </p>
                 </div>
-                <div className="flex gap-3">
-                  <button
+              </div>
+
+              <div className="flex gap-3">
+                {isCurrentUser ? (
+                  <Link
                     className="rounded-2xl bg-app-purple px-4 py-3 text-sm font-semibold text-white transition hover:bg-app-purple-hover"
+                    href="/profile"
+                  >
+                    Your profile
+                  </Link>
+                ) : (
+                  <button
+                    className={`rounded-2xl px-4 py-3 text-sm font-semibold text-white transition ${isFollowing ? "border border-white/10" : "bg-app-purple hover:bg-app-purple-hover"}`}
+                    onClick={() => toggleFollow(user.id)}
                     type="button"
                   >
-                    {user.id === activeUserId ? "Edit profile" : "Message"}
+                    {isFollowing ? "Following" : "Follow"}
                   </button>
-                  {user.id !== activeUserId ? (
-                    <button
-                      className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
-                      type="button"
-                    >
-                      Invite
-                    </button>
-                  ) : null}
-                </div>
+                )}
               </div>
+            </div>
 
-              <ExpandableText className="mt-4" collapsedLines={2} text={user.bio} />
+            <div className="mt-4 max-w-[60ch]">
+              <ExpandableText collapsedLines={2} text={profile?.headline ?? user.bio} />
+            </div>
 
-              <div className="mt-4 flex flex-wrap gap-2">
-                {user.fandomTags.slice(0, 4).map((tag) => (
-                  <TagChip key={tag} label={tag} />
-                ))}
-              </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {(profile?.fandoms ?? user.fandomTags).slice(0, 5).map((tag) => (
+                <TagChip key={tag} label={tag} />
+              ))}
+            </div>
 
-              <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <Stat label="City" value={user.city.split(",")[0]} />
-                <Stat label="Past events" value={formatCompactNumber(user.pastEventsWorked)} />
-                <Stat label="Hosted" value={formatCompactNumber(hostedEvents.length)} />
-                <Stat label="Repeat collabs" value={formatCompactNumber(collaborators.length)} />
-              </div>
+            <div className="mt-5 grid grid-cols-3 gap-3 sm:max-w-[420px]">
+              <StatCard label="Followers" value={String(followerCount)} />
+              <StatCard label="Following" value={String(followingCount)} />
+              <StatCard label="Past events" value={String(user.pastEventsWorked)} />
             </div>
           </div>
         </section>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[1.04fr_0.96fr]">
+        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(300px,0.95fr)]">
           <section className="space-y-6">
-            <div className="surface-card p-5">
-              <p className="text-sm font-semibold text-white">Skills</p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {user.skills.slice(0, 6).map((skill) => (
-                  <TagChip key={skill} label={skill} subdued />
-                ))}
-              </div>
-            </div>
-
-            <div className="surface-card p-5">
-              <p className="text-sm font-semibold text-white">Upcoming events</p>
-              <div className="mt-4 space-y-3">
-                {upcomingEvents.length > 0 ? (
-                  upcomingEvents.map((event) => (
+            <SurfaceBlock title="Upcoming">
+              {upcomingEvents.length > 0 ? (
+                <div className="space-y-3">
+                  {upcomingEvents.map((event) => (
                     <Link
                       className="flex items-center gap-4 rounded-[24px] border border-white/8 bg-[#0d1119] p-4 transition hover:border-white/15"
                       href={`/events/${event.id}`}
@@ -162,76 +148,92 @@ export default function UserProfilePage() {
                         </p>
                       </div>
                     </Link>
-                  ))
-                ) : (
-                  <EmptyState text="No upcoming events linked yet." />
-                )}
-              </div>
-            </div>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState text="No upcoming plans linked yet." />
+              )}
+            </SurfaceBlock>
 
-            <div className="surface-card p-5">
-              <p className="text-sm font-semibold text-white">Past work</p>
-              <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {portfolio.length > 0 ? (
-                  portfolio.map((item) => (
-                    <Link
-                      className="overflow-hidden rounded-[24px] border border-white/8 bg-[#0d1119] transition hover:-translate-y-1 hover:border-white/15"
-                      href={item.href}
-                      key={item.id}
-                    >
-                      <img
-                        alt={item.title}
-                        className="h-40 w-full object-cover"
-                        src={item.imageUrl}
-                      />
+            <SurfaceBlock title="Portfolio">
+              {portfolio.length > 0 ? (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {portfolio.map((item) => (
+                    <div className="overflow-hidden rounded-[24px] border border-white/8 bg-[#0d1119]" key={item.id}>
+                      <img alt={item.title} className="h-40 w-full object-cover" src={item.imageUrl} />
                       <div className="p-4">
-                        <p className="text-sm text-app-muted">{item.meta}</p>
-                        <p className="mt-1 font-semibold text-white">{item.title}</p>
+                        <p className="font-semibold text-white">{item.title}</p>
+                        <p className="mt-1 line-clamp-2 text-sm text-app-muted">{item.caption}</p>
                       </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState text="Portfolio items will show up here." />
+              )}
+            </SurfaceBlock>
+
+            {storefront ? (
+              <SurfaceBlock title="Shop and services">
+                <div className="space-y-4">
+                  <div className="rounded-[24px] border border-white/8 bg-[#0d1119] p-4">
+                    <p className="font-semibold text-white">{storefront.title}</p>
+                    <p className="mt-1 text-sm text-app-muted">{storefront.headline}</p>
+                  </div>
+                  {storefrontListings.slice(0, 3).map((listing) => (
+                    <Link
+                      className="block rounded-[24px] border border-white/8 bg-[#0d1119] p-4 transition hover:border-white/15"
+                      href={`/listings/${listing.id}`}
+                      key={listing.id}
+                    >
+                      <p className="font-semibold text-white">{listing.title}</p>
+                      <p className="mt-1 line-clamp-2 text-sm text-app-muted">{listing.summary}</p>
                     </Link>
-                  ))
-                ) : (
-                  <EmptyState text="Portfolio items will appear here after hosted or contributed events." />
-                )}
-              </div>
-            </div>
+                  ))}
+                </div>
+              </SurfaceBlock>
+            ) : null}
           </section>
 
           <aside className="space-y-6">
-            <div className="surface-card p-5">
-              <p className="text-sm font-semibold text-white">Trusted with</p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {user.fandomTags.slice(0, 4).map((tag) => (
-                  <TagChip key={tag} label={tag} />
+            <SurfaceBlock title="Best for">
+              <div className="flex flex-wrap gap-2">
+                {user.skills.slice(0, 6).map((skill) => (
+                  <TagChip key={skill} label={skill} subdued />
                 ))}
               </div>
-            </div>
+              {profile?.servicesPreview.length ? (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {profile.servicesPreview.map((item) => (
+                    <TagChip key={item} label={item} subdued />
+                  ))}
+                </div>
+              ) : null}
+            </SurfaceBlock>
 
-            <div className="surface-card p-5">
-              <p className="text-sm font-semibold text-white">Collaborators</p>
-              <div className="mt-4 space-y-3">
-                {collaborators.length > 0 ? (
-                  collaborators.map((collaborator) => (
-                    <Link
-                      className="flex items-center justify-between rounded-[22px] border border-white/8 bg-[#0d1119] p-4 transition hover:border-white/15"
-                      href={`/profiles/${collaborator.id}`}
-                      key={collaborator.id}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Avatar name={collaborator.name} size="md" src={collaborator.avatarUrl} />
-                        <div>
-                          <p className="font-semibold text-white">{collaborator.name}</p>
-                          <p className="text-sm text-app-muted">{collaborator.city}</p>
-                        </div>
-                      </div>
-                      <span className="text-sm text-app-muted">Profile</span>
-                    </Link>
-                  ))
-                ) : (
-                  <EmptyState text="Collaborator history will appear here after more events." />
-                )}
-              </div>
-            </div>
+            {businessProfile ? (
+              <SurfaceBlock title="Business side">
+                <Link
+                  className="block rounded-[24px] border border-white/8 bg-[#0d1119] p-4 transition hover:border-white/15"
+                  href={`/businesses/${businessProfile.id}`}
+                >
+                  <p className="font-semibold text-white">{businessProfile.name}</p>
+                  <p className="mt-1 text-sm text-app-muted">{businessProfile.summary}</p>
+                </Link>
+              </SurfaceBlock>
+            ) : null}
+
+            <SurfaceBlock title="Recent activity">
+              {recentPosts.length > 0 ? (
+                <div className="space-y-4">
+                  {recentPosts.map((post) => (
+                    <FeedPostCard key={post.id} post={post} />
+                  ))}
+                </div>
+              ) : (
+                <EmptyState text="No recent activity shared yet." />
+              )}
+            </SurfaceBlock>
           </aside>
         </div>
       </main>
@@ -239,7 +241,22 @@ export default function UserProfilePage() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function SurfaceBlock({
+  title,
+  children
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="surface-card p-5">
+      <p className="text-lg font-semibold text-white">{title}</p>
+      <div className="mt-4">{children}</div>
+    </section>
+  );
+}
+
+function StatCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-[22px] border border-white/8 bg-[#0d1119] p-4">
       <p className="text-xs text-app-muted">{label}</p>
@@ -250,7 +267,7 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 function EmptyState({ text }: { text: string }) {
   return (
-    <div className="rounded-[22px] border border-dashed border-white/10 bg-white/[0.02] p-5">
+    <div className="rounded-[24px] border border-dashed border-white/10 bg-white/[0.02] p-5">
       <p className="text-sm text-app-muted">{text}</p>
     </div>
   );

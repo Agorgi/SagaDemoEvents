@@ -8,8 +8,8 @@ import { Avatar } from "@/src/components/Avatar";
 import { ExpandableText } from "@/src/components/ExpandableText";
 import { Nav } from "@/src/components/Nav";
 import { RoleApplicationPanel } from "@/src/components/RoleApplicationPanel";
-import { StatusChip } from "@/src/components/StatusChip";
-import { ThresholdProgress } from "@/src/components/ThresholdProgress";
+import { TagChip } from "@/src/components/Chips";
+import { EventCard } from "@/src/components/EventCard";
 import { getEventById } from "@/src/data/demo";
 import { useAppState } from "@/src/lib/app-state";
 import { useDemoState } from "@/src/lib/demo-state";
@@ -19,12 +19,20 @@ export default function EventDetailPage() {
   const params = useParams<{ eventId: string }>();
   const {
     bookEvent,
+    currentBusinessProfile,
     currentUserId,
+    homeCity,
     launches,
     mode,
-    resolveUser
+    preferredFandoms,
+    respondToBusinessMatch,
+    resolveUser,
+    goingEventIds,
+    savedEventIds,
+    supportIntents,
+    toggleSavedEvent
   } = useAppState();
-  const { events, joinedEventIds, roles, savedEventIds, toggleSavedEvent } = useDemoState();
+  const { events, roles } = useDemoState();
   const [applyOpen, setApplyOpen] = useState(false);
   const event = getEventById(params.eventId, events);
 
@@ -48,136 +56,97 @@ export default function EventDetailPage() {
     role.applicants.some((entry) => entry.applicantUserId === currentUserId)
   );
   const roomUnlocked =
-    joinedEventIds.includes(event.id) || hasApplied || event.hostId === currentUserId;
+    goingEventIds.includes(event.id) || hasApplied || event.hostId === currentUserId;
   const isSaved = savedEventIds.includes(event.id);
   const thresholdCurrent = (launch?.reserveCount ?? 0) + (launch?.ticketCount ?? 0);
-  const thresholdTarget = launch?.plan.thresholdTarget ?? Math.max(24, Math.round(event.attendeesCount * 0.08));
-  const thresholdMet = thresholdCurrent >= thresholdTarget;
-  const isOwnEvent = mode === "host" && event.hostId === "user-zo";
+  const thresholdTarget =
+    launch?.plan.thresholdTarget ?? Math.max(24, Math.round(event.attendeesCount * 0.08));
+  const isOwnEvent = mode === "host" && event.hostId === currentUserId;
+  const businessSupportState = currentBusinessProfile
+    ? supportIntents.find(
+        (intent) =>
+          intent.businessId === currentBusinessProfile.id &&
+          intent.targetType === "event" &&
+          intent.targetId === event.id
+      )?.action
+    : undefined;
+  const relatedEvents = events
+    .filter(
+      (candidate) =>
+        candidate.id !== event.id &&
+        candidate.fandomTags.some((tag) => event.fandomTags.includes(tag))
+    )
+    .slice(0, 3);
+  const whyForYou = [
+    event.city === homeCity ? `Close to ${homeCity.split(",")[0]}` : null,
+    event.fandomTags.some((tag) => preferredFandoms.includes(tag))
+      ? `Matches ${event.fandomTags.find((tag) => preferredFandoms.includes(tag))}`
+      : null,
+    event.mutualsCount > 0 ? `${event.mutualsCount} mutuals are circling it` : null
+  ].filter(Boolean) as string[];
+
   const primaryLabel = isOwnEvent
     ? "Open workspace"
+    : mode === "business"
+      ? businessSupportState === "supporting"
+        ? "Support noted"
+        : "Support event"
     : mode === "creator"
       ? hasApplied
         ? "Application sent"
-        : "Join team"
-      : joinedEventIds.includes(event.id)
-        ? "View ticket"
-        : thresholdMet
-          ? event.isFree
-            ? "Reserve spot"
-            : "Get ticket"
-          : "Reserve spot";
-
-  const metadata = [
-    formatDateRange(event.startsAt, event.endsAt),
-    formatTimeLabel(event.startsAt),
-    `${event.venue}, ${event.city}`,
-    ...event.fandomTags,
-    openRoles.length > 0 ? `${openRoles.length} roles open` : null
-  ].filter(Boolean) as string[];
-
-  const ticketSection = (
-    <section className="surface-card p-5 sm:p-6">
-      <p className="text-sm font-semibold text-white">Tickets</p>
-      <div className="mt-4 grid gap-3">
-        {(launch?.plan.ticketPlan ?? [
-          { label: thresholdMet ? "General ticket" : "Reserve spot", price: event.isFree ? 0 : 24, description: "Hold a place in the launch." }
-        ]).map((tier) => (
-          <div className="rounded-[22px] border border-white/8 bg-[#0d1119] p-4" key={tier.label}>
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="font-semibold text-white">{tier.label}</p>
-                {tier.description ? <p className="mt-2 text-sm text-app-muted">{tier.description}</p> : null}
-              </div>
-              <span className="text-lg font-semibold text-white">{tier.price > 0 ? `$${tier.price}` : "Free"}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-
-  const rolesSection = openRoles.length > 0 ? (
-    <section className="surface-card p-5 sm:p-6">
-      <div className="flex items-start justify-between gap-4">
-        <p className="text-sm font-semibold text-white">Open roles</p>
-        <button
-          className="rounded-2xl bg-app-purple px-4 py-3 text-sm font-semibold text-white transition hover:bg-app-purple-hover"
-          onClick={() => setApplyOpen(true)}
-          type="button"
-        >
-          {hasApplied ? "Application sent" : "Join team"}
-        </button>
-      </div>
-      <div className="mt-4 grid gap-3">
-        {openRoles.map((role) => (
-          <div className="rounded-[22px] border border-white/8 bg-[#0d1119] p-4" key={role.id}>
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="font-semibold text-white">{role.roleName}</p>
-                <p className="mt-2 text-sm text-app-muted">
-                  ${role.payoutRange[0]} - ${role.payoutRange[1]}
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {role.requiredSkills.slice(0, 3).map((skill) => (
-                  <span className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-1 text-xs text-app-muted" key={skill}>
-                    {skill}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  ) : null;
+        : openRoles.length > 0
+          ? "Join team"
+          : goingEventIds.includes(event.id)
+            ? "View plans"
+            : event.isFree
+              ? "Reserve spot"
+              : "Get ticket"
+      : goingEventIds.includes(event.id)
+        ? "View plans"
+        : event.isFree
+          ? "Reserve spot"
+          : "Get ticket";
 
   return (
     <div className="min-h-screen">
       <Nav />
-      <main className="mx-auto w-full max-w-[980px] px-4 pb-40 pt-5 sm:px-6 sm:pb-16 sm:pt-8">
-        <section className="overflow-hidden rounded-[30px] border border-white/8 bg-[#0f1320] shadow-soft">
+      <main className="mx-auto w-full max-w-[1040px] px-4 pb-40 pt-5 sm:px-6 sm:pb-16 sm:pt-8">
+        <section className="overflow-hidden rounded-[34px] border border-white/8 bg-[#0f1320] shadow-soft">
           <div className="relative">
-            <img alt={event.title} className="h-[320px] w-full object-cover sm:h-[440px]" src={event.posterUrl} />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#06090f] via-[#06090f]/20 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-8">
-              <div className="flex flex-wrap items-center gap-2">
-                <StatusChip
-                  status={
-                    launch?.status === "completed"
-                      ? "completed"
-                      : thresholdCurrent >= thresholdTarget * 0.85
-                        ? "almost-there"
-                        : launch?.status ?? "live"
-                  }
-                />
-                {event.fandomTags.slice(0, 2).map((tag) => (
-                  <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs font-semibold text-white/84" key={tag}>
+            <img alt={event.title} className="h-[340px] w-full object-cover sm:h-[470px]" src={event.posterUrl} />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#06090f] via-[#06090f]/22 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 p-5 sm:p-8">
+              <div className="flex flex-wrap gap-2">
+                {event.fandomTags.map((tag) => (
+                  <span className="rounded-full border border-white/12 bg-black/30 px-3 py-1 text-xs font-semibold text-white" key={tag}>
                     {tag}
                   </span>
                 ))}
+                {openRoles.length > 0 ? (
+                  <span className="rounded-full border border-app-purple/30 bg-app-purple/15 px-3 py-1 text-xs font-semibold text-white">
+                    {openRoles.length} roles open
+                  </span>
+                ) : null}
               </div>
               <h1 className="mt-4 max-w-3xl text-4xl font-semibold text-white sm:text-6xl">{event.title}</h1>
               <p className="mt-2 max-w-2xl text-sm text-white/78 sm:text-base">{event.subtitle}</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <MetaPill label={formatDateRange(event.startsAt, event.endsAt)} />
+                <MetaPill label={formatTimeLabel(event.startsAt)} />
+                <MetaPill label={`${event.venue}, ${event.city}`} />
+              </div>
               <div className="mt-4 flex items-center gap-3">
                 <Avatar name={host?.name ?? "Host"} size="sm" src={host?.avatarUrl} />
-                <div className="text-sm text-white/78">
-                  Hosted by {host?.name ?? "Host"}
+                <div>
+                  <p className="text-sm font-semibold text-white">Hosted by {host?.name ?? "Host"}</p>
+                  <p className="text-xs text-white/62">{host?.city ?? event.city}</p>
                 </div>
-              </div>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {metadata.map((item) => (
-                  <span className="rounded-full border border-white/12 bg-[#0a0d14]/72 px-3 py-1 text-xs font-medium text-white backdrop-blur" key={item}>
-                    {item}
-                  </span>
-                ))}
               </div>
             </div>
           </div>
         </section>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
+        <div className="mt-5 flex flex-col gap-3 sm:flex-row">
           <button
             className="rounded-2xl bg-app-purple px-4 py-3 text-sm font-semibold text-white transition hover:bg-app-purple-hover"
             onClick={() => {
@@ -185,7 +154,11 @@ export default function EventDetailPage() {
                 window.location.assign(`/studio/${launch.id}`);
                 return;
               }
-              if (mode === "creator") {
+              if (mode === "business" && currentBusinessProfile) {
+                respondToBusinessMatch(currentBusinessProfile.id, "event", event.id, "supporting");
+                return;
+              }
+              if (mode === "creator" && openRoles.length > 0) {
                 if (hasApplied) {
                   window.location.assign("/my-events");
                   return;
@@ -193,16 +166,31 @@ export default function EventDetailPage() {
                 setApplyOpen(true);
                 return;
               }
-              if (joinedEventIds.includes(event.id)) {
+              if (goingEventIds.includes(event.id)) {
                 window.location.assign("/my-events");
                 return;
               }
-              bookEvent(event.id, thresholdMet ? "ticket" : "reserve");
+              bookEvent(event.id, event.isFree ? "reserve" : "ticket");
             }}
             type="button"
           >
             {primaryLabel}
           </button>
+          {mode !== "host" && openRoles.length > 0 ? (
+            <button
+              className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
+              onClick={() => {
+                if (mode === "business" && currentBusinessProfile) {
+                  respondToBusinessMatch(currentBusinessProfile.id, "event", event.id, "hosting");
+                  return;
+                }
+                setApplyOpen(true);
+              }}
+              type="button"
+            >
+              {mode === "business" ? "Host this event" : "Join team"}
+            </button>
+          ) : null}
           <button
             className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
             onClick={() => toggleSavedEvent(event.id)}
@@ -210,105 +198,153 @@ export default function EventDetailPage() {
           >
             {isSaved ? "Saved" : "Save"}
           </button>
-          <button
-            className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
-            onClick={() => {
-              if (typeof navigator !== "undefined" && navigator.share) {
-                navigator.share({ title: event.title, url: window.location.href }).catch(() => undefined);
-              }
-            }}
-            type="button"
-          >
-            Share
-          </button>
         </div>
 
-        <section className="mt-6 surface-card p-5 sm:p-6">
-          <div className="flex items-center justify-between gap-4">
-            <p className="text-sm font-semibold text-white">Threshold progress</p>
-            <StatusChip
-              status={
-                launch?.status === "completed"
-                  ? "payouts-ready"
-                  : thresholdCurrent >= thresholdTarget * 0.85
-                    ? "almost-there"
-                    : launch?.status ?? "live"
-              }
-            />
-          </div>
-          <div className="mt-4">
-            <ThresholdProgress current={thresholdCurrent} target={thresholdTarget} />
-          </div>
-          <p className="mt-3 text-sm text-app-muted">
-            {thresholdCurrent} of {thresholdTarget} reserve / ticket actions
-          </p>
-        </section>
-
-        <div className="mt-6 space-y-6">
-          {mode === "creator" ? rolesSection : ticketSection}
-          {mode === "creator" ? ticketSection : rolesSection}
-
-          <section className="surface-card p-5 sm:p-6">
-            <p className="text-sm font-semibold text-white">About this event</p>
-            <ExpandableText className="mt-3" collapsedLines={3} text={event.description} />
-          </section>
-
-          <section className="surface-card p-5 sm:p-6">
-            <p className="text-sm font-semibold text-white">Host + team</p>
-            <div className="mt-4 flex items-center gap-3">
-              <Avatar name={host?.name ?? "Host"} size="sm" src={host?.avatarUrl} />
-              <div>
-                <p className="font-semibold text-white">{host?.name ?? "Host"}</p>
-                <p className="text-sm text-app-muted">{host?.city ?? event.city}</p>
+        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.08fr)_minmax(310px,0.92fr)]">
+          <section className="space-y-6">
+            <div className="surface-card p-5">
+              <p className="text-lg font-semibold text-white">Why this could be your scene</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {whyForYou.length > 0 ? (
+                  whyForYou.map((item) => <TagChip key={item} label={item} subdued />)
+                ) : (
+                  <TagChip label="Fresh for your feed" subdued />
+                )}
               </div>
             </div>
-            <div className="mt-4 grid gap-3">
-              {filledRoles.length > 0 ? (
-                filledRoles.map((role) => {
-                  const contributor = resolveUser(role.filledByUserId);
-                  return (
-                    <Link className="rounded-[22px] border border-white/8 bg-[#0d1119] p-4 transition hover:border-white/12" href={contributor ? `/creators/${contributor.id}` : "#"} key={role.id}>
-                      <div className="flex items-center gap-3">
-                        <Avatar name={contributor?.name ?? role.roleName} size="sm" src={contributor?.avatarUrl} />
+
+            <div className="surface-card p-5">
+              <p className="text-lg font-semibold text-white">About</p>
+              <div className="mt-4">
+                <ExpandableText collapsedLines={4} text={event.description} />
+              </div>
+            </div>
+
+            {mode === "creator" && openRoles.length > 0 ? (
+              <SectionBlock title="Join the team">
+                <div className="space-y-3">
+                  {openRoles.map((role) => (
+                    <div className="rounded-[24px] border border-white/8 bg-[#0d1119] p-4" key={role.id}>
+                      <div className="flex items-start justify-between gap-4">
                         <div>
-                          <p className="font-semibold text-white">{contributor?.name ?? "Contributor"}</p>
-                          <p className="text-sm text-app-muted">{role.roleName}</p>
+                          <p className="font-semibold text-white">{role.roleName}</p>
+                          <p className="mt-1 text-sm text-app-muted">
+                            ${role.payoutRange[0]} - ${role.payoutRange[1]}
+                          </p>
                         </div>
+                        <button
+                          className="rounded-2xl bg-app-purple px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-app-purple-hover"
+                          onClick={() => setApplyOpen(true)}
+                          type="button"
+                        >
+                          Apply
+                        </button>
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {role.requiredSkills.slice(0, 3).map((skill) => (
+                          <TagChip key={skill} label={skill} subdued />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </SectionBlock>
+            ) : null}
+
+            <SectionBlock title="People behind it">
+              <div className="space-y-3">
+                <Link
+                  className="flex items-center gap-4 rounded-[24px] border border-white/8 bg-[#0d1119] p-4 transition hover:border-white/15"
+                  href={`/profiles/${host?.id ?? event.hostId}`}
+                >
+                  <Avatar name={host?.name ?? "Host"} size="md" src={host?.avatarUrl} />
+                  <div className="min-w-0">
+                    <p className="font-semibold text-white">{host?.name ?? "Host"}</p>
+                    <p className="text-sm text-app-muted">{host?.bio ?? "Building nights worth leaving the house for."}</p>
+                  </div>
+                </Link>
+                {filledRoles.slice(0, 3).map((role) => {
+                  const contributor = resolveUser(role.filledByUserId);
+                  return contributor ? (
+                    <Link
+                      className="flex items-center gap-4 rounded-[24px] border border-white/8 bg-[#0d1119] p-4 transition hover:border-white/15"
+                      href={`/profiles/${contributor.id}`}
+                      key={role.id}
+                    >
+                      <Avatar name={contributor.name} size="md" src={contributor.avatarUrl} />
+                      <div className="min-w-0">
+                        <p className="font-semibold text-white">{contributor.name}</p>
+                        <p className="text-sm text-app-muted">{role.roleName}</p>
                       </div>
                     </Link>
-                  );
-                })
-              ) : (
-                <p className="text-sm text-app-muted">Team details will show here.</p>
-              )}
-            </div>
+                  ) : null;
+                })}
+              </div>
+            </SectionBlock>
           </section>
 
-          <section className="surface-card p-5 sm:p-6">
-            <p className="text-sm font-semibold text-white">Details</p>
-            <div className="mt-4 space-y-3 text-sm text-app-muted">
-              <p>{event.venue}, {event.city}</p>
-              <p>{formatDateRange(event.startsAt, event.endsAt)} · {formatTimeLabel(event.startsAt)}</p>
-              <p>Room unlocks after you reserve or join the team.</p>
-            </div>
-          </section>
+          <aside className="space-y-6">
+            <SectionBlock title="Scene signal">
+              <div className="space-y-3 text-sm text-app-muted">
+                <p>{event.attendeesCount.toLocaleString()} people have this on their radar.</p>
+                <p>{event.mutualsCount} mutuals already talking about it.</p>
+                <p>{event.communityCount.toLocaleString()} community members in the wider scene.</p>
+              </div>
+            </SectionBlock>
 
-          {roomUnlocked ? (
-            <section className="surface-card p-5 sm:p-6">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm font-semibold text-white">Room unlocked</p>
-                  <p className="mt-2 text-sm text-app-muted">Updates and chat are ready.</p>
+            {mode !== "creator" && openRoles.length > 0 ? (
+              <SectionBlock title="Open roles">
+                <div className="space-y-3">
+                  {openRoles.slice(0, 3).map((role) => (
+                    <div className="rounded-[24px] border border-white/8 bg-[#0d1119] p-4" key={role.id}>
+                      <p className="font-semibold text-white">{role.roleName}</p>
+                      <p className="mt-1 text-sm text-app-muted">
+                        ${role.payoutRange[0]} - ${role.payoutRange[1]}
+                      </p>
+                    </div>
+                  ))}
                 </div>
+              </SectionBlock>
+            ) : null}
+
+            {roomUnlocked ? (
+              <SectionBlock title="Room unlocked">
+                <p className="text-sm text-app-muted">Updates, reactions, and room chatter are ready.</p>
                 <Link
-                  className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
+                  className="mt-4 inline-flex rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
                   href={`/communities/${event.id}`}
                 >
-                  Join room
+                  Open room
                 </Link>
+              </SectionBlock>
+            ) : null}
+
+            <SectionBlock title="Related events">
+              <div className="space-y-4">
+                {relatedEvents.map((related) => {
+                  const relatedLaunch = launches.find((item) => item.eventId === related.id);
+                  return (
+                    <EventCard
+                      event={related}
+                      href={`/events/${related.id}`}
+                      key={related.id}
+                      mode={mode}
+                      onPrimaryAction={() => window.location.assign(`/events/${related.id}`)}
+                      openRoles={roles.filter((role) => role.eventId === related.id && role.status !== "filled").length}
+                      primaryLabel="See event"
+                      reasonLine={related.subtitle}
+                      showThreshold={false}
+                      socialLine={`${related.mutualsCount} mutuals`}
+                      status={relatedLaunch?.status ?? "live"}
+                      thresholdCurrent={(relatedLaunch?.reserveCount ?? 0) + (relatedLaunch?.ticketCount ?? 0)}
+                      thresholdTarget={relatedLaunch?.plan.thresholdTarget ?? Math.max(24, Math.round(related.attendeesCount * 0.07))}
+                      variant="row"
+                    />
+                  );
+                })}
               </div>
-            </section>
-          ) : null}
+            </SectionBlock>
+          </aside>
         </div>
       </main>
 
@@ -321,27 +357,23 @@ export default function EventDetailPage() {
                 window.location.assign(`/studio/${launch.id}`);
                 return;
               }
-              if (mode === "creator") {
-                if (hasApplied) {
-                  window.location.assign("/my-events");
-                  return;
-                }
+              if (mode === "creator" && openRoles.length > 0) {
                 setApplyOpen(true);
                 return;
               }
-              bookEvent(event.id, thresholdMet ? "ticket" : "reserve");
+              bookEvent(event.id, event.isFree ? "reserve" : "ticket");
             }}
             type="button"
           >
             {primaryLabel}
           </button>
-          {mode === "creator" && openRoles.length > 0 ? (
+          {openRoles.length > 0 ? (
             <button
               className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
               onClick={() => setApplyOpen(true)}
               type="button"
             >
-              Roles
+              Team
             </button>
           ) : null}
         </div>
@@ -356,5 +388,28 @@ export default function EventDetailPage() {
         />
       ) : null}
     </div>
+  );
+}
+
+function SectionBlock({
+  title,
+  children
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="surface-card p-5">
+      <p className="text-lg font-semibold text-white">{title}</p>
+      <div className="mt-4">{children}</div>
+    </section>
+  );
+}
+
+function MetaPill({ label }: { label: string }) {
+  return (
+    <span className="rounded-full border border-white/12 bg-[#0a0d14]/72 px-3 py-1 text-xs font-medium text-white backdrop-blur">
+      {label}
+    </span>
   );
 }

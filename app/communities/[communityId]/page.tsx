@@ -16,8 +16,8 @@ type RoomTab = (typeof tabs)[number];
 
 export default function CommunityDetailPage() {
   const params = useParams<{ communityId: string }>();
-  const { currentUserId } = useAppState();
-  const { commissions, events, joinedEventIds, roles } = useDemoState();
+  const { currentUserId, goingEventIds } = useAppState();
+  const { commissions, events, roles } = useDemoState();
   const [activeTab, setActiveTab] = useState<RoomTab>("Updates");
 
   const event = getEventById(params.communityId, events);
@@ -58,19 +58,21 @@ export default function CommunityDetailPage() {
     role.applicants.some((entry) => entry.applicantUserId === currentUserId)
   );
   const isUnlocked =
-    joinedEventIds.includes(roomEvent.id) || hasApplied || roomEvent.hostId === currentUserId;
+    goingEventIds.includes(roomEvent.id) || hasApplied || roomEvent.hostId === currentUserId;
 
   const updates = [
     `${roomEvent.title} is live.`,
     `${formatDateRange(roomEvent.startsAt, roomEvent.endsAt)} · ${formatTimeLabel(roomEvent.startsAt)}`,
     `${roomEvent.venue}, ${roomEvent.city}`,
+    `${roomEvent.mutualsCount} mutuals are talking about this one.`,
     ...(relatedCommission ? [relatedCommission.activity[0]?.text].filter(Boolean) : [])
   ];
 
   const chat = [
     "Solo arrivals are welcome.",
     "Theme fits are welcome, casual works too.",
-    "Hosts will post timing changes here first."
+    "Hosts will post timing changes here first.",
+    "If you are arriving late, this room is where the meetup point will update."
   ];
 
   if (!isUnlocked) {
@@ -81,7 +83,7 @@ export default function CommunityDetailPage() {
           <section className="surface-card-strong p-6 sm:p-8">
             <p className="text-sm uppercase tracking-[0.16em] text-app-muted">Room locked</p>
             <h1 className="mt-3 text-4xl font-semibold text-white">{roomEvent.title}</h1>
-            <p className="mt-3 text-sm text-app-muted">Reserve a spot or join the team to unlock updates.</p>
+            <p className="mt-3 text-sm text-app-muted">Reserve a spot or join the team to unlock updates and room chat.</p>
             <div className="mt-5">
               <Link
                 className="inline-flex rounded-2xl bg-app-purple px-4 py-3 text-sm font-semibold text-white transition hover:bg-app-purple-hover"
@@ -105,6 +107,7 @@ export default function CommunityDetailPage() {
             <div>
               <p className="text-sm uppercase tracking-[0.16em] text-app-muted">Event room</p>
               <h1 className="mt-3 text-4xl font-semibold text-white">{roomEvent.title}</h1>
+              <p className="mt-2 text-sm text-app-muted">Updates, meetup notes, and live room chatter.</p>
             </div>
             <Link
               className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"

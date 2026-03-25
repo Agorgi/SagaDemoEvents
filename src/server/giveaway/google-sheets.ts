@@ -1,4 +1,3 @@
-import { parse } from "csv-parse/sync";
 import { JWT } from "google-auth-library";
 
 import { getRequiredEnv, optionalEnv } from "@/src/server/env";
@@ -47,6 +46,69 @@ export function hasGoogleSheetConfig() {
   return hasGoogleServiceAccountConfig() || Boolean(getPublicSheetCsvUrl());
 }
 
+function parseCsvRows(csvText: string) {
+  const rows: string[][] = [];
+  let currentField = "";
+  let currentRow: string[] = [];
+  let isInsideQuotes = false;
+
+  const pushField = () => {
+    currentRow.push(currentField);
+    currentField = "";
+  };
+
+  const pushRow = () => {
+    if (currentRow.length > 0 || currentField.length > 0) {
+      pushField();
+      rows.push(currentRow);
+    }
+
+    currentRow = [];
+  };
+
+  for (let index = 0; index < csvText.length; index += 1) {
+    const character = csvText[index];
+    const nextCharacter = csvText[index + 1];
+
+    if (character === "\"") {
+      if (isInsideQuotes && nextCharacter === "\"") {
+        currentField += "\"";
+        index += 1;
+        continue;
+      }
+
+      isInsideQuotes = !isInsideQuotes;
+      continue;
+    }
+
+    if (!isInsideQuotes && character === ",") {
+      pushField();
+      continue;
+    }
+
+    if (!isInsideQuotes && character === "\n") {
+      pushRow();
+      continue;
+    }
+
+    if (!isInsideQuotes && character === "\r") {
+      if (nextCharacter === "\n") {
+        index += 1;
+      }
+      pushRow();
+      continue;
+    }
+
+    currentField += character;
+  }
+
+  if (currentField.length > 0 || currentRow.length > 0) {
+    pushRow();
+  }
+
+  return rows;
+}
+
 async function fetchSheetEntriesFromCsv() {
   const csvUrl = getPublicSheetCsvUrl();
 
@@ -64,9 +126,7 @@ async function fetchSheetEntriesFromCsv() {
   }
 
   const csvText = await response.text();
-  const rows = parse(csvText, {
-    skip_empty_lines: false
-  }) as string[][];
+  const rows = parseCsvRows(csvText);
 
   return {
     range: optionalEnv("GOOGLE_SHEET_RANGE") ?? "CSV export",

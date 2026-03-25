@@ -405,7 +405,6 @@ function Thumbnail({ src, alt }: { src: string | null; alt: string }) {
     );
   }
 
-  // eslint-disable-next-line @next/next/no-img-element
   return <img src={src} alt={alt} loading="lazy" className="h-full w-full object-cover" />;
 }
 
@@ -433,7 +432,6 @@ function ProfileAvatar({
           className
         )}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={src} alt={`${name} profile`} loading="lazy" className="h-full w-full object-cover" />
       </div>
     );
@@ -761,13 +759,13 @@ function HeroSection({
   const showCountdown = Boolean(countdownTarget);
   const phase = getCampaignPhase(now, snapshot.campaign);
   const trackedHeroSagaUrl = buildTrackedUrl("https://app.try-saga.com", "hero_post_on_saga");
+  const trackedSubmissionUrl = buildTrackedUrl(
+    snapshot.campaign.submissionFormUrl,
+    "hero_enter_now"
+  );
   const trackedBuyTicketsUrl = buildTrackedUrl(
     snapshot.campaign.buyTicketsUrl,
     "hero_buy_tickets"
-  );
-  const trackedEventDetailsUrl = buildTrackedUrl(
-    snapshot.campaign.eventDetailsUrl,
-    "hero_event_details"
   );
 
   return (
@@ -807,14 +805,16 @@ function HeroSection({
                   Post on Saga
                 </ExternalAction>
               ) : null}
+              {trackedSubmissionUrl ? (
+                <ExternalAction
+                  href={trackedSubmissionUrl}
+                  variant="secondary"
+                  onClick={() => trackEvent("hero_cta_click", { target: "enter_now" })}
+                >
+                  Enter now
+                </ExternalAction>
+              ) : null}
               <ScrollAction targetId="leaderboard">View leaderboard</ScrollAction>
-              <ExternalAction
-                href={trackedEventDetailsUrl ?? snapshot.campaign.eventDetailsUrl}
-                variant="secondary"
-                onClick={() => trackEvent("event_details_click", { placement: "hero" })}
-              >
-                View event details
-              </ExternalAction>
             </div>
 
             <div className="mt-4">
@@ -845,15 +845,10 @@ function HeroSection({
 }
 
 function ContestAtGlanceSection({ snapshot }: { snapshot: GiveawaySnapshot }) {
-  const trackedSubmissionUrl = buildTrackedUrl(
-    snapshot.campaign.submissionFormUrl,
-    "glance_enter_giveaway"
-  );
-
   return (
     <SectionShell stars={defaultStars} className="py-16 sm:py-20">
       <div className="max-w-4xl">
-        <SectionEyebrow>Contest at a glance</SectionEyebrow>
+        <SectionEyebrow>Contest summary</SectionEyebrow>
         <h2 className="mt-5 text-3xl font-semibold text-white sm:text-4xl">
           What this giveaway requires
         </h2>
@@ -882,7 +877,7 @@ function ContestAtGlanceSection({ snapshot }: { snapshot: GiveawaySnapshot }) {
           },
           {
             title: "Not counted",
-            items: ["Instagram Stories", "TikTok Stories", "Handle-only submissions"]
+            items: ["Instagram Stories", "TikTok Stories"]
           },
           {
             title: "Good to know",
@@ -910,21 +905,6 @@ function ContestAtGlanceSection({ snapshot }: { snapshot: GiveawaySnapshot }) {
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
         <MetaBadge highlight>#SagaCoSLA</MetaBadge>
-        <button
-          type="button"
-          onClick={async () => {
-            await navigator.clipboard.writeText("#SagaCoSLA");
-            trackEvent("share_link_click", { target: "copy_hashtag" });
-          }}
-          className="rounded-full border border-white/10 bg-[rgba(255,255,255,0.04)] px-4 py-2 text-sm text-white hover:border-[rgba(240,204,119,0.22)]"
-        >
-          Copy hashtag
-        </button>
-        {trackedSubmissionUrl ? (
-          <ExternalAction href={trackedSubmissionUrl} variant="ghost">
-            Enter now
-          </ExternalAction>
-        ) : null}
       </div>
     </SectionShell>
   );
@@ -938,7 +918,7 @@ function HowItWorksSection({ snapshot }: { snapshot: GiveawaySnapshot }) {
     },
     {
       title: "Submit your entry",
-      body: "Send us the Saga link and any matching Instagram or TikTok links through the giveaway form."
+      body: "Send us the Saga link and any matching Instagram or TikTok links through the enter now form."
     },
     {
       title: "Share on social",
@@ -946,7 +926,7 @@ function HowItWorksSection({ snapshot }: { snapshot: GiveawaySnapshot }) {
     },
     {
       title: "Climb the leaderboard",
-      body: `Each approved entry is ranked separately. The Top ${snapshot.campaign.poolSize} eligible entries enter the raffle pool.`
+      body: "Each approved entry is ranked separately, The top 25 elgible entries enter the raffle pool and 6 winners will be crowned."
     }
   ];
 
@@ -1213,14 +1193,14 @@ function InspirationSection({ snapshot }: { snapshot: GiveawaySnapshot }) {
     <SectionShell stars={defaultStars} className="py-16 sm:py-20">
       <SectionEyebrow>What can you create?</SectionEyebrow>
       <h2 className="mt-5 text-3xl font-semibold text-white sm:text-4xl">
-        A broad canvas is welcome here
+        What we want to see from you
       </h2>
       <p className="mt-4 max-w-3xl text-base leading-8 text-slate-300">
         The giveaway is intentionally open-ended. Any Court of Stars-inspired creation can work as
         long as it fits the giveaway rules and uses direct post URLs for scoring.
       </p>
 
-      <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+      <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {[
           {
             title: "Cosplay & Looks",
@@ -1235,12 +1215,8 @@ function InspirationSection({ snapshot }: { snapshot: GiveawaySnapshot }) {
             body: "Write scenes, journals, letters, short fiction, or dramatic snippets that feel like they belong in the Court."
           },
           {
-            title: "Original Characters & Lore",
+            title: "Original character, NPcs & Lore",
             body: "Invent a courtier, rival, or royal guest and build their backstory, aesthetic, and place in the world."
-          },
-          {
-            title: "Event Styling / Moodboards",
-            body: "Build visual references, styling studies, decor boards, invitations, or dream looks that capture the atmosphere."
           }
         ].map((card) => (
           <article
@@ -1292,7 +1268,7 @@ function InspirationSection({ snapshot }: { snapshot: GiveawaySnapshot }) {
   );
 }
 
-function PointsSection({ snapshot }: { snapshot: GiveawaySnapshot }) {
+function PointsSection() {
   return (
     <SectionShell stars={defaultStars} className="py-16 sm:py-20">
       <SectionEyebrow>How points work</SectionEyebrow>
@@ -1330,14 +1306,33 @@ function PointsSection({ snapshot }: { snapshot: GiveawaySnapshot }) {
       </div>
 
       <div className="mt-8">
-        <AccordionItem question="See full scoring rules" analyticsId="full_scoring_rules">
-          <div className="space-y-3">
-            <div>{snapshot.scoring.formulaLabel}</div>
-            {snapshot.scoring.explanation.map((line) => (
-              <div key={line}>{line}</div>
-            ))}
+        <div className="rounded-[24px] border border-white/10 bg-[rgba(7,10,18,0.68)] p-5 sm:p-6">
+          <div className="text-[0.66rem] uppercase tracking-[0.24em] text-[#f0d89f]">
+            Full scoring rules
           </div>
-        </AccordionItem>
+          <div className="mt-4 text-sm leading-7 text-slate-200">
+            <p>Scores are calculated as follows:</p>
+            <ul className="mt-3 list-disc space-y-2 pl-5">
+              <li>1 Saga entry post = 200 points</li>
+              <li>1 Saga Like = 50 points</li>
+              <li>1 Saga Comment = 70 points</li>
+              <li>1 instagram post: 100 points</li>
+              <li>1 Instagram Like = 10 points</li>
+              <li>1 Instagram Comment = 25 points</li>
+              <li>1 Instagram Repost = 5 points</li>
+              <li>1 tiktok post = 80 points</li>
+              <li>1 TikTok Like = 2 points</li>
+              <li>1 TikTok Comment = 5 points</li>
+              <li>1 TikTok Repost = 3 points</li>
+            </ul>
+            <p className="mt-4">
+              Direct URLs to each post are required for accurate scoring. If you hide likes from an
+              Instagram post, those likes will not be able to be calculated in your final score.
+              While you are allowed to post as many times as you would like, each new post across
+              platforms will need to be re-submitted through the &quot;Enter now&quot; form linked above.
+            </p>
+          </div>
+        </div>
       </div>
     </SectionShell>
   );
@@ -1372,9 +1367,8 @@ function FaqSection({ snapshot }: { snapshot: GiveawaySnapshot }) {
           Top {snapshot.campaign.poolSize} becomes the raffle pool.
         </AccordionItem>
         <AccordionItem question="When are winners announced?" analyticsId="faq_winner_announcement">
-          Winners are announced after entries close, scoring is finalized, and the raffle pool is
-          locked. If a public date is configured, it will appear in the event details or official
-          rules.
+          Winners are announced on April 20th! Entries will remain open until 11:59 PM on April
+          19th. We will finalize scores on the 20th and announce winners via Instagram.
         </AccordionItem>
       </div>
     </SectionShell>
@@ -1581,7 +1575,6 @@ export function GiveawayExperience({
   return (
     <div className="bg-[#05060b] text-white">
       <HeroSection snapshot={snapshot} now={now} />
-      <ContestAtGlanceSection snapshot={snapshot} />
       <HowItWorksSection snapshot={snapshot} />
       <LeaderboardSection
         snapshot={snapshot}
@@ -1599,9 +1592,10 @@ export function GiveawayExperience({
         onCopyLink={handleCopyLink}
         copiedEntryId={copiedEntryId}
       />
-      <WinnersSection snapshot={snapshot} />
+      <PointsSection />
       <InspirationSection snapshot={snapshot} />
-      <PointsSection snapshot={snapshot} />
+      <WinnersSection snapshot={snapshot} />
+      <ContestAtGlanceSection snapshot={snapshot} />
       <FaqSection snapshot={snapshot} />
       <FooterSection snapshot={snapshot} />
       <MobileStickyBar snapshot={snapshot} />

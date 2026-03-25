@@ -72,6 +72,7 @@ function computePlatformContribution(platform: Platform, metrics: MetricsRecord)
   }
 
   return (
+    weights.posts +
     metrics.likeCount * weights.likes +
     (metrics.uniqueCommenterCount ?? 0) * weights.uniqueComments +
     (metrics.shareCount ?? 0) * weights.shares

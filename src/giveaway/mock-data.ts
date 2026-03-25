@@ -1,6 +1,24 @@
 import { activeCampaign, scoringConfig } from "@/src/giveaway/config";
 import type { GiveawayEntry, GiveawaySnapshot, PlatformKey } from "@/src/giveaway/types";
 
+function computeMockPlatformScore(
+  platform: PlatformKey,
+  values: { likes: number; uniqueComments: number; shares: number } | undefined
+) {
+  if (!values) {
+    return null;
+  }
+
+  const weights = scoringConfig.weights[platform];
+
+  return (
+    weights.posts +
+    values.likes * weights.likes +
+    values.uniqueComments * weights.comments +
+    values.shares * weights.shares
+  );
+}
+
 function platformBreakdown(
   values: Partial<Record<PlatformKey, { likes: number; uniqueComments: number; shares: number; score: number }>>
 ) {
@@ -9,21 +27,21 @@ function platformBreakdown(
       likes: values.saga?.likes ?? null,
       uniqueComments: values.saga?.uniqueComments ?? null,
       shares: values.saga?.shares ?? null,
-      score: values.saga?.score ?? null,
+      score: computeMockPlatformScore("saga", values.saga),
       lastUpdatedAt: new Date().toISOString()
     },
     instagram: {
       likes: values.instagram?.likes ?? null,
       uniqueComments: values.instagram?.uniqueComments ?? null,
       shares: values.instagram?.shares ?? null,
-      score: values.instagram?.score ?? null,
+      score: computeMockPlatformScore("instagram", values.instagram),
       lastUpdatedAt: new Date().toISOString()
     },
     tiktok: {
       likes: values.tiktok?.likes ?? null,
       uniqueComments: values.tiktok?.uniqueComments ?? null,
       shares: values.tiktok?.shares ?? null,
-      score: values.tiktok?.score ?? null,
+      score: computeMockPlatformScore("tiktok", values.tiktok),
       lastUpdatedAt: new Date().toISOString()
     }
   };
@@ -39,21 +57,26 @@ function rankedEntry(input: {
   totalPoints: number;
   breakdown: Partial<Record<PlatformKey, { likes: number; uniqueComments: number; shares: number; score: number }>>;
 }) {
+  const breakdown = platformBreakdown(input.breakdown);
+  const totalPoints = Object.values(breakdown).reduce(
+    (sum, platform) => sum + (platform.score ?? 0),
+    0
+  );
   const submissions = ([
     {
       platform: "saga",
       url: `https://app.try-saga.com/post/${input.id}`,
-      score: input.breakdown.saga?.score ?? null
+      score: breakdown.saga.score
     },
     {
       platform: "instagram",
       url: `https://instagram.com/p/${input.id}`,
-      score: input.breakdown.instagram?.score ?? null
+      score: breakdown.instagram.score
     },
     {
       platform: "tiktok",
       url: `https://www.tiktok.com/@demo/video/${input.id.replace(/[^0-9]/g, "").padEnd(8, "7")}`,
-      score: input.breakdown.tiktok?.score ?? null
+      score: breakdown.tiktok.score
     }
   ] as const).map((submission) => ({
     id: `${input.id}-${submission.platform}`,
@@ -76,7 +99,7 @@ function rankedEntry(input: {
     entryTitle: input.entryTitle,
     contentType: input.contentType,
     contentTypes: [input.contentType],
-    totalEngagementScore: input.totalPoints,
+    totalEngagementScore: totalPoints,
     highIntentEngagement:
       (input.breakdown.saga?.uniqueComments ?? 0) +
       (input.breakdown.instagram?.uniqueComments ?? 0) +
@@ -89,7 +112,7 @@ function rankedEntry(input: {
     thumbnailUrl: input.thumbnailUrl,
     submittedAt: new Date().toISOString(),
     lastVerifiedAt: new Date().toISOString(),
-    platformBreakdown: platformBreakdown(input.breakdown),
+    platformBreakdown: breakdown,
     submissions
   } satisfies GiveawayEntry;
 }

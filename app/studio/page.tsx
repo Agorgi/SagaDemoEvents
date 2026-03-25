@@ -16,21 +16,19 @@ export default function StudioPage() {
 
   const launchesInProgress = hostLaunches.filter((launch) => launch.status !== "completed");
   const currentLaunch =
-    launchesInProgress.find((launch) => !launch.published) ??
+    launchesInProgress.find((launch) => !launch.eventId) ??
     launchesInProgress[0] ??
     hostLaunches[0];
 
   const stats = [
-    { label: "In progress", value: launchesInProgress.length },
+    { label: "Soft launch", value: launchesInProgress.filter((launch) => !launch.eventId).length },
     {
-      label: "Needs team",
-      value: launchesInProgress.filter(
-        (launch) => launch.teamRoleNames.length > launch.acceptedTeam.length
-      ).length
+      label: "Near goal",
+      value: launchesInProgress.filter((launch) => launch.status === "near_goal").length
     },
     {
-      label: "Payouts",
-      value: hostLaunches.filter((launch) => launch.status === "completed").length
+      label: "Confirmed",
+      value: hostLaunches.filter((launch) => launch.eventId).length
     }
   ];
 
@@ -41,7 +39,7 @@ export default function StudioPage() {
         <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.16em] text-app-muted">Studio</p>
-            <h1 className="mt-3 text-4xl font-semibold text-white sm:text-5xl">Keep one launch moving.</h1>
+            <h1 className="mt-3 text-4xl font-semibold text-white sm:text-5xl">Move soft launches into real events.</h1>
           </div>
           <Link
             className="inline-flex rounded-2xl bg-app-purple px-4 py-3 text-sm font-semibold text-white transition hover:bg-app-purple-hover"
@@ -64,15 +62,17 @@ export default function StudioPage() {
           <NextActionPanel
             actionLabel={
               currentLaunch
-                ? currentLaunch.status === "completed"
-                  ? "Review payouts"
+                ? currentLaunch.eventId
+                  ? "Open event"
                   : "Open current launch"
                 : "Start a launch"
             }
-            body={currentLaunch ? currentLaunch.title : "Build your first event and publish when it feels ready."}
+            body={currentLaunch ? currentLaunch.title : "Start a soft launch, gather signal, and lock the venue later."}
             onAction={() => {
               if (currentLaunch) {
-                window.location.assign(`/studio/${currentLaunch.id}`);
+                window.location.assign(
+                  currentLaunch.eventId ? `/events/${currentLaunch.eventId}` : `/studio/${currentLaunch.id}`
+                );
                 return;
               }
               window.location.assign("/studio/new");
@@ -102,11 +102,25 @@ export default function StudioPage() {
             <div className="grid gap-4">
               {hostLaunches.map((launch) => (
                 <LaunchSummaryCard
-                  actionLabel={launch.status === "completed" ? "Review payouts" : "Open current launch"}
+                  actionLabel={
+                    launch.status === "completed"
+                      ? "Review payouts"
+                      : launch.eventId
+                        ? "Open event"
+                        : "Open current launch"
+                  }
                   key={launch.id}
                   launch={launch}
                   onAction={() => {
-                    window.location.assign(`/studio/${launch.id}${launch.status === "completed" ? "?tab=payouts" : ""}`);
+                    if (launch.status === "completed") {
+                      window.location.assign(`/studio/${launch.id}?tab=payouts`);
+                      return;
+                    }
+                    if (launch.eventId) {
+                      window.location.assign(`/events/${launch.eventId}`);
+                      return;
+                    }
+                    window.location.assign(`/studio/${launch.id}`);
                   }}
                 />
               ))}

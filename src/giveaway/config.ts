@@ -32,23 +32,26 @@ const DEFAULT_SUBMISSION_FORM_URL =
 export const scoringConfig: ScoringConfig = {
   weights: {
     saga: {
-      likes: 20,
-      comments: 20,
+      posts: 200,
+      likes: 50,
+      comments: 70,
       shares: 0
     },
     instagram: {
-      likes: 1,
-      comments: 1,
-      shares: 3
+      posts: 100,
+      likes: 10,
+      comments: 25,
+      shares: 5
     },
     tiktok: {
-      likes: 1,
-      comments: 1,
+      posts: 80,
+      likes: 2,
+      comments: 5,
       shares: 3
     }
   },
   formulaLabel:
-    "Score = (Saga likes × 20) + (Saga unique comments × 20) + (Instagram likes) + (Instagram unique comments) + (Instagram shares × 3) + (TikTok likes) + (TikTok unique comments) + (TikTok shares × 3).",
+    "Score = (Saga post × 200) + (Saga likes × 50) + (Saga unique comments × 70) + (Instagram post × 100) + (Instagram likes × 10) + (Instagram unique comments × 25) + (Instagram reposts × 5) + (TikTok post × 80) + (TikTok likes × 2) + (TikTok unique comments × 5) + (TikTok reposts × 3).",
   explanation: [
     "Direct post URLs are required for accurate scoring. Handles alone are never used to guess metrics.",
     "If a platform cannot provide unique commenter identity through the configured official integration, that entry stays in admin review until manual scoring is supplied.",

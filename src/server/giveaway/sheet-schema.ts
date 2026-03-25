@@ -1,37 +1,51 @@
-import { z } from "zod";
-
 import { normalizeEligibilityStatus } from "@/src/server/giveaway/constants";
 
-const urlSchema = z.string().url();
+function isValidUrl(value: string | null) {
+  if (!value) {
+    return true;
+  }
 
-export const normalizedSheetRowSchema = z.object({
-  externalEntryId: z.string(),
-  creatorName: z.string().min(1),
-  publicDisplayName: z.string().min(1),
-  profileImageUrl: urlSchema.nullable(),
-  thumbnailUrl: urlSchema.nullable(),
-  sagaHandle: z.string().nullable(),
-  instagramHandle: z.string().nullable(),
-  tiktokHandle: z.string().nullable(),
-  sagaPostUrl: urlSchema.nullable(),
-  instagramPostUrl: urlSchema.nullable(),
-  tiktokPostUrl: urlSchema.nullable(),
-  entryTitle: z.string().nullable(),
-  contentType: z.string().nullable(),
-  eligibilityStatus: z.enum([
+  try {
+    new URL(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function isEligibilityStatus(
+  value: string
+): value is "eligible" | "pending_review" | "ineligible" | "disqualified" | "unknown" {
+  return [
     "eligible",
     "pending_review",
     "ineligible",
     "disqualified",
     "unknown"
-  ]),
-  createdAt: z.coerce.date(),
-  sourceRowNumber: z.number().int().positive()
-});
+  ].includes(value);
+}
 
-export type NormalizedSheetRow = z.infer<typeof normalizedSheetRowSchema>;
+export interface NormalizedSheetRow {
+  externalEntryId: string;
+  creatorName: string;
+  publicDisplayName: string;
+  profileImageUrl: string | null;
+  thumbnailUrl: string | null;
+  sagaHandle: string | null;
+  instagramHandle: string | null;
+  tiktokHandle: string | null;
+  sagaPostUrl: string | null;
+  instagramPostUrl: string | null;
+  tiktokPostUrl: string | null;
+  entryTitle: string | null;
+  contentType: string | null;
+  eligibilityStatus: "eligible" | "pending_review" | "ineligible" | "disqualified" | "unknown";
+  createdAt: Date;
+  sourceRowNumber: number;
+}
 
-type FieldKey = keyof Omit<NormalizedSheetRow, "eligibilityStatus" | "createdAt" | "sourceRowNumber"> & string;
+type FieldKey =
+  keyof Omit<NormalizedSheetRow, "eligibilityStatus" | "createdAt" | "sourceRowNumber"> & string;
 
 const FIELD_ALIASES: Record<FieldKey | "eligibilityStatus" | "createdAt", string[]> = {
   externalEntryId: ["entry_id", "entry id", "id", "submission_id", "external_entry_id"],
@@ -69,10 +83,7 @@ function normalizeHeader(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
-function readAliasedValue(
-  row: Record<string, string>,
-  aliases: readonly string[]
-) {
+function readAliasedValue(row: Record<string, string>, aliases: readonly string[]) {
   for (const alias of aliases) {
     const normalizedAlias = normalizeHeader(alias);
 
@@ -103,10 +114,55 @@ function normalizeUrl(value: string) {
   }
 }
 
-export function normalizeSheetRow(
-  row: Record<string, string>,
-  sourceRowNumber: number
-) {
+function parseCreatedAt(value: string) {
+  const nextDate = new Date(value);
+
+  if (Number.isNaN(nextDate.getTime())) {
+    return new Date();
+  }
+
+  return nextDate;
+}
+
+function assertNormalizedSheetRow(row: NormalizedSheetRow) {
+  if (!row.externalEntryId.trim()) {
+    throw new Error("Sheet row is missing an external entry id.");
+  }
+
+  if (!row.creatorName.trim()) {
+    throw new Error("Sheet row is missing a creator name.");
+  }
+
+  if (!row.publicDisplayName.trim()) {
+    throw new Error("Sheet row is missing a public display name.");
+  }
+
+  const urlFields = [
+    row.profileImageUrl,
+    row.thumbnailUrl,
+    row.sagaPostUrl,
+    row.instagramPostUrl,
+    row.tiktokPostUrl
+  ];
+
+  if (urlFields.some((value) => !isValidUrl(value))) {
+    throw new Error("Sheet row contains an invalid URL.");
+  }
+
+  if (!isEligibilityStatus(row.eligibilityStatus)) {
+    throw new Error("Sheet row contains an invalid eligibility status.");
+  }
+
+  if (Number.isNaN(row.createdAt.getTime())) {
+    throw new Error("Sheet row contains an invalid createdAt date.");
+  }
+
+  if (!Number.isInteger(row.sourceRowNumber) || row.sourceRowNumber <= 0) {
+    throw new Error("Sheet row contains an invalid source row number.");
+  }
+}
+
+export function normalizeSheetRow(row: Record<string, string>, sourceRowNumber: number) {
   const creatorName = nullableString(readAliasedValue(row, FIELD_ALIASES.creatorName)) ?? "Unnamed entry";
   const publicDisplayName =
     nullableString(readAliasedValue(row, FIELD_ALIASES.publicDisplayName)) ?? creatorName;
@@ -119,7 +175,7 @@ export function normalizeSheetRow(
   const eligibilityStatus =
     nullableString(readAliasedValue(row, FIELD_ALIASES.eligibilityStatus)) ?? "eligible";
 
-  return normalizedSheetRowSchema.parse({
+  const normalizedRow: NormalizedSheetRow = {
     externalEntryId,
     creatorName,
     publicDisplayName,
@@ -134,9 +190,13 @@ export function normalizeSheetRow(
     entryTitle: nullableString(readAliasedValue(row, FIELD_ALIASES.entryTitle)),
     contentType: nullableString(readAliasedValue(row, FIELD_ALIASES.contentType)),
     eligibilityStatus: normalizeEligibilityStatus(eligibilityStatus),
-    createdAt,
+    createdAt: parseCreatedAt(createdAt),
     sourceRowNumber
-  });
+  };
+
+  assertNormalizedSheetRow(normalizedRow);
+
+  return normalizedRow;
 }
 
 export function normalizeSheetRecords(rows: string[][]) {

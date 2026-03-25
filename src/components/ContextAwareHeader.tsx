@@ -9,13 +9,15 @@ export function ContextAwareHeader() {
 
   const action =
     mode === "host"
-      ? { href: "/studio/new", label: "Start a launch" }
+      ? { href: hasStartedLaunch ? "/studio" : "/studio/new", label: hasStartedLaunch ? "Open studio" : "Start soft launch" }
+      : mode === "business"
+        ? { href: "/work?tab=business", label: "Open matches" }
       : mode === "creator"
-        ? { href: "/explore?view=openings", label: "Find openings" }
-        : { href: "/explore", label: "Find events" };
+        ? { href: "/work", label: "Open work" }
+        : { href: "/discover", label: "Discover" };
 
   const hostLink = !hasStartedLaunch && mode !== "host"
-    ? { href: "/onboarding?mode=host", label: "Host something" }
+    ? { href: "/studio/new", label: "Start soft launch" }
     : null;
 
   return (

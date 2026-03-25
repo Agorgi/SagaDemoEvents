@@ -4,8 +4,8 @@ import {
   createStoryCardDataUri
 } from "@/src/lib/demo-media";
 
-export type Persona = "host" | "creator" | "fan";
-export type UserRoleType = "host" | "crew" | "creator" | "fan";
+export type Persona = "host" | "creator" | "fan" | "business";
+export type UserRoleType = "host" | "crew" | "creator" | "fan" | "business";
 export type RoleStatus = "open" | "invited" | "filled";
 
 export type DemoUser = {
@@ -605,6 +605,20 @@ export const users: DemoUser[] = [
     pricing: [130, 220],
     mutuals: 8,
     bio: "Reliable floor utility for tight timelines and talent moves."
+  },
+  {
+    id: "user-viv",
+    name: "Viv Calder",
+    handle: "@vivhosts",
+    roleType: "business",
+    city: "Los Angeles, CA",
+    avatarUrl: generatedAvatar("Viv Calder", "#1F1CB8", "#7B57FF"),
+    fandomTags: ["Venue Partners", "One Piece", "Marvel Rivals"],
+    skills: ["venue programming", "brand support", "partnerships", "hospitality"],
+    pastEventsWorked: 18,
+    pricing: [0, 0],
+    mutuals: 19,
+    bio: "Business-side operator who likes fandom nights with repeat potential and strong creator pull."
   }
 ];
 
@@ -1324,7 +1338,8 @@ export const personaProfiles: Record<
 > = {
   host: { label: "Host", userId: "user-zo", accent: "Create event" },
   creator: { label: "Creator", userId: "user-iris", accent: "Find openings" },
-  fan: { label: "Fan", userId: "user-kai", accent: "Get tickets" }
+  fan: { label: "Fan", userId: "user-kai", accent: "Get tickets" },
+  business: { label: "Business", userId: "user-viv", accent: "Open matches" }
 };
 
 export function getEventById(eventId: string, eventList: DemoEvent[] = events) {

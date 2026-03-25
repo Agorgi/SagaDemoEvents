@@ -1,0 +1,14 @@
+.git
+.github
+.next
+.next.bak.*
+node_modules
+node_modules.bak.*
+coverage
+dist
+.DS_Store
+*.log
+.vercel
+playwright-report
+test-results
+tmp

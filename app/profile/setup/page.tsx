@@ -26,7 +26,7 @@ export default function ProfileSetupPage() {
           <p className="text-sm uppercase tracking-[0.16em] text-app-muted">Profile setup</p>
           <h1 className="mt-3 text-4xl font-semibold text-white sm:text-5xl">Finish your profile</h1>
           <p className="mt-3 text-sm leading-6 text-app-muted">
-            Give hosts enough signal to say yes quickly.
+            Add enough signal for people to understand your taste, your role, and your fit.
           </p>
         </section>
 
@@ -67,7 +67,7 @@ export default function ProfileSetupPage() {
                   portfolioLinks: portfolioLinks.split(",").map((item) => item.trim()).filter(Boolean),
                   availability
                 });
-                router.push("/explore?view=openings");
+                router.push("/profile");
               }}
               type="button"
             >
@@ -75,7 +75,7 @@ export default function ProfileSetupPage() {
             </button>
             <button
               className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
-              onClick={() => router.push("/explore?view=openings")}
+              onClick={() => router.push("/profile")}
               type="button"
             >
               Skip for now
@@ -109,4 +109,3 @@ function Field({
     </label>
   );
 }
-

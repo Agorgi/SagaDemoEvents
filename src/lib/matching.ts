@@ -64,7 +64,7 @@ export function buildShortlist(
   );
 
   return users
-    .filter((user) => user.roleType !== "fan")
+    .filter((user) => user.roleType === "creator" || user.roleType === "crew" || user.roleType === "host")
     .filter((user) => user.id !== event.hostId)
     .filter((user) => !unavailable.has(user.id))
     .map((user) => {

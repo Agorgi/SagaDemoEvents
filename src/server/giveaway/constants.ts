@@ -5,24 +5,28 @@ export const PLATFORM_KEYS = ["saga", "instagram", "tiktok"] as const satisfies 
 export const SCORE_WEIGHTS: Record<
   Platform,
   {
+    posts: number;
     likes: number;
     uniqueComments: number;
     shares: number;
   }
 > = {
   saga: {
-    likes: 20,
-    uniqueComments: 20,
+    posts: 200,
+    likes: 50,
+    uniqueComments: 70,
     shares: 0
   },
   instagram: {
-    likes: 1,
-    uniqueComments: 1,
-    shares: 3
+    posts: 100,
+    likes: 10,
+    uniqueComments: 25,
+    shares: 5
   },
   tiktok: {
-    likes: 1,
-    uniqueComments: 1,
+    posts: 80,
+    likes: 2,
+    uniqueComments: 5,
     shares: 3
   }
 };

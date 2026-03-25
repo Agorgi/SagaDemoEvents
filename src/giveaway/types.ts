@@ -83,6 +83,7 @@ export interface ScoringConfig {
   weights: Record<
     PlatformKey,
     {
+      posts: number;
       likes: number;
       comments: number;
       shares: number;

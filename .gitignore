@@ -1,5 +1,7 @@
 .next
+.next.bak.*
 node_modules
+node_modules.bak.*
 dist
 coverage
 .DS_Store

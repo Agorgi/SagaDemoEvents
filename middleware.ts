@@ -5,6 +5,15 @@ import { SESSION_COOKIE_NAME, verifyAdminSessionToken } from "@/src/server/admin
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const host =
+    request.headers.get("x-forwarded-host")?.split(":")[0].toLowerCase() ??
+    request.headers.get("host")?.split(":")[0].toLowerCase();
+
+  if (host === "giveaway.try-saga.com" && pathname === "/") {
+    const rewriteUrl = request.nextUrl.clone();
+    rewriteUrl.pathname = "/giveaway";
+    return NextResponse.rewrite(rewriteUrl);
+  }
 
   if (!pathname.startsWith("/admin")) {
     return NextResponse.next();
@@ -32,5 +41,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"]
+  matcher: ["/", "/admin/:path*"]
 };

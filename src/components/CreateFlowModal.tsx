@@ -520,7 +520,6 @@ export function CreateFlowModal({
               <label className="block">
                 <span className="mb-2 block text-sm font-semibold text-white">Event name</span>
                 <input
-                  autoFocus
                   className={inputClassName}
                   onChange={(event) => setEventName(event.target.value)}
                   placeholder="e.g. Cosplay live drawing night"
@@ -571,7 +570,6 @@ export function CreateFlowModal({
               <label className="block">
                 <span className="mb-2 block text-sm font-semibold text-white">Tag communities</span>
                 <input
-                  autoFocus
                   className={inputClassName}
                   onChange={(event) => setEventCommunities(event.target.value)}
                   placeholder="Love and Deepspace, Pasadena cosplayers"
@@ -645,7 +643,6 @@ export function CreateFlowModal({
           <label className="block">
             <span className="mb-2 block text-sm font-semibold text-white">Caption</span>
             <textarea
-              autoFocus
               className={cn("min-h-[180px]", textAreaClassName)}
               onChange={(event) => setPostCaption(event.target.value)}
               placeholder="Write your update..."
@@ -692,7 +689,6 @@ export function CreateFlowModal({
           <label className="block">
             <span className="mb-2 block text-sm font-semibold text-white">Campaign title</span>
             <input
-              autoFocus
               className={inputClassName}
               onChange={(event) => setCampaignTitle(event.target.value)}
               placeholder="Fund the next Cosplay Live Drawing build"
