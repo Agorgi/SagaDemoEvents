@@ -13,11 +13,13 @@ import { formatDateLabel } from "@/src/lib/utils";
 
 export default function StudioPage() {
   const router = useRouter();
-  const { launchDrafts, launches, setMode, startLaunchDraft } = useAppState();
+  const { launchDrafts, launches, mode, setMode } = useAppState();
 
   useEffect(() => {
-    setMode("host");
-  }, [setMode]);
+    if (mode !== "host") {
+      setMode("host");
+    }
+  }, [mode, setMode]);
 
   const hostLaunches = launches
     .filter((launch) => launch.hostId === HOST_DEMO_USER_ID)
@@ -28,8 +30,7 @@ export default function StudioPage() {
     .sort((left, right) => Date.parse(right.updatedAt) - Date.parse(left.updatedAt));
 
   function beginDraft(mode: "soft" | "happening") {
-    const draftId = startLaunchDraft(mode);
-    router.push(`/studio/new?draft=${draftId}`);
+    router.push(`/studio/new?mode=${mode}`);
   }
 
   return (
@@ -39,7 +40,7 @@ export default function StudioPage() {
         <section className="space-y-4">
           <div className="space-y-2">
             <p className="text-sm uppercase tracking-[0.16em] text-app-muted">Launch</p>
-            <h1 className="text-4xl font-semibold text-white sm:text-5xl">Launch new event</h1>
+            <h1 className="text-4xl font-semibold text-white sm:text-5xl">New Event</h1>
             <p className="text-sm text-app-muted">
               Start with the basics. We’ll turn it into a draft you can review.
             </p>

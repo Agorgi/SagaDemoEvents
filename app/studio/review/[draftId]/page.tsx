@@ -16,6 +16,7 @@ export default function LaunchDraftReviewPage() {
   const {
     currentUser,
     launchDrafts,
+    mode,
     publishLaunchDraft,
     saveLaunchDraft,
     setMode,
@@ -23,8 +24,10 @@ export default function LaunchDraftReviewPage() {
   } = useAppState();
 
   useEffect(() => {
-    setMode("host");
-  }, [setMode]);
+    if (mode !== "host") {
+      setMode("host");
+    }
+  }, [mode, setMode]);
 
   const draft = launchDrafts.find((item) => item.id === params.draftId);
 

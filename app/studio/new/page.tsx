@@ -55,6 +55,7 @@ function NewStudioLaunchPageContent() {
   const searchParams = useSearchParams();
   const {
     launchDrafts,
+    mode,
     setMode,
     startLaunchDraft,
     updateLaunchDraft
@@ -71,8 +72,10 @@ function NewStudioLaunchPageContent() {
   const question = questions[currentIndex];
 
   useEffect(() => {
-    setMode("host");
-  }, [setMode]);
+    if (mode !== "host") {
+      setMode("host");
+    }
+  }, [mode, setMode]);
 
   useEffect(() => {
     if (draftId || !modeParam) {
