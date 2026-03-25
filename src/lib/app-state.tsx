@@ -342,6 +342,8 @@ function normalizeCreatorProfiles(
             : user?.fandomTags ?? [],
       stats: {
         ...profile.stats,
+        privateRating:
+          typeof profile.stats.privateRating === "number" ? profile.stats.privateRating : 4.8,
         privateServices: profile.services.length
       }
     };
@@ -387,7 +389,7 @@ function buildFallbackCreatorProfile(
       publicFollowers: user.mutuals,
       publicFollowing: user.skills.length,
       privateProjects: user.pastEventsWorked,
-      privateNetwork: Math.max(user.mutuals * 4, 48),
+      privateRating: 4.7,
       privateServices: Math.max((socialProfile?.servicesPreview ?? []).length, 1)
     },
     earnings: {

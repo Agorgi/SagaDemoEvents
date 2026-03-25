@@ -12,6 +12,7 @@ import { Nav } from "@/src/components/Nav";
 import { PortfolioGrid } from "@/src/components/PortfolioGrid";
 import { ProfileStatsCard } from "@/src/components/ProfileStatsCard";
 import { ServicesSection } from "@/src/components/ServicesSection";
+import { StarRatingValue } from "@/src/components/StarRatingValue";
 import { TagChip } from "@/src/components/Chips";
 import { useAppState } from "@/src/lib/app-state";
 import { useDemoState } from "@/src/lib/demo-state";
@@ -133,7 +134,10 @@ export default function ProfilePage() {
             <ProfileStatsCard
               items={[
                 { label: "Projects", value: profile.stats.privateProjects ?? 0 },
-                { label: "Network", value: profile.stats.privateNetwork ?? 0 },
+                {
+                  label: "Rating",
+                  value: <StarRatingValue rating={profile.stats.privateRating ?? 4.8} />
+                },
                 { label: "Services", value: profile.stats.privateServices ?? profile.services.length }
               ]}
             />

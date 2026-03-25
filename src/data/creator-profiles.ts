@@ -23,7 +23,7 @@ export type ProfileStats = {
   publicFollowers?: string | number;
   publicFollowing?: string | number;
   privateProjects?: string | number;
-  privateNetwork?: string | number;
+  privateRating?: number;
   privateServices?: string | number;
 };
 
@@ -190,7 +190,7 @@ export const seedCreatorProfiles: CreatorProfile[] = [
       publicFollowers: "12.4K",
       publicFollowing: 384,
       privateProjects: 24,
-      privateNetwork: 342,
+      privateRating: 4.9,
       privateServices: 2
     },
     earnings: {
@@ -239,7 +239,7 @@ export const seedCreatorProfiles: CreatorProfile[] = [
       publicFollowers: "8.9K",
       publicFollowing: 216,
       privateProjects: 16,
-      privateNetwork: 198,
+      privateRating: 4.8,
       privateServices: 2
     }
   },
@@ -280,7 +280,7 @@ export const seedCreatorProfiles: CreatorProfile[] = [
       publicFollowers: "6.2K",
       publicFollowing: 182,
       privateProjects: 12,
-      privateNetwork: 171,
+      privateRating: 4.7,
       privateServices: 2
     }
   },
@@ -321,7 +321,7 @@ export const seedCreatorProfiles: CreatorProfile[] = [
       publicFollowers: "9.1K",
       publicFollowing: 244,
       privateProjects: 19,
-      privateNetwork: 268,
+      privateRating: 4.8,
       privateServices: 2
     }
   },
@@ -360,7 +360,7 @@ export const seedCreatorProfiles: CreatorProfile[] = [
       publicFollowers: "15.8K",
       publicFollowing: 305,
       privateProjects: 21,
-      privateNetwork: 388,
+      privateRating: 5,
       privateServices: 2
     }
   },
@@ -397,7 +397,7 @@ export const seedCreatorProfiles: CreatorProfile[] = [
       publicFollowers: 824,
       publicFollowing: 196,
       privateProjects: 8,
-      privateNetwork: 164,
+      privateRating: 4.5,
       privateServices: 1
     },
     earnings: {
@@ -442,7 +442,7 @@ export const seedCreatorProfiles: CreatorProfile[] = [
       publicFollowers: "4.3K",
       publicFollowing: 142,
       privateProjects: 14,
-      privateNetwork: 203,
+      privateRating: 4.7,
       privateServices: 2
     }
   }

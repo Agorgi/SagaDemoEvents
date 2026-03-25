@@ -1,8 +1,10 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 type StatItem = {
   label: string;
-  value: string | number;
+  value: ReactNode;
 };
 
 export function ProfileStatsCard({ items }: { items: StatItem[] }) {
