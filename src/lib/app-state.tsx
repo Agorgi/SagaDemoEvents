@@ -55,6 +55,12 @@ import {
   type SocialActivityItem
 } from "@/src/data/social";
 import {
+  getSeedCreatorProfileById,
+  seedCreatorProfiles,
+  type CreatorProfile,
+  type ProfileService
+} from "@/src/data/creator-profiles";
+import {
   businessProfiles as seedBusinessProfiles,
   getBusinessProfileById,
   getStorefrontForUser,
@@ -132,6 +138,7 @@ type PersistedAppState = {
   opportunityApplications: OpportunityApplication[];
   listings: Listing[];
   listingInterests: ListingInterest[];
+  creatorProfiles: CreatorProfile[];
   businessProfiles: BusinessProfile[];
   supportIntents: SupportIntent[];
   importedDataSettings: ImportedDataSettings;
@@ -144,6 +151,8 @@ type AppStateValue = PersistedAppState & {
   currentUser: DemoUser & { draft?: ProfileDraft };
   currentInterestState: InterestState;
   currentProfile?: ReturnType<typeof getProfileByUserId>;
+  creatorProfiles: CreatorProfile[];
+  currentCreatorProfile?: CreatorProfile;
   homeCity: string;
   preferredFandoms: string[];
   users: Array<DemoUser & { draft?: ProfileDraft }>;
@@ -175,6 +184,7 @@ type AppStateValue = PersistedAppState & {
     payload: Partial<Pick<BusinessProfile, "hostingPreferences" | "supportInterests" | "fandomInterests">>
   ) => void;
   updateImportedDataSettings: (payload: Partial<ImportedDataSettings>) => void;
+  saveCreatorServices: (userId: string, services: ProfileService[]) => void;
   setMode: (mode: UserMode) => void;
   switchPersona: (personaId: string) => void;
   updateOnboarding: (payload: Partial<OnboardingState>) => void;
@@ -203,6 +213,7 @@ type AppStateValue = PersistedAppState & {
   toggleFollow: (userId: string) => void;
   markInboxRead: (itemId: string) => void;
   resolveUser: (userId?: string) => (DemoUser & { draft?: ProfileDraft }) | undefined;
+  resolveCreatorProfile: (userId?: string) => CreatorProfile | undefined;
 };
 
 const STORAGE_KEY = "saga-app-state-v6";
@@ -224,6 +235,7 @@ const initialState: PersistedAppState = {
   opportunityApplications: seedOpportunityApplications,
   listings: seedListings,
   listingInterests: seedListingInterests,
+  creatorProfiles: seedCreatorProfiles,
   businessProfiles: seedBusinessProfiles,
   supportIntents: seedSupportIntents,
   importedDataSettings: {
@@ -297,6 +309,93 @@ function mergeUsers(profileDrafts: Record<string, ProfileDraft>) {
       draft
     };
   });
+}
+
+function normalizeCreatorProfiles(
+  profiles: CreatorProfile[],
+  mergedUsers: Array<DemoUser & { draft?: ProfileDraft }>
+) {
+  return profiles.map((profile) => {
+    const user = mergedUsers.find((entry) => entry.id === profile.id);
+    const socialProfile = getProfileByUserId(profile.id);
+
+    return {
+      ...profile,
+      displayName: user?.draft?.name || profile.displayName || user?.name || "Saga Creator",
+      handle: profile.handle || user?.handle || "@saga",
+      location: user?.draft?.city || profile.location || user?.city || "Los Angeles, CA",
+      bio:
+        user?.draft?.bio ||
+        profile.bio ||
+        socialProfile?.headline ||
+        user?.bio ||
+        "Creator profile.",
+      avatarImage: profile.avatarImage || user?.avatarUrl || "",
+      coverImage: profile.coverImage || socialProfile?.coverImageUrl || user?.avatarUrl,
+      tags:
+        user?.draft?.fandoms?.length
+          ? user.draft.fandoms
+          : profile.tags.length > 0
+            ? profile.tags
+          : socialProfile?.fandoms.length
+            ? socialProfile.fandoms
+            : user?.fandomTags ?? [],
+      stats: {
+        ...profile.stats,
+        privateServices: profile.services.length
+      }
+    };
+  });
+}
+
+function buildFallbackCreatorProfile(
+  userId: string,
+  mergedUsers: Array<DemoUser & { draft?: ProfileDraft }>
+) {
+  const user = mergedUsers.find((entry) => entry.id === userId);
+  const socialProfile = getProfileByUserId(userId);
+  const seeded = getSeedCreatorProfileById(userId);
+
+  if (seeded) {
+    return seeded;
+  }
+
+  if (!user) {
+    return undefined;
+  }
+
+  return {
+    id: user.id,
+    displayName: user.name,
+    handle: user.handle,
+    location: user.city,
+    bio: socialProfile?.headline ?? user.bio,
+    tags: socialProfile?.fandoms ?? user.fandomTags,
+    avatarImage: user.avatarUrl ?? "",
+    coverImage: socialProfile?.coverImageUrl ?? user.avatarUrl,
+    portfolio: [],
+    savedItems: [],
+    services: (socialProfile?.servicesPreview ?? []).slice(0, 2).map((service, index) => ({
+      id: `service-${user.id}-${index}`,
+      title: service,
+      pricingLabel: "By project",
+      shortDescription: `${service} for fandom nights and creator-led drops.`,
+      visibleOnPublicProfile: index === 0
+    })),
+    stats: {
+      publicPosts: user.pastEventsWorked,
+      publicFollowers: user.mutuals,
+      publicFollowing: user.skills.length,
+      privateProjects: user.pastEventsWorked,
+      privateNetwork: Math.max(user.mutuals * 4, 48),
+      privateServices: Math.max((socialProfile?.servicesPreview ?? []).length, 1)
+    },
+    earnings: {
+      total: "$0.00",
+      available: "$0",
+      pending: "$0"
+    }
+  } satisfies CreatorProfile;
 }
 
 function resolveCurrentUserId(personaId: string, mode: UserMode) {
@@ -617,6 +716,7 @@ export function AppStateProvider({
             parsed.opportunityApplications ?? initialState.opportunityApplications,
           listings: parsed.listings ?? initialState.listings,
           listingInterests: parsed.listingInterests ?? initialState.listingInterests,
+          creatorProfiles: parsed.creatorProfiles ?? initialState.creatorProfiles,
           businessProfiles: parsed.businessProfiles ?? initialState.businessProfiles,
           supportIntents: parsed.supportIntents ?? initialState.supportIntents,
           importedDataSettings:
@@ -666,6 +766,10 @@ export function AppStateProvider({
   }, [hydrated, state]);
 
   const users = useMemo(() => mergeUsers(state.profileDrafts), [state.profileDrafts]);
+  const creatorProfiles = useMemo(
+    () => normalizeCreatorProfiles(state.creatorProfiles, users),
+    [state.creatorProfiles, users]
+  );
   const currentPersona =
     getPersonaPresetById(state.activePersonaId) ?? demoPersonaPresets[0];
   const currentUserId = resolveCurrentUserId(state.activePersonaId, state.mode);
@@ -675,6 +779,9 @@ export function AppStateProvider({
     state.socialStateByPersona[currentPersona.id] ??
     seedInterestStateByPersona[currentPersona.id];
   const currentProfile = getProfileByUserId(currentUserId);
+  const currentCreatorProfile =
+    creatorProfiles.find((profile) => profile.id === currentUserId) ??
+    buildFallbackCreatorProfile(currentUserId, users);
   const currentBusinessProfile = state.businessProfiles.find(
     (profile) => profile.ownerUserId === currentUserId
   );
@@ -685,7 +792,9 @@ export function AppStateProvider({
       ? state.onboarding.fandomTags
       : state.onboarding.businessSceneTags.length > 0
         ? state.onboarding.businessSceneTags
-      : currentProfile?.fandoms ?? currentUser.fandomTags;
+      : currentCreatorProfile?.tags.length
+        ? currentCreatorProfile.tags
+        : currentProfile?.fandoms ?? currentUser.fandomTags;
   const socialActivity = useMemo(
     () =>
       [...state.activityLog, ...socialActivityItems]
@@ -772,6 +881,8 @@ export function AppStateProvider({
     currentUser,
     currentInterestState,
     currentProfile,
+    creatorProfiles,
+    currentCreatorProfile,
     homeCity,
     preferredFandoms,
     users,
@@ -1117,6 +1228,49 @@ export function AppStateProvider({
           ...payload
         }
       }));
+    },
+    saveCreatorServices: (userId, services) => {
+      setState((current) => {
+        const existing = current.creatorProfiles.find((profile) => profile.id === userId);
+
+        if (existing) {
+          return {
+            ...current,
+            creatorProfiles: current.creatorProfiles.map((profile) =>
+              profile.id === userId
+                ? {
+                    ...profile,
+                    services,
+                    stats: {
+                      ...profile.stats,
+                      privateServices: services.length
+                    }
+                  }
+                : profile
+            )
+          };
+        }
+
+        const fallbackProfile = buildFallbackCreatorProfile(userId, mergeUsers(current.profileDrafts));
+        if (!fallbackProfile) {
+          return current;
+        }
+
+        return {
+          ...current,
+          creatorProfiles: [
+            {
+              ...fallbackProfile,
+              services,
+              stats: {
+                ...fallbackProfile.stats,
+                privateServices: services.length
+              }
+            },
+            ...current.creatorProfiles
+          ]
+        };
+      });
     },
     setMode: (mode) =>
       setState((current) => ({
@@ -2213,7 +2367,17 @@ export function AppStateProvider({
         )
       }));
     },
-    resolveUser: (userId) => users.find((user) => user.id === userId)
+    resolveUser: (userId) => users.find((user) => user.id === userId),
+    resolveCreatorProfile: (userId) => {
+      if (!userId) {
+        return undefined;
+      }
+
+      return (
+        creatorProfiles.find((profile) => profile.id === userId) ??
+        buildFallbackCreatorProfile(userId, users)
+      );
+    }
   };
 
   return (
