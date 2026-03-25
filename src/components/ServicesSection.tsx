@@ -1,5 +1,6 @@
 "use client";
 
+import { StarRatingValue } from "@/src/components/StarRatingValue";
 import { type ProfileService } from "@/src/data/creator-profiles";
 
 export function ServicesSection({
@@ -62,11 +63,14 @@ export function ServicesSection({
               ) : null}
 
               {publicView && (service.reviewScore || service.reviewCount) ? (
-                <p className="mt-3 text-xs text-app-muted">
-                  {service.reviewScore ? `${service.reviewScore.toFixed(1)} rating` : null}
-                  {service.reviewScore && service.reviewCount ? " · " : null}
-                  {service.reviewCount ? `${service.reviewCount} reviews` : null}
-                </p>
+                <div className="mt-3 flex items-center gap-2 text-xs text-app-muted">
+                  {service.reviewScore ? (
+                    <StarRatingValue rating={service.reviewScore} variant="inline" />
+                  ) : null}
+                  {service.reviewCount ? (
+                    <span>{service.reviewCount} reviews</span>
+                  ) : null}
+                </div>
               ) : null}
             </div>
           ))}

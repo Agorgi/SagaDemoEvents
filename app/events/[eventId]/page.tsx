@@ -8,6 +8,7 @@ import { Avatar } from "@/src/components/Avatar";
 import { ExpandableText } from "@/src/components/ExpandableText";
 import { Nav } from "@/src/components/Nav";
 import { RoleApplicationPanel } from "@/src/components/RoleApplicationPanel";
+import { StarRatingValue } from "@/src/components/StarRatingValue";
 import { StatusChip } from "@/src/components/StatusChip";
 import { TagChip } from "@/src/components/Chips";
 import { getEventById } from "@/src/data/demo";
@@ -24,6 +25,7 @@ export default function EventDetailPage() {
     goingEventIds,
     launches,
     mode,
+    resolveCreatorProfile,
     resolveUser,
     respondToBusinessMatch,
     savedEventIds,
@@ -60,7 +62,8 @@ export default function EventDetailPage() {
         ? {
             id: role.id,
             roleName: role.roleName,
-            user
+            user,
+            rating: resolveCreatorProfile(role.filledByUserId)?.stats.privateRating
           }
         : null;
     })
@@ -272,6 +275,11 @@ export default function EventDetailPage() {
                     <Avatar name={entry.user.name} size="sm" src={entry.user.avatarUrl} />
                     <p className="mt-3 text-sm font-semibold text-white">{entry.user.name}</p>
                     <p className="mt-1 text-xs text-app-muted">{entry.roleName}</p>
+                    {entry.rating ? (
+                      <div className="mt-2">
+                        <StarRatingValue rating={entry.rating} variant="inline" />
+                      </div>
+                    ) : null}
                   </Link>
                 ))}
               </div>
