@@ -188,13 +188,32 @@ export default function EventDetailPage() {
               <p className="text-sm leading-6 text-white/78">{eventData.subtitle}</p>
             </div>
 
-            <div className="flex items-center gap-3">
-              <Avatar name={host?.name ?? "Host"} size="sm" src={host?.avatarUrl} />
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-white">{host?.name ?? "Host"}</p>
-                <p className="text-xs text-app-muted">
-                  {eventData.mutualsCount > 0 ? `${eventData.mutualsCount} friends interested` : "Hosted in your scene"}
-                </p>
+            <div className="flex items-center justify-between gap-3">
+              <Link
+                className="flex min-w-0 items-center gap-3"
+                href={`/profiles/${host?.id ?? eventData.hostId}`}
+              >
+                <Avatar name={host?.name ?? "Host"} size="sm" src={host?.avatarUrl} />
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-white">{host?.name ?? "Host"}</p>
+                  <p className="text-xs text-app-muted">
+                    {eventData.mutualsCount > 0
+                      ? `${eventData.mutualsCount} friends interested`
+                      : "Hosted in your scene"}
+                  </p>
+                </div>
+              </Link>
+              <div className="flex items-center gap-2">
+                <IconActionButton
+                  ariaLabel={isSaved ? "Unsave event" : "Save event"}
+                  onClick={() => toggleSavedEvent(eventData.id)}
+                  selected={isSaved}
+                >
+                  <BookmarkIcon />
+                </IconActionButton>
+                <IconActionButton ariaLabel="Share event" onClick={handleShare}>
+                  <ShareIcon />
+                </IconActionButton>
               </div>
             </div>
 
@@ -213,27 +232,13 @@ export default function EventDetailPage() {
               </div>
             </div>
 
-            <div className="flex gap-3">
+            <div>
               <button
-                className="min-h-[48px] flex-1 rounded-[18px] bg-[#bc8b43] px-4 py-3 text-sm font-semibold text-[#140d04] transition hover:bg-[#d59a47]"
+                className="min-h-[48px] w-full rounded-[18px] bg-[#bc8b43] px-4 py-3 text-sm font-semibold text-[#140d04] transition hover:bg-[#d59a47]"
                 onClick={handlePrimaryAction}
                 type="button"
               >
                 {primaryLabel}
-              </button>
-              <button
-                className="min-h-[48px] rounded-[18px] border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
-                onClick={() => toggleSavedEvent(eventData.id)}
-                type="button"
-              >
-                {isSaved ? "Saved" : "Save"}
-              </button>
-              <button
-                className="min-h-[48px] rounded-[18px] border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
-                onClick={handleShare}
-                type="button"
-              >
-                Share
               </button>
             </div>
           </div>
@@ -304,28 +309,6 @@ export default function EventDetailPage() {
             </DetailSection>
           ) : null}
 
-          <DetailSection title="Location">
-            <div className="rounded-[24px] border border-white/8 bg-[#0d1119] p-4">
-              <p className="text-sm font-semibold text-white">{eventData.venue}</p>
-              <p className="mt-1 text-sm text-app-muted">{eventData.city}</p>
-            </div>
-          </DetailSection>
-
-          <DetailSection title="Hosted by">
-            <Link
-              className="flex items-center gap-4 rounded-[24px] border border-white/8 bg-[#0d1119] p-4 transition hover:border-white/15"
-              href={`/profiles/${host?.id ?? eventData.hostId}`}
-            >
-              <Avatar name={host?.name ?? "Host"} size="md" src={host?.avatarUrl} />
-              <div className="min-w-0">
-                <p className="font-semibold text-white">{host?.name ?? "Host"}</p>
-                <p className="mt-1 text-sm text-app-muted">
-                  {host?.bio ?? "Building nights worth leaving the house for."}
-                </p>
-              </div>
-            </Link>
-          </DetailSection>
-
           {roomUnlocked ? (
             <DetailSection title="Room">
               <div className="flex items-center justify-between gap-4 rounded-[24px] border border-white/8 bg-[#0d1119] p-4">
@@ -364,5 +347,60 @@ function DetailSection({
       <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-app-muted">{title}</h2>
       {children}
     </section>
+  );
+}
+
+function IconActionButton({
+  ariaLabel,
+  children,
+  onClick,
+  selected = false
+}: {
+  ariaLabel: string;
+  children: React.ReactNode;
+  onClick: () => void;
+  selected?: boolean;
+}) {
+  return (
+    <button
+      aria-label={ariaLabel}
+      className={`flex h-10 w-10 items-center justify-center rounded-full border transition ${
+        selected
+          ? "border-[#bc8b43]/60 bg-[#bc8b43]/12 text-[#f3c070]"
+          : "border-white/10 bg-white/[0.03] text-white/82 hover:border-white/20"
+      }`}
+      onClick={onClick}
+      type="button"
+    >
+      {children}
+    </button>
+  );
+}
+
+function BookmarkIcon() {
+  return (
+    <svg aria-hidden="true" className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24">
+      <path
+        d="M7 4.75C7 4.336 7.336 4 7.75 4h8.5c.414 0 .75.336.75.75v14.432c0 .617-.694.976-1.195.618L12 16.922 7.945 19.8c-.501.358-1.195-.001-1.195-.618V4.75Z"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.7"
+      />
+    </svg>
+  );
+}
+
+function ShareIcon() {
+  return (
+    <svg aria-hidden="true" className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24">
+      <path
+        d="M12 15V5m0 0 3.5 3.5M12 5 8.5 8.5M6.75 13.5v3.75c0 .414.336.75.75.75h9c.414 0 .75-.336.75-.75V13.5"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.7"
+      />
+    </svg>
   );
 }
