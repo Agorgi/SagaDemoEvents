@@ -399,8 +399,25 @@ function OnboardingPageContent() {
   }
 
   function handleClose() {
-    setCurrentIndex(0);
-    updateOnboarding({ lastStepId: questions[0]?.id });
+    const primaryBranch =
+      onboarding.primaryBranch ??
+      resolveBranch(onboarding.primaryIntent, onboarding.collaborationRoute) ??
+      "explorer";
+
+    completeOnboarding({
+      ...onboarding,
+      phoneNumber: onboarding.phoneNumber || "+1 310 555 0199",
+      displayName: onboarding.displayName || "Kai",
+      city: onboarding.city || "Los Angeles, CA",
+      selectedIntents:
+        onboarding.selectedIntents.length > 0 ? onboarding.selectedIntents : ["explore"],
+      primaryIntent: onboarding.primaryIntent ?? "explore",
+      primaryBranch,
+      usedSampleProfile: true,
+      lastStepId: question.id
+    });
+
+    router.replace("/explore");
   }
 
   function handleCompletion() {

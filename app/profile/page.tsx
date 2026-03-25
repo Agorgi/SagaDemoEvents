@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { Avatar } from "@/src/components/Avatar";
@@ -20,10 +21,12 @@ export default function ProfilePage() {
     currentCreatorProfile,
     currentUser,
     currentUserId,
+    resetOnboarding,
     saveCreatorServices,
     savedEventIds
   } = useAppState();
   const { events } = useDemoState();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"portfolio" | "saved">("portfolio");
   const [menuOpen, setMenuOpen] = useState(false);
   const [manageOpen, setManageOpen] = useState(false);
@@ -197,6 +200,19 @@ export default function ProfilePage() {
             services={profile.services}
             title="Available services"
           />
+        </div>
+
+        <div className="mt-8">
+          <button
+            className="inline-flex min-h-[48px] w-full items-center justify-center rounded-[22px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-semibold text-white transition hover:border-white/18 hover:bg-white/[0.05]"
+            onClick={() => {
+              resetOnboarding();
+              router.push("/onboarding");
+            }}
+            type="button"
+          >
+            Onboarding flow
+          </button>
         </div>
       </main>
 
