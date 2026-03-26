@@ -10,7 +10,10 @@ import { TagChip } from "@/src/components/Chips";
 import { Nav } from "@/src/components/Nav";
 import { launchPosterStyleOptions } from "@/src/data/launch-builder";
 import { useAppState } from "@/src/lib/app-state";
-import { getMediaObjectPosition } from "@/src/lib/media-position";
+import {
+  getMediaObjectPosition,
+  mediaPositionOptions
+} from "@/src/lib/media-position";
 
 export default function LaunchDraftReviewPage() {
   const params = useParams<{ draftId: string }>();
@@ -49,21 +52,46 @@ export default function LaunchDraftReviewPage() {
       <Nav />
       <main className="mx-auto w-full max-w-[540px] px-4 pb-36 pt-5 sm:max-w-[620px] sm:px-6 sm:pb-16 sm:pt-8">
         <section className="space-y-5">
-          <div className="mx-auto max-w-[340px] overflow-hidden rounded-[30px] border border-white/8 bg-[#0f1320] shadow-soft">
-            <div className="relative">
-              <img
-                alt={draft.generatedDraft.title}
-                className="aspect-[4/5] w-full object-cover"
-                src={draft.generatedDraft.posterUrl}
-                style={{ objectPosition: getMediaObjectPosition(draft.posterImagePosition) }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#05070c]/68 via-transparent to-transparent" />
-              <div className="absolute left-4 top-4">
-                <span className="inline-flex rounded-full border border-app-purple/40 bg-app-purple/12 px-3 py-1 text-xs font-semibold text-[#E0DEFF]">
-                  {draft.launchMode === "soft" ? "Soft launch" : "Happening"}
-                </span>
+          <div className="mx-auto max-w-[340px] space-y-3">
+            <div className="overflow-hidden rounded-[30px] border border-white/8 bg-[#0f1320] shadow-soft">
+              <div className="relative">
+                <img
+                  alt={draft.generatedDraft.title}
+                  className="aspect-[4/5] w-full object-cover"
+                  src={draft.generatedDraft.posterUrl}
+                  style={{ objectPosition: getMediaObjectPosition(draft.posterImagePosition) }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#05070c]/68 via-transparent to-transparent" />
+                <div className="absolute left-4 top-4">
+                  <span className="inline-flex rounded-full border border-app-purple/40 bg-app-purple/12 px-3 py-1 text-xs font-semibold text-[#E0DEFF]">
+                    {draft.launchMode === "soft" ? "Soft launch" : "Happening"}
+                  </span>
+                </div>
               </div>
             </div>
+            {draft.posterImage ? (
+              <div className="flex items-center justify-between gap-3 rounded-[22px] border border-white/8 bg-[#0d1119] px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-app-muted">
+                  Reposition
+                </p>
+                <div className="flex items-center gap-2">
+                  {mediaPositionOptions.map((option) => (
+                    <button
+                      className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                        draft.posterImagePosition === option.value
+                          ? "bg-app-purple text-white shadow-[0_10px_24px_rgba(31,28,184,0.22)]"
+                          : "border border-white/10 bg-white/[0.03] text-app-muted hover:border-white/18 hover:text-white"
+                      }`}
+                      key={option.value}
+                      onClick={() => updateLaunchDraft(draft.id, { posterImagePosition: option.value })}
+                      type="button"
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <div className="space-y-4">
