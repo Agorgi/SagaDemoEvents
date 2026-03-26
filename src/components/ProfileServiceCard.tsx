@@ -2,7 +2,7 @@
 
 import { StarRatingValue } from "@/src/components/StarRatingValue";
 import { VolunteerBadge } from "@/src/components/VolunteerBadge";
-import { type ProfileService } from "@/src/data/creator-profiles";
+import { formatServicePricing, type ProfileService } from "@/src/data/creator-profiles";
 import { getServiceCategoryOption } from "@/src/data/service-flow";
 import { getMediaObjectPosition } from "@/src/lib/media-position";
 import { cn } from "@/src/lib/utils";
@@ -73,6 +73,7 @@ export function ProfileServiceCard({
           : "Private"
         : null;
   const volunteerBadge = service.openToVolunteering ? "Volunteer" : null;
+  const pricingDisplay = formatServicePricing(service);
 
   return (
     <div
@@ -110,14 +111,11 @@ export function ProfileServiceCard({
             <span className="inline-flex rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/78 backdrop-blur-sm">
               {resolvedCategoryLabel}
             </span>
-            <div className="flex flex-col items-end gap-2">
-              {volunteerBadge ? <VolunteerBadge /> : null}
-              {previewLabel ? (
-                <span className="inline-flex rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] font-semibold text-white/76 backdrop-blur-sm">
-                  {previewLabel}
-                </span>
-              ) : null}
-            </div>
+            {previewLabel ? (
+              <span className="inline-flex rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] font-semibold text-white/76 backdrop-blur-sm">
+                {previewLabel}
+              </span>
+            ) : null}
           </div>
 
           <div>
@@ -132,7 +130,10 @@ export function ProfileServiceCard({
       </div>
 
       <div className="px-1 pb-1 pt-4">
-        <p className="text-sm font-semibold text-white">{service.pricingLabel}</p>
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm font-semibold text-white">{pricingDisplay}</p>
+          {volunteerBadge ? <VolunteerBadge variant="compact" /> : null}
+        </div>
         {service.shortDescription ? (
           <p className="mt-2 text-sm leading-6 text-app-muted">{service.shortDescription}</p>
         ) : null}

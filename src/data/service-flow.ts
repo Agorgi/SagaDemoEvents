@@ -1,5 +1,7 @@
 import {
+  formatServicePricing,
   type ProfileService,
+  type ServicePricingMode,
   type ServiceCoverStyle
 } from "@/src/data/creator-profiles";
 import { type MediaVerticalPosition } from "@/src/lib/media-position";
@@ -7,6 +9,8 @@ import { type MediaVerticalPosition } from "@/src/lib/media-position";
 export type ServiceDraft = {
   category: string;
   title: string;
+  pricingMode: ServicePricingMode;
+  priceAmount: string;
   pricingLabel: string;
   openToVolunteering: boolean;
   shortDescription: string;
@@ -89,12 +93,12 @@ const titleSuggestions: Record<string, string> = {
 };
 
 const pricingPlaceholders: Record<string, string> = {
-  portraits: "$180 starting",
-  promo: "$240 package",
-  hosting: "$120 flat",
-  coverage: "$260 starting",
-  styling: "$150 starting",
-  other: "By project"
+  portraits: "30",
+  promo: "240",
+  hosting: "120",
+  coverage: "260",
+  styling: "150",
+  other: "100"
 };
 
 const descriptionPlaceholders: Record<string, string> = {
@@ -119,6 +123,8 @@ export function createEmptyServiceDraft(): ServiceDraft {
   return {
     category: "",
     title: "",
+    pricingMode: "hourly",
+    priceAmount: "",
     pricingLabel: "",
     openToVolunteering: false,
     shortDescription: "",
@@ -141,7 +147,53 @@ export function getServiceTitleSuggestion(category: string) {
 }
 
 export function getServicePricingPlaceholder(category: string) {
-  return pricingPlaceholders[category] ?? "By project";
+  return pricingPlaceholders[category] ?? "100";
+}
+
+export function inferServicePricingMode(pricingLabel: string): ServicePricingMode {
+  return /\/hr|hour/i.test(pricingLabel) ? "hourly" : "flat";
+}
+
+export function inferServicePriceAmount(pricingLabel: string) {
+  const match = pricingLabel.match(/\$?\s*([\d,.]+)/);
+  return match?.[1]?.replace(/,/g, "") ?? "";
+}
+
+export function normalizeServiceDraft(partial?: Partial<ServiceDraft>): ServiceDraft {
+  const base = createEmptyServiceDraft();
+  const draft = {
+    ...base,
+    ...partial
+  };
+
+  if (!(partial && "priceAmount" in partial) && draft.pricingLabel) {
+    draft.priceAmount = inferServicePriceAmount(draft.pricingLabel);
+  }
+
+  if (!(partial && "pricingMode" in partial) && draft.pricingLabel) {
+    draft.pricingMode = inferServicePricingMode(draft.pricingLabel);
+  }
+
+  draft.pricingLabel = formatServicePricing({
+    pricingLabel: draft.pricingLabel,
+    pricingMode: draft.pricingMode,
+    priceAmount: Number(draft.priceAmount)
+  });
+
+  return draft;
+}
+
+export function buildServicePricingLabel(mode: ServicePricingMode, amount: string) {
+  const parsed = Number(amount);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return "";
+  }
+
+  return formatServicePricing({
+    pricingLabel: "",
+    pricingMode: mode,
+    priceAmount: parsed
+  });
 }
 
 export function getServiceDescriptionPlaceholder(category: string) {
@@ -149,11 +201,19 @@ export function getServiceDescriptionPlaceholder(category: string) {
 }
 
 export function buildServiceFromDraft(draft: ServiceDraft): ProfileService {
+  const parsedAmount = Number(draft.priceAmount);
+  const priceAmount = Number.isFinite(parsedAmount) && parsedAmount > 0 ? parsedAmount : undefined;
+  const pricingLabel = buildServicePricingLabel(draft.pricingMode, draft.priceAmount)
+    || draft.pricingLabel.trim()
+    || (draft.pricingMode === "hourly" ? "$30/hr" : "$180 rate");
+
   return {
     id: `service-${Math.random().toString(36).slice(2, 8)}`,
     category: draft.category.trim() || "other",
     title: draft.title.trim() || getServiceTitleSuggestion(draft.category),
-    pricingLabel: draft.pricingLabel.trim() || getServicePricingPlaceholder(draft.category),
+    pricingLabel,
+    pricingMode: draft.pricingMode,
+    priceAmount,
     openToVolunteering: draft.openToVolunteering,
     shortDescription: draft.shortDescription.trim(),
     coverStyle: draft.coverStyle,

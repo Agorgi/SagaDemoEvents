@@ -3,7 +3,16 @@
 import { useEffect, useState } from "react";
 
 import { Modal } from "@/src/components/Modal";
-import { type ProfileService } from "@/src/data/creator-profiles";
+import {
+  formatServicePricing,
+  type ProfileService,
+  type ServicePricingMode
+} from "@/src/data/creator-profiles";
+import {
+  buildServicePricingLabel,
+  inferServicePriceAmount,
+  inferServicePricingMode
+} from "@/src/data/service-flow";
 
 type EditableService = ProfileService;
 
@@ -70,26 +79,82 @@ export function ManageServicesModal({
                 />
               </label>
 
-              <label className="block">
+              <div className="block">
                 <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-app-muted">
-                  Pricing label
+                  Pricing
                 </span>
-                <input
-                  className="h-12 w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 text-sm text-white outline-none transition placeholder:text-app-muted focus:border-white/20"
-                  onChange={(event) =>
-                    setDraftServices((current) =>
-                      current.map((item) =>
-                        item.id === service.id
-                          ? { ...item, pricingLabel: event.target.value }
-                          : item
-                      )
-                    )
-                  }
-                  placeholder="$180 starting"
-                  type="text"
-                  value={service.pricingLabel}
-                />
-              </label>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-2">
+                    {(["hourly", "flat"] as ServicePricingMode[]).map((mode) => {
+                      const selectedMode =
+                        service.pricingMode ?? inferServicePricingMode(service.pricingLabel);
+                      return (
+                        <button
+                          className={`rounded-[18px] border px-3 py-3 text-sm font-semibold transition ${
+                            selectedMode === mode
+                              ? "border-app-purple/40 bg-app-purple/12 text-white"
+                              : "border-white/10 bg-white/[0.03] text-app-muted hover:border-white/20 hover:text-white"
+                          }`}
+                          key={mode}
+                          onClick={() =>
+                            setDraftServices((current) =>
+                              current.map((item) => {
+                                if (item.id !== service.id) {
+                                  return item;
+                                }
+                                const nextAmount =
+                                  item.priceAmount?.toString() || inferServicePriceAmount(item.pricingLabel);
+                                return {
+                                  ...item,
+                                  pricingMode: mode,
+                                  pricingLabel:
+                                    buildServicePricingLabel(mode, nextAmount) || item.pricingLabel
+                                };
+                              })
+                            )
+                          }
+                          type="button"
+                        >
+                          {mode === "hourly" ? "Hourly" : "Flat fee"}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-white/68">
+                      $
+                    </span>
+                    <input
+                      className="h-12 w-full rounded-[18px] border border-white/10 bg-white/[0.03] pl-8 pr-4 text-sm text-white outline-none transition placeholder:text-app-muted focus:border-white/20"
+                      inputMode="decimal"
+                      onChange={(event) =>
+                        setDraftServices((current) =>
+                          current.map((item) => {
+                            if (item.id !== service.id) {
+                              return item;
+                            }
+                            const cleaned = event.target.value.replace(/[^\d.]/g, "");
+                            const mode = item.pricingMode ?? inferServicePricingMode(item.pricingLabel);
+                            const parsed = Number(cleaned);
+                            return {
+                              ...item,
+                              priceAmount:
+                                Number.isFinite(parsed) && parsed > 0 ? parsed : undefined,
+                              pricingLabel: buildServicePricingLabel(mode, cleaned) || item.pricingLabel
+                            };
+                          })
+                        )
+                      }
+                      placeholder="30"
+                      type="text"
+                      value={
+                        service.priceAmount?.toString() || inferServicePriceAmount(service.pricingLabel)
+                      }
+                    />
+                  </div>
+                  <p className="text-xs text-app-muted">{formatServicePricing(service)}</p>
+                </div>
+              </div>
 
               <label className="block">
                 <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-app-muted">
@@ -155,7 +220,9 @@ export function ManageServicesModal({
           onClick={() => {
             onSave(
               draftServices.filter(
-                (service) => service.title.trim() && service.pricingLabel.trim()
+                (service) =>
+                  service.title.trim() &&
+                  (service.pricingLabel.trim() || typeof service.priceAmount === "number")
               )
             );
             onClose();

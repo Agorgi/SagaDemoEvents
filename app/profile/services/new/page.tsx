@@ -13,12 +13,14 @@ import { ImagePositionPicker } from "@/src/components/ImagePositionPicker";
 import { TagChip } from "@/src/components/Chips";
 import {
   buildServiceFromDraft,
+  buildServicePricingLabel,
   createEmptyServiceDraft,
   getDefaultServiceCoverStyle,
   getServiceCategoryOption,
   getServiceDescriptionPlaceholder,
   getServicePricingPlaceholder,
   getServiceTitleSuggestion,
+  normalizeServiceDraft,
   serviceCoverStyleOptions,
   serviceCategoryOptions,
   SERVICE_FLOW_STORAGE_KEY,
@@ -56,10 +58,7 @@ export default function NewProfileServicePage() {
           currentIndex: number;
         }>;
         if (parsed.draft) {
-          setDraft({
-            ...createEmptyServiceDraft(),
-            ...parsed.draft
-          });
+          setDraft(normalizeServiceDraft(parsed.draft));
         }
         if (typeof parsed.currentIndex === "number") {
           setCurrentIndex(Math.max(0, Math.min(parsed.currentIndex, steps.length - 1)));
@@ -136,7 +135,7 @@ export default function NewProfileServicePage() {
       case "title":
         return draft.title.trim().length > 0;
       case "pricing":
-        return draft.pricingLabel.trim().length > 0;
+        return draft.priceAmount.trim().length > 0;
       case "description":
         return draft.shortDescription.trim().length > 0;
       case "cover":
@@ -185,7 +184,10 @@ export default function NewProfileServicePage() {
                     pricingLabel:
                       draft.pricingLabel.trim()
                         ? draft.pricingLabel
-                        : getServicePricingPlaceholder(option.value),
+                        : buildServicePricingLabel("hourly", getServicePricingPlaceholder(option.value)),
+                    pricingMode: draft.priceAmount.trim() ? draft.pricingMode : "hourly",
+                    priceAmount:
+                      draft.priceAmount.trim() ? draft.priceAmount : getServicePricingPlaceholder(option.value),
                     coverStyle: draft.coverImage
                       ? draft.coverStyle
                       : getDefaultServiceCoverStyle(option.value)
@@ -210,11 +212,47 @@ export default function NewProfileServicePage() {
 
         {currentStep.id === "pricing" ? (
           <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <OnboardingChoiceCard
+                compact
+                description="Show one simple hourly rate."
+                onClick={() =>
+                  patchDraft({
+                    pricingMode: "hourly",
+                    pricingLabel: buildServicePricingLabel("hourly", draft.priceAmount)
+                  })
+                }
+                selected={draft.pricingMode === "hourly"}
+                title="Hourly"
+              />
+              <OnboardingChoiceCard
+                compact
+                description="Quote one flat fee for the job."
+                onClick={() =>
+                  patchDraft({
+                    pricingMode: "flat",
+                    pricingLabel: buildServicePricingLabel("flat", draft.priceAmount)
+                  })
+                }
+                selected={draft.pricingMode === "flat"}
+                title="Flat fee"
+              />
+            </div>
             <QuestionField
-              helper={`Try something like ${getServicePricingPlaceholder(draft.category)}`}
-              onChange={(value) => patchDraft({ pricingLabel: value })}
+              helper={`Shows as ${buildServicePricingLabel(draft.pricingMode, draft.priceAmount || getServicePricingPlaceholder(draft.category)) || (draft.pricingMode === "hourly" ? "$30/hr" : "$180 rate")}`}
+              inputMode="decimal"
+              onChange={(value) =>
+                patchDraft({
+                  priceAmount: value.replace(/[^\d.]/g, ""),
+                  pricingLabel: buildServicePricingLabel(
+                    draft.pricingMode,
+                    value.replace(/[^\d.]/g, "")
+                  )
+                })
+              }
+              prefix="$"
               placeholder={getServicePricingPlaceholder(draft.category)}
-              value={draft.pricingLabel}
+              value={draft.priceAmount}
             />
             <button
               className={`w-full rounded-[24px] border px-4 py-4 text-left transition ${
@@ -489,11 +527,6 @@ export default function NewProfileServicePage() {
                       ? "People will see it on your public profile right away."
                       : "It will stay on your private profile until you turn it on."}
                   </p>
-                  {draft.openToVolunteering ? (
-                    <p className="mt-2 text-sm font-medium text-[#F0C453]">
-                      Open to volunteering
-                    </p>
-                  ) : null}
                   <p className="mt-2 text-xs text-app-muted">
                     {draft.coverImage
                       ? `Cover image: ${draft.coverImageSourceTitle || "Custom upload"} · ${draft.coverImagePosition} focus`
@@ -513,21 +546,35 @@ function QuestionField({
   value,
   onChange,
   placeholder,
-  helper
+  helper,
+  inputMode = "text",
+  prefix
 }: {
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
   helper?: string;
+  inputMode?: "text" | "search" | "email" | "tel" | "url" | "none" | "numeric" | "decimal";
+  prefix?: string;
 }) {
   return (
     <div className="space-y-3">
-      <input
-        className="w-full rounded-[26px] border border-white/10 bg-[#0d1119] px-5 py-4 text-base text-white outline-none transition placeholder:text-app-muted focus:border-white/20"
-        onChange={(event) => onChange(event.target.value)}
-        placeholder={placeholder}
-        value={value}
-      />
+      <div className="relative">
+        {prefix ? (
+          <span className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-base font-semibold text-white/68">
+            {prefix}
+          </span>
+        ) : null}
+        <input
+          className={`w-full rounded-[26px] border border-white/10 bg-[#0d1119] px-5 py-4 text-base text-white outline-none transition placeholder:text-app-muted focus:border-white/20 ${
+            prefix ? "pl-10" : ""
+          }`}
+          inputMode={inputMode}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={placeholder}
+          value={value}
+        />
+      </div>
       {helper ? <p className="text-sm text-app-muted">{helper}</p> : null}
     </div>
   );

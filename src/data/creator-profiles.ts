@@ -3,12 +3,15 @@ import { type MediaVerticalPosition } from "@/src/lib/media-position";
 import { createPosterDataUri } from "@/src/lib/demo-media";
 
 export type ServiceCoverStyle = "violet" | "gold" | "emerald" | "midnight";
+export type ServicePricingMode = "hourly" | "flat";
 
 export type ProfileService = {
   id: string;
   title: string;
   category?: string;
   pricingLabel: string;
+  pricingMode?: ServicePricingMode;
+  priceAmount?: number;
   openToVolunteering?: boolean;
   reviewScore?: number;
   reviewCount?: number;
@@ -58,6 +61,29 @@ export type CreatorProfile = {
   earnings?: EarningsSummary;
   isOwnProfile?: boolean;
 };
+
+function formatServicePriceAmount(value: number) {
+  const formatted = new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: Number.isInteger(value) ? 0 : 2,
+    maximumFractionDigits: Number.isInteger(value) ? 0 : 2
+  }).format(value);
+
+  return `$${formatted}`;
+}
+
+export function formatServicePricing(service: Pick<ProfileService, "pricingLabel" | "pricingMode" | "priceAmount">) {
+  if (typeof service.priceAmount === "number" && Number.isFinite(service.priceAmount)) {
+    if (service.pricingMode === "hourly") {
+      return `${formatServicePriceAmount(service.priceAmount)}/hr`;
+    }
+
+    if (service.pricingMode === "flat") {
+      return `${formatServicePriceAmount(service.priceAmount)} rate`;
+    }
+  }
+
+  return service.pricingLabel;
+}
 
 function getUser(userId: string) {
   return users.find((user) => user.id === userId);
@@ -171,7 +197,9 @@ export const seedCreatorProfiles: CreatorProfile[] = [
         id: "service-aphex-1",
         category: "portraits",
         title: "Cosplay portrait sessions",
-        pricingLabel: "$180 starting",
+        pricingLabel: "$30/hr",
+        pricingMode: "hourly",
+        priceAmount: 30,
         reviewScore: 4.9,
         reviewCount: 28,
         shortDescription: "Portrait coverage and quick selects for fan meets, reveals, and launch nights.",
@@ -182,7 +210,9 @@ export const seedCreatorProfiles: CreatorProfile[] = [
         id: "service-aphex-2",
         category: "promo",
         title: "Creator promo kits",
-        pricingLabel: "$240 package",
+        pricingLabel: "$240 rate",
+        pricingMode: "flat",
+        priceAmount: 240,
         reviewScore: 4.8,
         reviewCount: 14,
         shortDescription: "Teaser visuals, social crop sets, and light launch copy for fandom drops.",
@@ -193,7 +223,9 @@ export const seedCreatorProfiles: CreatorProfile[] = [
         id: "service-aphex-3",
         category: "hosting",
         title: "Backstage creator support",
-        pricingLabel: "$120 flat",
+        pricingLabel: "$120 rate",
+        pricingMode: "flat",
+        priceAmount: 120,
         shortDescription: "Run-of-night creator wrangling and check-ins for small artist-led events.",
         coverStyle: "midnight",
         visibleOnPublicProfile: false
@@ -235,7 +267,9 @@ export const seedCreatorProfiles: CreatorProfile[] = [
         id: "service-sera-1",
         category: "portraits",
         title: "Portrait booth coverage",
-        pricingLabel: "$220 starting",
+        pricingLabel: "$35/hr",
+        pricingMode: "hourly",
+        priceAmount: 35,
         reviewScore: 4.9,
         reviewCount: 19,
         shortDescription: "Premium portraits for fan nights, romance game socials, and photo-first events.",
@@ -246,7 +280,9 @@ export const seedCreatorProfiles: CreatorProfile[] = [
         id: "service-sera-2",
         category: "portraits",
         title: "Polaroid keepsake packs",
-        pricingLabel: "$80 add-on",
+        pricingLabel: "$80 rate",
+        pricingMode: "flat",
+        priceAmount: 80,
         shortDescription: "Fast-turnaround keepsakes for fan tables, guest moments, and meetups.",
         coverStyle: "gold",
         visibleOnPublicProfile: true
