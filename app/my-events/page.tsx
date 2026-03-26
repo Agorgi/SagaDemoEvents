@@ -111,7 +111,7 @@ export default function MyEventsPage() {
         <PageHeroHeader
           eyebrow={homeCity}
           label="Plans"
-          title="Your month at a glance"
+          title="Coming up"
         />
 
         <section className="mt-5 space-y-4">
