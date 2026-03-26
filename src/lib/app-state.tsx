@@ -379,9 +379,11 @@ function buildFallbackCreatorProfile(
     savedItems: [],
     services: (socialProfile?.servicesPreview ?? []).slice(0, 2).map((service, index) => ({
       id: `service-${user.id}-${index}`,
+      category: "other",
       title: service,
       pricingLabel: "By project",
       shortDescription: `${service} for fandom nights and creator-led drops.`,
+      coverStyle: index % 2 === 0 ? "violet" : "gold",
       visibleOnPublicProfile: index === 0
     })),
     stats: {

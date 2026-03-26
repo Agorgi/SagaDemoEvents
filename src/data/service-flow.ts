@@ -1,10 +1,16 @@
-import { type ProfileService } from "@/src/data/creator-profiles";
+import {
+  type ProfileService,
+  type ServiceCoverStyle
+} from "@/src/data/creator-profiles";
 
 export type ServiceDraft = {
   category: string;
   title: string;
   pricingLabel: string;
   shortDescription: string;
+  coverStyle: ServiceCoverStyle;
+  coverImage?: string;
+  coverImageSourceTitle?: string;
   visibleOnPublicProfile: boolean;
 };
 
@@ -43,6 +49,33 @@ export const serviceCategoryOptions = [
   }
 ] as const;
 
+export const serviceCoverStyleOptions: Array<{
+  value: ServiceCoverStyle;
+  label: string;
+  description: string;
+}> = [
+  {
+    value: "violet",
+    label: "Violet glow",
+    description: "Soft, polished, and a little cinematic."
+  },
+  {
+    value: "gold",
+    label: "Gold halo",
+    description: "Warmer and more luxe."
+  },
+  {
+    value: "emerald",
+    label: "Emerald dusk",
+    description: "Clean and a bit moodier."
+  },
+  {
+    value: "midnight",
+    label: "Midnight",
+    description: "Minimal, darker, and editorial."
+  }
+] as const;
+
 const titleSuggestions: Record<string, string> = {
   portraits: "Portrait sessions",
   promo: "Launch promo kit",
@@ -70,14 +103,32 @@ const descriptionPlaceholders: Record<string, string> = {
   other: "A short line that makes the service easy to understand at a glance."
 };
 
+const defaultCoverStyles: Record<string, ServiceCoverStyle> = {
+  portraits: "gold",
+  promo: "violet",
+  hosting: "midnight",
+  coverage: "emerald",
+  styling: "gold",
+  other: "violet"
+};
+
 export function createEmptyServiceDraft(): ServiceDraft {
   return {
     category: "",
     title: "",
     pricingLabel: "",
     shortDescription: "",
+    coverStyle: "violet",
     visibleOnPublicProfile: true
   };
+}
+
+export function getServiceCategoryOption(category: string) {
+  return serviceCategoryOptions.find((option) => option.value === category);
+}
+
+export function getDefaultServiceCoverStyle(category: string): ServiceCoverStyle {
+  return defaultCoverStyles[category] ?? "violet";
 }
 
 export function getServiceTitleSuggestion(category: string) {
@@ -95,9 +146,12 @@ export function getServiceDescriptionPlaceholder(category: string) {
 export function buildServiceFromDraft(draft: ServiceDraft): ProfileService {
   return {
     id: `service-${Math.random().toString(36).slice(2, 8)}`,
+    category: draft.category.trim() || "other",
     title: draft.title.trim() || getServiceTitleSuggestion(draft.category),
     pricingLabel: draft.pricingLabel.trim() || getServicePricingPlaceholder(draft.category),
     shortDescription: draft.shortDescription.trim(),
+    coverStyle: draft.coverStyle,
+    coverImage: draft.coverImage,
     visibleOnPublicProfile: draft.visibleOnPublicProfile
   };
 }

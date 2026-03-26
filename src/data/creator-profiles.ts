@@ -1,13 +1,18 @@
 import { events, seedFeedPosts, users } from "@/src/data/demo";
 import { createPosterDataUri } from "@/src/lib/demo-media";
 
+export type ServiceCoverStyle = "violet" | "gold" | "emerald" | "midnight";
+
 export type ProfileService = {
   id: string;
   title: string;
+  category?: string;
   pricingLabel: string;
   reviewScore?: number;
   reviewCount?: number;
   shortDescription?: string;
+  coverStyle?: ServiceCoverStyle;
+  coverImage?: string;
   visibleOnPublicProfile: boolean;
 };
 
@@ -161,27 +166,33 @@ export const seedCreatorProfiles: CreatorProfile[] = [
     services: [
       {
         id: "service-aphex-1",
+        category: "portraits",
         title: "Cosplay portrait sessions",
         pricingLabel: "$180 starting",
         reviewScore: 4.9,
         reviewCount: 28,
         shortDescription: "Portrait coverage and quick selects for fan meets, reveals, and launch nights.",
+        coverImage: getFeedImage("feed-post-image-1"),
         visibleOnPublicProfile: true
       },
       {
         id: "service-aphex-2",
+        category: "promo",
         title: "Creator promo kits",
         pricingLabel: "$240 package",
         reviewScore: 4.8,
         reviewCount: 14,
         shortDescription: "Teaser visuals, social crop sets, and light launch copy for fandom drops.",
+        coverStyle: "violet",
         visibleOnPublicProfile: true
       },
       {
         id: "service-aphex-3",
+        category: "hosting",
         title: "Backstage creator support",
         pricingLabel: "$120 flat",
         shortDescription: "Run-of-night creator wrangling and check-ins for small artist-led events.",
+        coverStyle: "midnight",
         visibleOnPublicProfile: false
       }
     ],
@@ -219,18 +230,22 @@ export const seedCreatorProfiles: CreatorProfile[] = [
     services: [
       {
         id: "service-sera-1",
+        category: "portraits",
         title: "Portrait booth coverage",
         pricingLabel: "$220 starting",
         reviewScore: 4.9,
         reviewCount: 19,
         shortDescription: "Premium portraits for fan nights, romance game socials, and photo-first events.",
+        coverImage: getEventImage("love-and-deepspace-afterdark"),
         visibleOnPublicProfile: true
       },
       {
         id: "service-sera-2",
+        category: "portraits",
         title: "Polaroid keepsake packs",
         pricingLabel: "$80 add-on",
         shortDescription: "Fast-turnaround keepsakes for fan tables, guest moments, and meetups.",
+        coverStyle: "gold",
         visibleOnPublicProfile: true
       }
     ],
@@ -260,18 +275,22 @@ export const seedCreatorProfiles: CreatorProfile[] = [
     services: [
       {
         id: "service-noa-1",
+        category: "coverage",
         title: "Event photo coverage",
         pricingLabel: "$260 starting",
         reviewScore: 4.8,
         reviewCount: 22,
         shortDescription: "Event coverage, quick selects, and recap edits for fandom nights.",
+        coverImage: getEventImage("jujutsu-night-out"),
         visibleOnPublicProfile: true
       },
       {
         id: "service-noa-2",
+        category: "coverage",
         title: "Aftermovie edit",
         pricingLabel: "$340 package",
         shortDescription: "Fast recap cuts for hosts who want next-day momentum.",
+        coverStyle: "midnight",
         visibleOnPublicProfile: true
       }
     ],
@@ -301,18 +320,22 @@ export const seedCreatorProfiles: CreatorProfile[] = [
     services: [
       {
         id: "service-iris-1",
+        category: "hosting",
         title: "Host and MC set",
         pricingLabel: "$300 starting",
         reviewScore: 4.9,
         reviewCount: 17,
         shortDescription: "On-stage hosting, commentary, and room energy for game nights and showcases.",
+        coverImage: getEventImage("marvel-rivals-night-shift"),
         visibleOnPublicProfile: true
       },
       {
         id: "service-iris-2",
+        category: "hosting",
         title: "Watch-party programming",
         pricingLabel: "$200 planning",
         shortDescription: "Format planning and crowd pacing for nights built around screens and commentary.",
+        coverStyle: "violet",
         visibleOnPublicProfile: true
       }
     ],
@@ -342,16 +365,20 @@ export const seedCreatorProfiles: CreatorProfile[] = [
     services: [
       {
         id: "service-zo-1",
+        category: "hosting",
         title: "Host consulting",
         pricingLabel: "$180 session",
         shortDescription: "Format framing and host-side polish for repeatable fandom nights.",
+        coverStyle: "gold",
         visibleOnPublicProfile: true
       },
       {
         id: "service-zo-2",
+        category: "hosting",
         title: "Run-of-show review",
         pricingLabel: "$120 review",
         shortDescription: "Guest flow, programming notes, and room pacing for community-led events.",
+        coverStyle: "midnight",
         visibleOnPublicProfile: true
       }
     ],
@@ -386,9 +413,11 @@ export const seedCreatorProfiles: CreatorProfile[] = [
     services: [
       {
         id: "service-kai-1",
+        category: "hosting",
         title: "Community guest host",
         pricingLabel: "Invite case by case",
         shortDescription: "Great for welcoming first-timers, group arrivals, and soft social nights.",
+        coverStyle: "emerald",
         visibleOnPublicProfile: false
       }
     ],
@@ -424,16 +453,20 @@ export const seedCreatorProfiles: CreatorProfile[] = [
     services: [
       {
         id: "service-viv-1",
+        category: "other",
         title: "Venue pairing",
         pricingLabel: "By fit",
         shortDescription: "Shortlist of rooms based on fandom, format, and guest flow needs.",
+        coverImage: getEventImage("court-of-stars"),
         visibleOnPublicProfile: true
       },
       {
         id: "service-viv-2",
+        category: "hosting",
         title: "Hospitality support",
         pricingLabel: "Support brief",
         shortDescription: "Lightweight support for business-side hosts joining creator-led launches.",
+        coverStyle: "emerald",
         visibleOnPublicProfile: true
       }
     ],
