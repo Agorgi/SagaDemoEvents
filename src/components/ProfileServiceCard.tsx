@@ -71,6 +71,7 @@ export function ProfileServiceCard({
           ? "Public"
           : "Private"
         : null;
+  const volunteerBadge = service.openToVolunteering ? "Volunteer" : null;
 
   return (
     <div
@@ -108,11 +109,18 @@ export function ProfileServiceCard({
             <span className="inline-flex rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/78 backdrop-blur-sm">
               {resolvedCategoryLabel}
             </span>
-            {previewLabel ? (
-              <span className="inline-flex rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] font-semibold text-white/76 backdrop-blur-sm">
-                {previewLabel}
-              </span>
-            ) : null}
+            <div className="flex flex-col items-end gap-2">
+              {volunteerBadge ? (
+                <span className="inline-flex rounded-full border border-[#F0C453]/30 bg-[#F0C453]/12 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#F0C453] backdrop-blur-sm">
+                  {volunteerBadge}
+                </span>
+              ) : null}
+              {previewLabel ? (
+                <span className="inline-flex rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] font-semibold text-white/76 backdrop-blur-sm">
+                  {previewLabel}
+                </span>
+              ) : null}
+            </div>
           </div>
 
           <div>
@@ -128,11 +136,6 @@ export function ProfileServiceCard({
 
       <div className="px-1 pb-1 pt-4">
         <p className="text-sm font-semibold text-white">{service.pricingLabel}</p>
-        {service.openToVolunteering ? (
-          <p className="mt-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#F0C453]">
-            Open to volunteering
-          </p>
-        ) : null}
         {service.shortDescription ? (
           <p className="mt-2 text-sm leading-6 text-app-muted">{service.shortDescription}</p>
         ) : null}
