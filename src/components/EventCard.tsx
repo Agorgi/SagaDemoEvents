@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Avatar } from "@/src/components/Avatar";
 import { StatusChip } from "@/src/components/StatusChip";
 import { type DemoEvent } from "@/src/data/demo";
+import { getMediaObjectPosition } from "@/src/lib/media-position";
 import { cn } from "@/src/lib/utils";
 
 type EventCardProps = {
@@ -62,6 +63,7 @@ export function EventCard({
               variant === "compact" ? "h-[220px]" : "h-[280px] sm:h-[320px]"
             )}
             src={event.posterUrl}
+            style={{ objectPosition: getMediaObjectPosition(event.posterPosition) }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#06090f] via-[#06090f]/14 to-transparent" />
           <div className="absolute left-4 top-4">

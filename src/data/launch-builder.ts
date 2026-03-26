@@ -1,4 +1,6 @@
 import { type CreateLaunchPayload, type LaunchFormat } from "@/src/data/launches";
+import { type ServiceCoverStyle } from "@/src/data/creator-profiles";
+import { type MediaVerticalPosition } from "@/src/lib/media-position";
 import { createPosterDataUri } from "@/src/lib/demo-media";
 import { formatDateLabel, formatTimeLabel, slugify } from "@/src/lib/utils";
 
@@ -60,6 +62,7 @@ export type VenueStatus = "yes, it’s booked" | "I’m deciding between places"
 export type ReservationStyle = "no" | "minimum spend" | "reservation" | "both";
 export type LineupStatus = "booked" | "partly booked" | "still looking" | "fully booked" | "partly booked" | "still booking";
 export type VendorCount = "1–5" | "6–15" | "16+";
+export type LaunchPosterStyle = ServiceCoverStyle;
 
 export type DraftDateOption = {
   id: string;
@@ -122,6 +125,10 @@ export type LaunchWizardDraft = {
   notes: string;
   customTitle?: string;
   customSummary?: string;
+  posterStyle: LaunchPosterStyle;
+  posterImage?: string;
+  posterImageSourceTitle?: string;
+  posterImagePosition: MediaVerticalPosition;
   derivedJourney?: LaunchJourney;
   generatedDraft: LaunchDraftPresentation;
   suggestedNeeds: SuggestedNeed[];
@@ -133,6 +140,7 @@ export type LaunchQuestionId =
   | "format"
   | "sizeBucket"
   | "fandomTags"
+  | "softCover"
   | "softTiming"
   | "softLocation"
   | "softThreshold"
@@ -141,6 +149,7 @@ export type LaunchQuestionId =
   | "softCoordination"
   | "softNotes"
   | "simpleFandoms"
+  | "simpleCover"
   | "simpleDateTime"
   | "simpleLocation"
   | "simpleAccess"
@@ -148,6 +157,7 @@ export type LaunchQuestionId =
   | "simpleAlreadySet"
   | "simpleNotes"
   | "producedFandoms"
+  | "producedCover"
   | "producedDateTime"
   | "producedVenue"
   | "producedAccess"
@@ -164,6 +174,7 @@ export type LaunchQuestionConfig = {
     | "large-card-select"
     | "size-select"
     | "tag-search"
+    | "cover"
     | "soft-dates"
     | "soft-location"
     | "soft-threshold"
@@ -211,6 +222,33 @@ export const otherClosestFormatOptions: OtherClosestFormat[] = [
   "Produced night",
   "Market / competition"
 ];
+
+export const launchPosterStyleOptions: Array<{
+  value: LaunchPosterStyle;
+  label: string;
+  description: string;
+}> = [
+  {
+    value: "violet",
+    label: "Violet glow",
+    description: "Soft, cinematic, and fandom-forward."
+  },
+  {
+    value: "gold",
+    label: "Gold halo",
+    description: "Warmer and more luxe."
+  },
+  {
+    value: "emerald",
+    label: "Emerald dusk",
+    description: "Clean and a little moodier."
+  },
+  {
+    value: "midnight",
+    label: "Midnight",
+    description: "Minimal, darker, and editorial."
+  }
+] as const;
 
 export const sizeBucketOptions: SizeBucket[] = ["Up to 20", "21–50", "51–100", "101–250", "250+"];
 export const fandomSuggestionOptions = [
@@ -384,6 +422,13 @@ export const launchQuestionConfigs: LaunchQuestionConfig[] = [
     showIf: (draft) => draft.derivedJourney === "soft_launch"
   },
   {
+    id: "softCover",
+    title: "Give the draft a look",
+    helperText: "Pick a style or use one of your images.",
+    inputType: "cover",
+    showIf: (draft) => draft.derivedJourney === "soft_launch"
+  },
+  {
     id: "softTiming",
     title: "When could this happen?",
     helperText: "Give people a few strong date choices.",
@@ -444,6 +489,13 @@ export const launchQuestionConfigs: LaunchQuestionConfig[] = [
     showIf: (draft) => draft.derivedJourney === "simple_happening"
   },
   {
+    id: "simpleCover",
+    title: "Give the draft a look",
+    helperText: "Pick a style or use one of your images.",
+    inputType: "cover",
+    showIf: (draft) => draft.derivedJourney === "simple_happening"
+  },
+  {
     id: "simpleDateTime",
     title: "When is it happening?",
     helperText: "Add the date and time.",
@@ -492,6 +544,13 @@ export const launchQuestionConfigs: LaunchQuestionConfig[] = [
     title: "What fandom or world is this for?",
     helperText: "Pick up to three.",
     inputType: "tag-search",
+    showIf: (draft) => draft.derivedJourney === "produced_happening"
+  },
+  {
+    id: "producedCover",
+    title: "Give the draft a look",
+    helperText: "Pick a style or use one of your images.",
+    inputType: "cover",
     showIf: (draft) => draft.derivedJourney === "produced_happening"
   },
   {
@@ -566,6 +625,8 @@ export function createEmptyLaunchDraft(mode: LaunchModeType, hostId: string): La
     quickDatePresets: [],
     city: "",
     neighborhood: "",
+    posterStyle: mode === "soft" ? "violet" : "midnight",
+    posterImagePosition: "center",
     venueTypes: [],
     venueName: "",
     guestExperienceSelections: [],
@@ -660,6 +721,7 @@ export function buildDraftPresentation(draft: LaunchWizardDraft): LaunchDraftPre
     ...draft.fandomTags.slice(0, 2),
     ...draft.guestExperienceSelections.slice(0, 3)
   ].slice(0, 5);
+  const posterUrl = buildLaunchPosterUrl(draft, title, metadataLine || `${fandom} · ${draft.city || "Draft"}`);
 
   return {
     title,
@@ -670,15 +732,7 @@ export function buildDraftPresentation(draft: LaunchWizardDraft): LaunchDraftPre
     entrySummary,
     highlightChips,
     expectationLines: buildExpectationLines(draft),
-    posterUrl:
-      draft.generatedDraft?.posterUrl ||
-      createPosterDataUri({
-        title,
-        subtitle: metadataLine || `${fandom} · ${draft.city || "Draft"}`,
-        eyebrow: draft.launchMode === "soft" ? "soft launch" : "happening",
-        accent: "#1F1CB8",
-        accent2: "#6D5EF3"
-      })
+    posterUrl
   };
 }
 
@@ -711,6 +765,7 @@ export function mapDraftToCreateLaunchPayload(draft: LaunchWizardDraft): CreateL
     inspiration: draft.guestExperienceSelections.slice(0, 4),
     guestLine: buildGuestLine(draft),
     ticketPrice: mapPriceRangeToTicketPrice(draft.priceRange),
+    coverImagePosition: draft.posterImagePosition,
     dateOptions:
       draft.launchMode === "soft"
         ? draft.dateOptions.filter((option) => option.iso && option.label)
@@ -721,6 +776,55 @@ export function mapDraftToCreateLaunchPayload(draft: LaunchWizardDraft): CreateL
             }
           ]
   };
+}
+
+export function getDefaultLaunchPosterStyle(
+  mode: LaunchModeType,
+  format?: EventFormatOption
+): LaunchPosterStyle {
+  if (mode === "soft") {
+    return "violet";
+  }
+
+  if (format === "Party / rave" || format === "Live show / performance") {
+    return "midnight";
+  }
+
+  if (format === "Cupsleeve / café meetup" || format === "Watch party") {
+    return "gold";
+  }
+
+  if (format === "Market / vendor night") {
+    return "emerald";
+  }
+
+  return "midnight";
+}
+
+function buildLaunchPosterUrl(
+  draft: LaunchWizardDraft,
+  title: string,
+  subtitle: string
+) {
+  if (draft.posterImage) {
+    return draft.posterImage;
+  }
+
+  const posterTheme = draft.posterStyle || getDefaultLaunchPosterStyle(draft.launchMode, draft.format);
+  const accentMap: Record<LaunchPosterStyle, { accent: string; accent2: string }> = {
+    violet: { accent: "#1F1CB8", accent2: "#6D5EF3" },
+    gold: { accent: "#A86C11", accent2: "#F0C453" },
+    emerald: { accent: "#0D7E6D", accent2: "#50D4A8" },
+    midnight: { accent: "#1B2748", accent2: "#7D8CFF" }
+  };
+
+  return createPosterDataUri({
+    title,
+    subtitle,
+    eyebrow: draft.launchMode === "soft" ? "soft launch" : "happening",
+    accent: accentMap[posterTheme].accent,
+    accent2: accentMap[posterTheme].accent2
+  });
 }
 
 export function shouldAutoAdvance(question: LaunchQuestionConfig) {

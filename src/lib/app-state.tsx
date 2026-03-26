@@ -276,6 +276,7 @@ function createSyntheticLaunch(event: DemoEvent) {
     teamRoleNames: ["Photographer", "Host Support", "Social Promo"],
     published: true,
     coverImageUrl: event.posterUrl,
+    coverImagePosition: event.posterPosition,
     softLaunchSummary: `${event.title} already moved through its soft launch and is now a confirmed public event.`,
     vibeNote: event.subtitle
   });
@@ -384,6 +385,7 @@ function buildFallbackCreatorProfile(
       pricingLabel: "By project",
       shortDescription: `${service} for fandom nights and creator-led drops.`,
       coverStyle: index % 2 === 0 ? "violet" : "gold",
+      coverImagePosition: "center",
       visibleOnPublicProfile: index === 0
     })),
     stats: {
@@ -1573,7 +1575,8 @@ export function AppStateProvider({
                 communities: payload.fandomTags.join(", "),
                 eventFormat: payload.format,
                 sourceCrew: payload.teamRoleNames.length > 0,
-                posterUrl: payload.coverImageUrl
+                posterUrl: payload.coverImageUrl,
+                posterPosition: payload.coverImagePosition
               },
               HOST_DEMO_USER_ID
             )
@@ -1599,6 +1602,7 @@ export function AppStateProvider({
         teamRoleNames: payload.teamRoleNames,
         published: true,
         coverImageUrl: payload.coverImageUrl,
+        coverImagePosition: payload.coverImagePosition,
         softLaunchSummary: syncedDraft.generatedDraft.summary,
         vibeNote: syncedDraft.generatedDraft.summary,
         inspiration: syncedDraft.guestExperienceSelections.slice(0, 4),
@@ -1707,6 +1711,7 @@ export function AppStateProvider({
                 teamRoleNames: payload.teamRoleNames,
                 published: false
               }).coverImageUrl,
+            coverImagePosition: payload.coverImagePosition,
             reserveCount: 0,
             ticketCount: 0,
             published: false,
@@ -1782,6 +1787,7 @@ export function AppStateProvider({
             fandomTags: payload.fandomTags ?? launch.fandomTags,
             budgetRange: payload.budgetRange ?? launch.budgetRange,
             attendanceGoal: payload.attendanceGoal ?? launch.attendanceGoal,
+            coverImagePosition: payload.coverImagePosition ?? launch.coverImagePosition,
             teamRoleNames: payload.teamRoleNames ?? launch.teamRoleNames,
             ticketPrice: payload.ticketPrice ?? launch.ticketPrice,
             vibeNote: payload.vibeNote ?? launch.vibeNote,
@@ -2065,7 +2071,8 @@ export function AppStateProvider({
             communities: launch.fandomTags.join(", "),
             eventFormat: launch.format,
             sourceCrew: launch.teamRoleNames.length > 0,
-            posterUrl: launch.coverImageUrl
+            posterUrl: launch.coverImageUrl,
+            posterPosition: launch.coverImagePosition
           },
           HOST_DEMO_USER_ID
         );

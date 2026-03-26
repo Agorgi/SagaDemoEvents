@@ -8,7 +8,9 @@ import { Avatar } from "@/src/components/Avatar";
 import { ExpandableText } from "@/src/components/ExpandableText";
 import { TagChip } from "@/src/components/Chips";
 import { Nav } from "@/src/components/Nav";
+import { launchPosterStyleOptions } from "@/src/data/launch-builder";
 import { useAppState } from "@/src/lib/app-state";
+import { getMediaObjectPosition } from "@/src/lib/media-position";
 
 export default function LaunchDraftReviewPage() {
   const params = useParams<{ draftId: string }>();
@@ -53,6 +55,7 @@ export default function LaunchDraftReviewPage() {
                 alt={draft.generatedDraft.title}
                 className="aspect-[4/5] w-full object-cover"
                 src={draft.generatedDraft.posterUrl}
+                style={{ objectPosition: getMediaObjectPosition(draft.posterImagePosition) }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#05070c]/68 via-transparent to-transparent" />
               <div className="absolute left-4 top-4">
@@ -93,6 +96,11 @@ export default function LaunchDraftReviewPage() {
                 <p>{draft.generatedDraft.locationSummary}</p>
                 <p>{draft.generatedDraft.entrySummary}</p>
               </div>
+              <p className="mt-3 text-xs text-app-muted">
+                {draft.posterImage
+                  ? `Poster image · ${draft.posterImagePosition} focus`
+                  : `Poster style · ${launchPosterStyleOptions.find((option) => option.value === draft.posterStyle)?.label ?? "Violet glow"}`}
+              </p>
               {draft.generatedDraft.highlightChips.length > 0 ? (
                 <div className="mt-4 flex flex-wrap gap-2">
                   {draft.generatedDraft.highlightChips.map((tag) => (

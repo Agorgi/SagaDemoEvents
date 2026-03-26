@@ -4,11 +4,14 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { FilterChip } from "@/src/components/Chips";
+import { ImagePositionPicker } from "@/src/components/ImagePositionPicker";
 import { Nav } from "@/src/components/Nav";
 import {
   fandomSuggestionOptions,
   getLaunchQuestions,
+  getDefaultLaunchPosterStyle,
   launchFormatOptions,
+  launchPosterStyleOptions,
   otherClosestFormatOptions,
   type LaunchDraftStatus,
   type LaunchModeType,
@@ -40,6 +43,7 @@ import {
   softAlreadySetOptions
 } from "@/src/data/launch-builder";
 import { useAppState } from "@/src/lib/app-state";
+import { getMediaObjectPosition } from "@/src/lib/media-position";
 import { cn, slugify } from "@/src/lib/utils";
 
 export default function NewStudioLaunchPage() {
@@ -54,6 +58,7 @@ function NewStudioLaunchPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const {
+    currentCreatorProfile,
     launchDrafts,
     mode,
     setMode,
@@ -65,9 +70,12 @@ function NewStudioLaunchPageContent() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [building, setBuilding] = useState(false);
   const [tagInput, setTagInput] = useState("");
+  const [bootDraftId, setBootDraftId] = useState<string | null>(draftId);
   const initializedDraftId = useRef<string | null>(null);
+  const uploadInputRef = useRef<HTMLInputElement>(null);
 
-  const draft = launchDrafts.find((item) => item.id === draftId);
+  const resolvedDraftId = draftId ?? bootDraftId;
+  const draft = launchDrafts.find((item) => item.id === resolvedDraftId);
   const questions = useMemo(() => (draft ? getLaunchQuestions(draft) : []), [draft]);
   const question = questions[currentIndex];
 
@@ -78,19 +86,25 @@ function NewStudioLaunchPageContent() {
   }, [mode, setMode]);
 
   useEffect(() => {
-    if (draftId || !modeParam) {
+    if (draftId) {
+      setBootDraftId(draftId);
+      return;
+    }
+
+    if (!modeParam || bootDraftId) {
       return;
     }
 
     const nextDraftId = startLaunchDraft(modeParam);
+    setBootDraftId(nextDraftId);
     router.replace(`/studio/new?draft=${nextDraftId}`);
-  }, [draftId, modeParam, router, startLaunchDraft]);
+  }, [bootDraftId, draftId, modeParam, router, startLaunchDraft]);
 
   useEffect(() => {
-    if (!draftId && !modeParam) {
+    if (!resolvedDraftId && !modeParam) {
       router.replace("/studio");
     }
-  }, [draftId, modeParam, router]);
+  }, [modeParam, resolvedDraftId, router]);
 
   useEffect(() => {
     if (!draft) {
@@ -227,8 +241,10 @@ function NewStudioLaunchPageContent() {
                   autoAdvance={autoAdvance}
                   draft={activeDraft}
                   onTagInputChange={setTagInput}
+                  portfolioItems={currentCreatorProfile?.portfolio ?? []}
                   question={activeQuestion}
                   tagInput={tagInput}
+                  uploadInputRef={uploadInputRef}
                   updateDraft={patchDraft}
                 />
               </div>
@@ -271,18 +287,22 @@ function NewStudioLaunchPageContent() {
 
 function QuestionBody({
   draft,
+  portfolioItems,
   question,
   tagInput,
   updateDraft,
   autoAdvance,
-  onTagInputChange
+  onTagInputChange,
+  uploadInputRef
 }: {
   draft: LaunchWizardDraft;
+  portfolioItems: Array<{ id: string; image: string; title?: string }>;
   question: LaunchQuestionConfig;
   tagInput: string;
   updateDraft: (payload: Partial<LaunchWizardDraft>) => void;
   autoAdvance: (payload: Partial<LaunchWizardDraft>) => void;
   onTagInputChange: (value: string) => void;
+  uploadInputRef: { current: HTMLInputElement | null };
 }) {
   switch (question.id) {
     case "format":
@@ -293,10 +313,22 @@ function QuestionBody({
               key={option}
               onClick={() => {
                 if (option === "Other") {
-                  updateDraft({ format: option, otherClosestFormat: undefined });
+                  updateDraft({
+                    format: option,
+                    otherClosestFormat: undefined,
+                    posterStyle: draft.posterImage
+                      ? draft.posterStyle
+                      : getDefaultLaunchPosterStyle(draft.launchMode, option)
+                  });
                   return;
                 }
-                autoAdvance({ format: option, otherClosestFormat: undefined });
+                autoAdvance({
+                  format: option,
+                  otherClosestFormat: undefined,
+                  posterStyle: draft.posterImage
+                    ? draft.posterStyle
+                    : getDefaultLaunchPosterStyle(draft.launchMode, option)
+                });
               }}
               selected={draft.format === option}
               title={option}
@@ -343,6 +375,168 @@ function QuestionBody({
           updateDraft={updateDraft}
           onTagInputChange={onTagInputChange}
         />
+      );
+    case "softCover":
+    case "simpleCover":
+    case "producedCover":
+      return (
+        <div className="space-y-5">
+          <div className="grid grid-cols-2 gap-3">
+            {launchPosterStyleOptions.map((option) => (
+              <button
+                className={`overflow-hidden rounded-[24px] border text-left transition ${
+                  draft.posterStyle === option.value && !draft.posterImage
+                    ? "border-app-purple/40 bg-white/[0.05] shadow-[0_18px_42px_rgba(31,28,184,0.2)]"
+                    : "border-white/8 bg-[#0d1119] hover:border-white/16"
+                }`}
+                key={option.value}
+                onClick={() =>
+                  updateDraft({
+                    posterStyle: option.value,
+                    posterImage: undefined,
+                    posterImageSourceTitle: undefined,
+                    posterImagePosition: "center"
+                  })
+                }
+                type="button"
+              >
+                <div
+                  className="h-24 w-full"
+                  style={{
+                    background:
+                      option.value === "gold"
+                        ? "radial-gradient(circle at top right, rgba(240,196,83,0.24), transparent 36%), linear-gradient(180deg, rgba(28,20,38,0.98), rgba(13,13,22,1))"
+                        : option.value === "emerald"
+                          ? "radial-gradient(circle at 22% 18%, rgba(80,212,168,0.24), transparent 30%), linear-gradient(180deg, rgba(15,28,30,0.98), rgba(10,16,20,1))"
+                          : option.value === "midnight"
+                            ? "radial-gradient(circle at 80% 8%, rgba(255,255,255,0.08), transparent 26%), linear-gradient(180deg, rgba(16,18,28,0.98), rgba(8,10,18,1))"
+                            : "radial-gradient(circle at top left, rgba(123,132,255,0.28), transparent 34%), linear-gradient(180deg, rgba(19,25,44,0.98), rgba(12,16,28,1))"
+                  }}
+                />
+                <div className="p-4">
+                  <p className="text-sm font-semibold text-white">{option.label}</p>
+                  <p className="mt-1 text-xs leading-5 text-app-muted">{option.description}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <div className="rounded-[26px] border border-white/8 bg-white/[0.03] p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-white">Use an image instead</p>
+                <p className="mt-1 text-xs leading-5 text-app-muted">
+                  Upload one or pull from your portfolio.
+                </p>
+              </div>
+              <button
+                className="inline-flex min-h-[40px] items-center rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-semibold text-white transition hover:border-white/20 hover:bg-white/[0.06]"
+                onClick={() => uploadInputRef.current?.click()}
+                type="button"
+              >
+                Upload
+              </button>
+              <input
+                accept="image/*"
+                className="hidden"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (!file) {
+                    return;
+                  }
+
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    if (typeof reader.result === "string") {
+                      updateDraft({
+                        posterImage: reader.result,
+                        posterImageSourceTitle: file.name,
+                        posterImagePosition: "center"
+                      });
+                    }
+                  };
+                  reader.readAsDataURL(file);
+                  event.currentTarget.value = "";
+                }}
+                ref={uploadInputRef}
+                type="file"
+              />
+            </div>
+
+            {draft.posterImage ? (
+              <div className="mt-4 overflow-hidden rounded-[24px] border border-white/8">
+                <div className="relative h-[220px]">
+                  <img
+                    alt={draft.generatedDraft.title}
+                    className="h-full w-full object-cover"
+                    src={draft.posterImage}
+                    style={{ objectPosition: getMediaObjectPosition(draft.posterImagePosition) }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#05070c]/72 via-transparent to-transparent" />
+                </div>
+              </div>
+            ) : null}
+
+            {portfolioItems.length > 0 ? (
+              <div className="mt-4 flex gap-3 overflow-x-auto pb-1 subtle-scrollbar">
+                {portfolioItems.slice(0, 6).map((item) => (
+                  <button
+                    className={`relative w-[112px] shrink-0 overflow-hidden rounded-[20px] border transition ${
+                      draft.posterImage === item.image
+                        ? "border-app-purple/40 shadow-[0_16px_36px_rgba(31,28,184,0.18)]"
+                        : "border-white/8"
+                    }`}
+                    key={item.id}
+                    onClick={() =>
+                      updateDraft({
+                        posterImage: item.image,
+                        posterImageSourceTitle: item.title,
+                        posterImagePosition: "center"
+                      })
+                    }
+                    type="button"
+                  >
+                    <img
+                      alt={item.title ?? "Portfolio image"}
+                      className="h-[132px] w-full object-cover"
+                      src={item.image}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+                    {item.title ? (
+                      <span className="absolute bottom-2 left-2 right-2 line-clamp-2 text-left text-[11px] font-medium text-white">
+                        {item.title}
+                      </span>
+                    ) : null}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
+            {draft.posterImage ? (
+              <div className="mt-4 space-y-4">
+                <ImagePositionPicker
+                  label="Image focus"
+                  onChange={(value) => updateDraft({ posterImagePosition: value })}
+                  value={draft.posterImagePosition}
+                />
+                <button
+                  className="text-sm font-medium text-app-muted transition hover:text-white"
+                  onClick={() =>
+                    updateDraft({
+                      posterImage: undefined,
+                      posterImageSourceTitle: undefined,
+                      posterStyle: getDefaultLaunchPosterStyle(draft.launchMode, draft.format),
+                      posterImagePosition: "center"
+                    })
+                  }
+                  type="button"
+                >
+                  Use style instead
+                </button>
+              </div>
+            ) : null}
+          </div>
+        </div>
       );
     case "softTiming":
       return (

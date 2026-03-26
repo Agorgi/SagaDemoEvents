@@ -14,6 +14,7 @@ import { TagChip } from "@/src/components/Chips";
 import { getEventById } from "@/src/data/demo";
 import { useAppState } from "@/src/lib/app-state";
 import { useDemoState } from "@/src/lib/demo-state";
+import { getMediaObjectPosition } from "@/src/lib/media-position";
 import { formatDateRange, formatTimeLabel } from "@/src/lib/utils";
 
 export default function EventDetailPage() {
@@ -175,6 +176,7 @@ export default function EventDetailPage() {
                 alt={eventData.title}
                 className="aspect-[4/5] w-full object-cover"
                 src={eventData.posterUrl}
+                style={{ objectPosition: getMediaObjectPosition(eventData.posterPosition) }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#05070c]/68 via-transparent to-transparent" />
               <div className="absolute left-4 top-4">

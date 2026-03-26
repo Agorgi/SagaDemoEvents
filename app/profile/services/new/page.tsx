@@ -9,6 +9,7 @@ import {
   StickyFooter
 } from "@/src/components/OnboardingScreenShell";
 import { ProfileServiceCard } from "@/src/components/ProfileServiceCard";
+import { ImagePositionPicker } from "@/src/components/ImagePositionPicker";
 import { TagChip } from "@/src/components/Chips";
 import {
   buildServiceFromDraft,
@@ -293,7 +294,8 @@ export default function NewProfileServicePage() {
                       if (typeof reader.result === "string") {
                         patchDraft({
                           coverImage: reader.result,
-                          coverImageSourceTitle: file.name
+                          coverImageSourceTitle: file.name,
+                          coverImagePosition: "center"
                         });
                       }
                     };
@@ -318,7 +320,8 @@ export default function NewProfileServicePage() {
                       onClick={() =>
                         patchDraft({
                           coverImage: item.image,
-                          coverImageSourceTitle: item.title
+                          coverImageSourceTitle: item.title,
+                          coverImagePosition: "center"
                         })
                       }
                       type="button"
@@ -340,18 +343,26 @@ export default function NewProfileServicePage() {
               ) : null}
 
               {draft.coverImage ? (
-                <button
-                  className="mt-4 text-sm font-medium text-app-muted transition hover:text-white"
-                  onClick={() =>
-                    patchDraft({
-                      coverImage: undefined,
-                      coverImageSourceTitle: undefined
-                    })
-                  }
-                  type="button"
-                >
-                  Use style instead
-                </button>
+                <div className="mt-4 space-y-4">
+                  <ImagePositionPicker
+                    label="Image focus"
+                    onChange={(value) => patchDraft({ coverImagePosition: value })}
+                    value={draft.coverImagePosition}
+                  />
+                  <button
+                    className="text-sm font-medium text-app-muted transition hover:text-white"
+                    onClick={() =>
+                      patchDraft({
+                        coverImage: undefined,
+                        coverImageSourceTitle: undefined,
+                        coverImagePosition: "center"
+                      })
+                    }
+                    type="button"
+                  >
+                    Use style instead
+                  </button>
+                </div>
               ) : null}
             </div>
           </div>
@@ -424,7 +435,7 @@ export default function NewProfileServicePage() {
                   </p>
                   <p className="mt-2 text-xs text-app-muted">
                     {draft.coverImage
-                      ? `Cover image: ${draft.coverImageSourceTitle || "Custom upload"}`
+                      ? `Cover image: ${draft.coverImageSourceTitle || "Custom upload"} · ${draft.coverImagePosition} focus`
                       : `Cover style: ${serviceCoverStyleOptions.find((option) => option.value === draft.coverStyle)?.label ?? "Violet glow"}`}
                   </p>
                 </div>

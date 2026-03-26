@@ -3,6 +3,7 @@ import {
   createPosterDataUri,
   createStoryCardDataUri
 } from "@/src/lib/demo-media";
+import { type MediaVerticalPosition } from "@/src/lib/media-position";
 
 export type Persona = "host" | "creator" | "fan" | "business";
 export type UserRoleType = "host" | "crew" | "creator" | "fan" | "business";
@@ -34,6 +35,7 @@ export type DemoEvent = {
   startsAt: string;
   endsAt?: string;
   posterUrl: string;
+  posterPosition?: MediaVerticalPosition;
   hostId: string;
   attendeesCount: number;
   mutualsCount: number;

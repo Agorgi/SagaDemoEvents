@@ -12,6 +12,7 @@ import { StatusChip } from "@/src/components/StatusChip";
 import { ThresholdProgress } from "@/src/components/ThresholdProgress";
 import { useAppState } from "@/src/lib/app-state";
 import { getLaunchFundingProgress } from "@/src/data/launches";
+import { getMediaObjectPosition } from "@/src/lib/media-position";
 
 export default function CampaignDetailPage() {
   const params = useParams<{ id: string }>();
@@ -79,6 +80,7 @@ export default function CampaignDetailPage() {
                 alt={launch.title}
                 className="aspect-[4/5] w-full object-cover"
                 src={launch.coverImageUrl}
+                style={{ objectPosition: getMediaObjectPosition(launch.coverImagePosition) }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#05070c]/68 via-transparent to-transparent" />
               <div className="absolute left-4 top-4">

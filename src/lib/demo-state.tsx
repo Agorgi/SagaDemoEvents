@@ -28,6 +28,7 @@ import {
   type CommissionType,
   type DemoCommission
 } from "@/src/data/commissions";
+import { type MediaVerticalPosition } from "@/src/lib/media-position";
 import { createPosterDataUri, createStoryCardDataUri } from "@/src/lib/demo-media";
 import { slugify } from "@/src/lib/utils";
 import { buildShortlist, getRoleCounts } from "@/src/lib/matching";
@@ -82,6 +83,7 @@ type CreateEventPayload = {
   eventFormat: string;
   sourceCrew: boolean;
   posterUrl?: string;
+  posterPosition?: MediaVerticalPosition;
 };
 
 type CreatePostPayload = {
@@ -353,6 +355,7 @@ function buildEventPayload(
         accent: "#1F1CB8",
         accent2: "#5E8BFF"
       }),
+    posterPosition: payload.posterPosition,
     hostId: payload.hostId,
     attendeesCount: 84,
     mutualsCount: 6,

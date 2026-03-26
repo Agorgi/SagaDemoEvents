@@ -3,6 +3,7 @@
 import { StarRatingValue } from "@/src/components/StarRatingValue";
 import { type ProfileService } from "@/src/data/creator-profiles";
 import { getServiceCategoryOption } from "@/src/data/service-flow";
+import { getMediaObjectPosition } from "@/src/lib/media-position";
 import { cn } from "@/src/lib/utils";
 
 const serviceCardThemes = {
@@ -88,6 +89,7 @@ export function ProfileServiceCard({
               alt={service.title}
               className="absolute inset-0 h-full w-full object-cover"
               src={service.coverImage}
+              style={{ objectPosition: getMediaObjectPosition(service.coverImagePosition) }}
             />
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,10,18,0.08),rgba(8,10,18,0.38)_45%,rgba(8,10,18,0.92))]" />
           </>

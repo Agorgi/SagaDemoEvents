@@ -13,7 +13,7 @@ import { formatDateLabel } from "@/src/lib/utils";
 
 export default function StudioPage() {
   const router = useRouter();
-  const { launchDrafts, launches, mode, setMode } = useAppState();
+  const { launchDrafts, launches, mode, setMode, startLaunchDraft } = useAppState();
 
   useEffect(() => {
     if (mode !== "host") {
@@ -30,7 +30,8 @@ export default function StudioPage() {
     .sort((left, right) => Date.parse(right.updatedAt) - Date.parse(left.updatedAt));
 
   function beginDraft(mode: "soft" | "happening") {
-    router.push(`/studio/new?mode=${mode}`);
+    const draftId = startLaunchDraft(mode);
+    router.push(`/studio/new?draft=${draftId}`);
   }
 
   return (

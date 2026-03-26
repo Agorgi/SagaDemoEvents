@@ -2,6 +2,7 @@ import {
   type ProfileService,
   type ServiceCoverStyle
 } from "@/src/data/creator-profiles";
+import { type MediaVerticalPosition } from "@/src/lib/media-position";
 
 export type ServiceDraft = {
   category: string;
@@ -11,6 +12,7 @@ export type ServiceDraft = {
   coverStyle: ServiceCoverStyle;
   coverImage?: string;
   coverImageSourceTitle?: string;
+  coverImagePosition: MediaVerticalPosition;
   visibleOnPublicProfile: boolean;
 };
 
@@ -119,6 +121,7 @@ export function createEmptyServiceDraft(): ServiceDraft {
     pricingLabel: "",
     shortDescription: "",
     coverStyle: "violet",
+    coverImagePosition: "center",
     visibleOnPublicProfile: true
   };
 }
@@ -152,6 +155,7 @@ export function buildServiceFromDraft(draft: ServiceDraft): ProfileService {
     shortDescription: draft.shortDescription.trim(),
     coverStyle: draft.coverStyle,
     coverImage: draft.coverImage,
+    coverImagePosition: draft.coverImagePosition,
     visibleOnPublicProfile: draft.visibleOnPublicProfile
   };
 }

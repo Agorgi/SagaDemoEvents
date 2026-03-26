@@ -6,6 +6,7 @@ import { Avatar } from "@/src/components/Avatar";
 import { StatusChip } from "@/src/components/StatusChip";
 import { ThresholdProgress } from "@/src/components/ThresholdProgress";
 import { type DemoLaunch, getLaunchFundingProgress } from "@/src/data/launches";
+import { getMediaObjectPosition } from "@/src/lib/media-position";
 import { cn } from "@/src/lib/utils";
 
 type CampaignCardProps = {
@@ -62,6 +63,7 @@ export function CampaignCard({
               compact ? "h-[220px]" : "h-[280px] sm:h-[320px]"
             )}
             src={launch.coverImageUrl}
+            style={{ objectPosition: getMediaObjectPosition(launch.coverImagePosition) }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#06090f] via-[#06090f]/14 to-transparent" />
           <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-[#1F1CB8]/24 to-transparent" />

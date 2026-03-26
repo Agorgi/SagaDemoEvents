@@ -1,4 +1,5 @@
 import { events, seedFeedPosts, users } from "@/src/data/demo";
+import { type MediaVerticalPosition } from "@/src/lib/media-position";
 import { createPosterDataUri } from "@/src/lib/demo-media";
 
 export type ServiceCoverStyle = "violet" | "gold" | "emerald" | "midnight";
@@ -13,6 +14,7 @@ export type ProfileService = {
   shortDescription?: string;
   coverStyle?: ServiceCoverStyle;
   coverImage?: string;
+  coverImagePosition?: MediaVerticalPosition;
   visibleOnPublicProfile: boolean;
 };
 

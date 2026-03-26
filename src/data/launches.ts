@@ -1,4 +1,5 @@
 import { type UserIntent } from "@/src/data/social";
+import { type MediaVerticalPosition } from "@/src/lib/media-position";
 import { createPosterDataUri } from "@/src/lib/demo-media";
 import { slugify } from "@/src/lib/utils";
 
@@ -169,6 +170,7 @@ export type DemoLaunch = {
   updates: CampaignUpdate[];
   venueCandidates: VenueCandidate[];
   selectedVenueId?: string;
+  coverImagePosition?: MediaVerticalPosition;
 };
 
 export type Campaign = DemoLaunch;
@@ -198,6 +200,7 @@ export type CreateLaunchPayload = {
   thresholdTarget: number;
   teamRoleNames: string[];
   coverImageUrl?: string;
+  coverImagePosition?: MediaVerticalPosition;
   vibeNote: string;
   inspiration: string[];
   guestLine: string;
@@ -545,6 +548,7 @@ export function createSeedLaunch(input: {
   teamRoleNames: string[];
   published: boolean;
   coverImageUrl?: string;
+  coverImagePosition?: MediaVerticalPosition;
   softLaunchSummary?: string;
   vibeNote?: string;
   inspiration?: string[];
@@ -659,6 +663,7 @@ export function createSeedLaunch(input: {
         fandomTags: input.fandomTags,
         format: input.format
       }),
+    coverImagePosition: input.coverImagePosition,
     softLaunchSummary:
       input.softLaunchSummary ??
       inferSoftLaunchSummary({
