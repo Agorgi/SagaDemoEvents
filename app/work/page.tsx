@@ -3,11 +3,12 @@
 import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
-import { FilterChip } from "@/src/components/Chips";
 import { Nav } from "@/src/components/Nav";
 import { OpportunityCard } from "@/src/components/OpportunityCard";
+import { UnderlineTabs } from "@/src/components/UnderlineTabs";
 import { VenueCard } from "@/src/components/VenueCard";
 import { getOpportunityContext, type ApplicationStatus, type BusinessProfile, type Opportunity } from "@/src/data/economy";
+import { cn } from "@/src/lib/utils";
 import { useAppState } from "@/src/lib/app-state";
 
 type WorkTab = "roles" | "venues";
@@ -177,27 +178,17 @@ function WorkPageContent() {
           <p className="text-sm text-app-muted">Find ways to join live projects.</p>
         </section>
 
-        <div className="mt-6 grid grid-cols-2 gap-2 rounded-[22px] border border-white/8 bg-[#101522] p-1">
-          {[
+        <UnderlineTabs
+          className="mt-6"
+          items={[
             { value: "roles", label: "Roles" },
             { value: "venues", label: "Venues" }
-          ].map((tab) => (
-            <button
-              className={`min-h-[44px] rounded-[18px] text-sm font-semibold transition ${
-                activeTab === tab.value
-                  ? "bg-app-purple text-white"
-                  : "text-app-muted hover:text-white"
-              }`}
-              key={tab.value}
-              onClick={() => setActiveTab(tab.value as WorkTab)}
-              type="button"
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+          ]}
+          onChange={setActiveTab}
+          value={activeTab}
+        />
 
-        <div className="mt-5 flex gap-2 overflow-x-auto pb-1 subtle-scrollbar">
+        <div className="mt-5 grid grid-cols-4 gap-2">
           {activeTab === "roles"
             ? [
                 { value: "all", label: "All" },
@@ -205,12 +196,19 @@ function WorkPageContent() {
                 { value: "soft_launch", label: "Soft launch" },
                 { value: "nearby", label: "Nearby" }
               ].map((filter) => (
-                <FilterChip
-                  active={roleFilter === filter.value}
+                <button
+                  className={cn(
+                    "min-h-[38px] rounded-full px-2 py-2 text-xs font-semibold leading-tight transition",
+                    roleFilter === filter.value
+                      ? "bg-app-purple text-white shadow-[0_10px_24px_rgba(31,28,184,0.28)]"
+                      : "bg-white/[0.04] text-app-muted hover:bg-white/[0.07] hover:text-white"
+                  )}
                   key={filter.value}
-                  label={filter.label}
                   onClick={() => setRoleFilter(filter.value as RoleFilter)}
-                />
+                  type="button"
+                >
+                  {filter.label}
+                </button>
               ))
             : [
                 { value: "all", label: "All" },
@@ -218,12 +216,19 @@ function WorkPageContent() {
                 { value: "soft_launch_friendly", label: "Soft launch friendly" },
                 { value: "happening_ready", label: "Happening ready" }
               ].map((filter) => (
-                <FilterChip
-                  active={venueFilter === filter.value}
+                <button
+                  className={cn(
+                    "min-h-[38px] rounded-full px-2 py-2 text-[11px] font-semibold leading-tight transition",
+                    venueFilter === filter.value
+                      ? "bg-app-purple text-white shadow-[0_10px_24px_rgba(31,28,184,0.28)]"
+                      : "bg-white/[0.04] text-app-muted hover:bg-white/[0.07] hover:text-white"
+                  )}
                   key={filter.value}
-                  label={filter.label}
                   onClick={() => setVenueFilter(filter.value as VenueFilter)}
-                />
+                  type="button"
+                >
+                  {filter.label}
+                </button>
               ))}
         </div>
 
