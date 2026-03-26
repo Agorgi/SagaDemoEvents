@@ -176,7 +176,7 @@ export default function ExplorePage() {
           <HomeHeader
             city={homeCity}
             firstName={getUserFirstName(currentUser)}
-            subline="What are you feeling today?"
+            subline="What's up next?"
           />
 
           <HomeSearchBar onChange={setQuery} value={query} />
