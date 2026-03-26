@@ -45,7 +45,7 @@ export default function BusinessProfilePage() {
     <div className="min-h-screen">
       <Nav />
       <main className="mx-auto max-w-[1000px] px-4 pb-28 pt-5 sm:px-6 sm:pb-14 sm:pt-8">
-        <section className="overflow-hidden rounded-[34px] border border-white/8 bg-[#0f1320] shadow-soft">
+        <section className="overflow-hidden rounded-[34px] bg-[#0f1320] shadow-soft">
           <div className="relative h-[240px]">
             <img alt={business.name} className="h-full w-full object-cover" src={business.coverImageUrl} />
             <div className="absolute inset-0 bg-gradient-to-t from-[#07090f] via-[#07090f]/30 to-transparent" />
@@ -66,7 +66,12 @@ export default function BusinessProfilePage() {
 
             <div className="mt-4 flex flex-wrap gap-2">
               {business.hostingPreferences.slice(0, 4).map((item) => (
-                <TagChip key={item} label={item} />
+                <span
+                  className="inline-flex items-center rounded-full bg-white/[0.05] px-3 py-1 text-xs text-app-muted"
+                  key={item}
+                >
+                  {item}
+                </span>
               ))}
             </div>
           </div>
@@ -74,7 +79,7 @@ export default function BusinessProfilePage() {
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(310px,0.9fr)]">
           <section className="space-y-4">
-            <div className="surface-card p-5">
+            <div className="rounded-[28px] bg-white/[0.04] p-5">
               <p className="text-lg font-semibold text-white">Availability</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <TagChip label={business.availability.status} subdued />
@@ -113,7 +118,7 @@ export default function BusinessProfilePage() {
           </section>
 
           <aside className="space-y-6">
-            <div className="surface-card p-5">
+            <div className="rounded-[28px] bg-white/[0.04] p-5">
               <p className="text-lg font-semibold text-white">Fandom fit</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {business.fandomInterests.map((tag) => (
@@ -122,7 +127,7 @@ export default function BusinessProfilePage() {
               </div>
             </div>
 
-            <div className="surface-card p-5">
+            <div className="rounded-[28px] bg-white/[0.04] p-5">
               <p className="text-lg font-semibold text-white">Support interests</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {business.supportInterests.map((tag) => (
@@ -132,7 +137,7 @@ export default function BusinessProfilePage() {
             </div>
 
             <Link
-              className="surface-card block p-5 transition hover:border-white/12"
+              className="block rounded-[28px] bg-white/[0.04] p-5 transition hover:bg-white/[0.06]"
               href="/work?tab=business"
             >
               <p className="text-lg font-semibold text-white">Open business hub</p>

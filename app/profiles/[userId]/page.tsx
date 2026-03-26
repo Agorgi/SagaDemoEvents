@@ -10,7 +10,6 @@ import { PortfolioLightboxModal } from "@/src/components/PortfolioLightboxModal"
 import { ProfileStatsCard } from "@/src/components/ProfileStatsCard";
 import { ServicesSection } from "@/src/components/ServicesSection";
 import { StarRatingValue } from "@/src/components/StarRatingValue";
-import { TagChip } from "@/src/components/Chips";
 import { useAppState } from "@/src/lib/app-state";
 import { useDemoState } from "@/src/lib/demo-state";
 import { formatDateRange } from "@/src/lib/utils";
@@ -58,7 +57,7 @@ export default function UserProfilePage() {
       <Nav />
 
       <main className="mx-auto w-full max-w-[560px] px-4 pb-28 pt-5 sm:px-6 sm:pb-14 sm:pt-8">
-        <section className="overflow-hidden rounded-[34px] border border-white/8 bg-[#0f1320] shadow-soft">
+        <section className="overflow-hidden rounded-[34px] bg-[#0f1320] shadow-soft">
           <div className="relative h-[260px]">
             <img
               alt={profile.displayName}
@@ -77,7 +76,7 @@ export default function UserProfilePage() {
                 src={profile.avatarImage || user.avatarUrl}
               />
 
-              <div className="mt-4 inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-app-muted">
+              <div className="mt-4 inline-flex items-center rounded-full bg-white/[0.05] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-app-muted">
                 Creator profile
               </div>
 
@@ -88,11 +87,16 @@ export default function UserProfilePage() {
               <p className="mt-3 text-sm leading-6 text-[#D5D9E8]">{profile.bio}</p>
 
               <div className="mt-4 flex flex-wrap justify-center gap-2">
-                <span className="inline-flex items-center rounded-full border border-white/8 bg-white/[0.03] px-3 py-1 text-xs text-app-muted">
+                <span className="inline-flex items-center rounded-full bg-white/[0.05] px-3 py-1 text-xs text-app-muted">
                   {profile.location}
                 </span>
                 {profile.tags.slice(0, 4).map((tag) => (
-                  <TagChip key={tag} label={tag} subdued />
+                  <span
+                    className="inline-flex items-center rounded-full bg-white/[0.05] px-3 py-1 text-xs text-app-muted"
+                    key={tag}
+                  >
+                    {tag}
+                  </span>
                 ))}
               </div>
 
@@ -119,7 +123,7 @@ export default function UserProfilePage() {
                       Your profile
                     </Link>
                     <Link
-                      className="inline-flex min-h-[48px] items-center justify-center rounded-[22px] border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
+                      className="inline-flex min-h-[48px] items-center justify-center rounded-[22px] bg-white/[0.05] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
                       href="/settings/data"
                     >
                       Share
@@ -130,7 +134,7 @@ export default function UserProfilePage() {
                     <button
                       className={`inline-flex min-h-[48px] items-center justify-center rounded-[22px] px-4 py-3 text-sm font-semibold text-white transition ${
                         isFollowing
-                          ? "border border-white/10 hover:border-white/20"
+                          ? "bg-white/[0.05] hover:bg-white/[0.08]"
                           : "bg-app-purple hover:bg-app-purple-hover"
                       }`}
                       onClick={() => toggleFollow(user.id)}
@@ -139,7 +143,7 @@ export default function UserProfilePage() {
                       {isFollowing ? "Following" : "Follow"}
                     </button>
                     <Link
-                      className="inline-flex min-h-[48px] items-center justify-center rounded-[22px] border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
+                      className="inline-flex min-h-[48px] items-center justify-center rounded-[22px] bg-white/[0.05] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
                       href="/inbox"
                     >
                       Message
@@ -158,7 +162,7 @@ export default function UserProfilePage() {
               <div className="flex gap-3 overflow-x-auto pb-1 subtle-scrollbar">
                 {profile.portfolio.map((item) => (
                   <button
-                    className="w-[180px] shrink-0 overflow-hidden rounded-[24px] border border-white/8 bg-[#0d1119] transition hover:border-white/14"
+                    className="w-[180px] shrink-0 overflow-hidden rounded-[24px] bg-[#0d1119] transition hover:opacity-90"
                     key={item.id}
                     onClick={() => setActivePortfolioItemId(item.id)}
                     type="button"
@@ -182,7 +186,7 @@ export default function UserProfilePage() {
               <div className="space-y-3">
                 {featuredEvents.map((event) => (
                   <Link
-                    className="flex items-center gap-4 rounded-[24px] border border-white/8 bg-[#101522] p-4 transition hover:border-white/14"
+                    className="flex items-center gap-4 rounded-[24px] bg-white/[0.04] p-4 transition hover:bg-white/[0.06]"
                     href={`/events/${event.id}`}
                     key={event.id}
                   >

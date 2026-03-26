@@ -145,8 +145,7 @@ export default function ExplorePage() {
         <section className="space-y-4">
           <div className="space-y-2">
             <p className="text-sm uppercase tracking-[0.16em] text-app-muted">{homeCity}</p>
-            <h1 className="text-4xl font-semibold text-white sm:text-5xl">Home</h1>
-            <p className="text-sm text-app-muted">Find your next night.</p>
+            <h1 className="text-4xl font-semibold text-white sm:text-5xl">What happens next?</h1>
           </div>
 
           <label className="flex items-center gap-3 rounded-[22px] border border-white/8 bg-[#0d1119] px-4 py-3 text-app-muted transition focus-within:border-app-purple/45">

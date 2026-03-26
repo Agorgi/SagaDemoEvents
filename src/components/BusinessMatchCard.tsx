@@ -18,7 +18,7 @@ export function BusinessMatchCard({
   onRespond?: (action: SupportAction) => void;
 }) {
   return (
-    <article className="surface-card p-5">
+    <article className="rounded-[28px] bg-white/[0.04] p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-app-muted">
@@ -42,7 +42,7 @@ export function BusinessMatchCard({
         ))}
       </div>
 
-      <div className="mt-4 rounded-[22px] border border-white/8 bg-[#0d1119] p-4">
+      <div className="mt-4 rounded-[22px] bg-[#0d1119] p-4">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-app-muted">
           Why this match
         </p>
@@ -63,8 +63,8 @@ export function BusinessMatchCard({
                   ? "bg-app-purple text-white"
                   : "bg-app-purple text-white hover:bg-app-purple-hover"
                 : actionState === action
-                  ? "border border-white/10 text-white"
-                  : "border border-white/10 text-app-muted hover:border-white/20 hover:text-white"
+                  ? "bg-white/[0.08] text-white"
+                  : "bg-white/[0.04] text-app-muted hover:bg-white/[0.08] hover:text-white"
             )}
             key={action}
             onClick={() => onRespond?.(action)}

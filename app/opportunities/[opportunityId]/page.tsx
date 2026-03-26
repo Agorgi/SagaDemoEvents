@@ -55,7 +55,7 @@ export default function OpportunityDetailPage() {
       <Nav />
       <main className="mx-auto w-full max-w-[540px] px-4 pb-36 pt-5 sm:max-w-[620px] sm:px-6 sm:pb-16 sm:pt-8">
         <section className="space-y-5">
-          <div className="mx-auto max-w-[340px] overflow-hidden rounded-[30px] border border-white/8 bg-[#0f1320] shadow-soft">
+          <div className="mx-auto max-w-[340px] overflow-hidden rounded-[30px] bg-[#0f1320] shadow-soft">
             <div className="relative">
               <img
                 alt={projectTitle}
@@ -96,7 +96,7 @@ export default function OpportunityDetailPage() {
               </Link>
             </div>
 
-            <div className="rounded-[24px] border border-white/8 bg-[#0d1119] px-4 py-4">
+            <div className="rounded-[24px] bg-white/[0.04] px-4 py-4">
               <div className="space-y-2 text-sm text-white/86">
                 <p>{opportunity.roleType}</p>
                 <p>
@@ -111,7 +111,7 @@ export default function OpportunityDetailPage() {
               <button
                 className={`min-h-[48px] w-full rounded-[18px] px-4 py-3 text-sm font-semibold transition ${
                   application
-                    ? "border border-white/12 bg-white/[0.03] text-white"
+                    ? "bg-white/[0.08] text-white"
                     : "bg-app-purple text-white hover:bg-app-purple-hover"
                 }`}
                 onClick={() => {
@@ -162,9 +162,9 @@ export default function OpportunityDetailPage() {
           </DetailSection>
 
           <DetailSection title="Apply">
-            <div className="space-y-4 rounded-[24px] border border-white/8 bg-[#0d1119] p-4">
+            <div className="space-y-4 rounded-[24px] bg-white/[0.04] p-4">
               <textarea
-                className="h-28 w-full rounded-[22px] border border-white/10 bg-[#090d15] px-4 py-3 text-sm text-white outline-none placeholder:text-app-muted"
+                className="h-28 w-full rounded-[22px] bg-[#090d15] px-4 py-3 text-sm text-white outline-none placeholder:text-app-muted"
                 onChange={(event) => setNote(event.target.value)}
                 placeholder="Add a short note if you want."
                 value={note}
@@ -187,7 +187,7 @@ export default function OpportunityDetailPage() {
           {context ? (
             <DetailSection title="Live project">
               <Link
-                className="flex items-center gap-4 rounded-[24px] border border-white/8 bg-[#0d1119] p-4 transition hover:border-white/12"
+                className="flex items-center gap-4 rounded-[24px] bg-white/[0.04] p-4 transition hover:bg-white/[0.06]"
                 href={projectHref}
               >
                 <img
