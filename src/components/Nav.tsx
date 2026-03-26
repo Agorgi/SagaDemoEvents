@@ -57,7 +57,7 @@ export function Nav() {
   return (
     <>
       <header className="sticky top-0 z-40 border-b border-white/6 bg-[#090b10]/92 backdrop-blur-xl">
-        <div className="mx-auto flex min-h-[60px] w-full max-w-[1240px] items-center gap-3 px-4 py-2 sm:min-h-[68px] sm:px-6">
+        <div className="mx-auto flex min-h-[56px] w-full max-w-[1240px] items-center gap-2.5 px-4 py-1.5 sm:min-h-[64px] sm:px-6">
           <a
             aria-label="Saga home"
             className="flex shrink-0 items-center"
@@ -66,17 +66,17 @@ export function Nav() {
           >
             <img
               alt="Saga logo"
-              className="block h-[38px] w-auto max-w-none object-contain sm:h-[42px]"
+              className="block h-[34px] w-auto max-w-none object-contain sm:h-[38px]"
               src="/group-88462-v2.png"
             />
           </a>
 
-          <nav className="ml-3 hidden items-center gap-1 md:flex">
+          <nav className="ml-2 hidden items-center gap-0.5 md:flex">
             {desktopLinks.map((link) => (
               <a
                 aria-label={`Open ${link.label}`}
                 className={cn(
-                  "rounded-[16px] px-3 py-2 text-sm font-medium transition",
+                  "rounded-[15px] px-2.5 py-1.5 text-sm font-medium transition",
                   isActive(pathname, link.href)
                     ? "bg-white/[0.05] text-white"
                     : "text-app-muted hover:bg-white/[0.03] hover:text-white"
@@ -89,15 +89,15 @@ export function Nav() {
             ))}
           </nav>
 
-          <div className="ml-auto flex items-center gap-2.5">
+          <div className="ml-auto flex items-center gap-2">
             <a
               aria-label="Open updates"
-              className="relative inline-flex h-[42px] w-[42px] items-center justify-center rounded-full border border-white/8 bg-white/[0.03] text-white transition hover:border-white/16 hover:bg-white/[0.05]"
+              className="relative inline-flex h-[38px] w-[38px] items-center justify-center rounded-full bg-white/[0.05] text-white transition hover:bg-white/[0.08]"
               href="/inbox"
             >
               <BellIcon />
               {unreadCount > 0 ? (
-                <span className="absolute right-1.5 top-1.5 inline-flex min-h-[16px] min-w-[16px] items-center justify-center rounded-full bg-app-purple px-1 text-[10px] font-bold text-white">
+                <span className="absolute right-1 top-1 inline-flex min-h-[15px] min-w-[15px] items-center justify-center rounded-full bg-app-purple px-1 text-[9px] font-bold text-white">
                   {Math.min(unreadCount, 9)}
                 </span>
               ) : null}
@@ -108,7 +108,7 @@ export function Nav() {
               href="/profile"
             >
               <Avatar
-                className="h-[36px] w-[36px] text-xs"
+                className="h-[34px] w-[34px] text-xs"
                 name={currentUser.name}
                 size="sm"
                 src={currentUser.avatarUrl}
