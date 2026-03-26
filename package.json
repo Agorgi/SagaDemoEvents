@@ -7,7 +7,7 @@
     "build": "npx -y node@20 ./node_modules/next/dist/bin/next build",
     "start": "npx -y node@20 ./node_modules/next/dist/bin/next start",
     "lint": "npx -y node@20 ./node_modules/eslint/bin/eslint.js app src middleware.ts next.config.mjs --ext .js,.mjs,.ts,.tsx --format unix",
-    "typecheck": "npx -y node@20 ./node_modules/typescript/bin/tsc --noEmit --incremental false",
+    "typecheck": "sh -c 'rm -rf .next && npx -y node@20 ./node_modules/next/dist/bin/next build >/dev/null && npx -y node@20 ./node_modules/typescript/bin/tsc --noEmit --incremental false'",
     "raffle": "tsx scripts/raffle.ts",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",

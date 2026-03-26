@@ -1,4 +1,3 @@
-import { type UserIntent } from "@/src/data/social";
 import { type MediaVerticalPosition } from "@/src/lib/media-position";
 import { createPosterDataUri } from "@/src/lib/demo-media";
 import { slugify } from "@/src/lib/utils";
@@ -28,25 +27,6 @@ export type LaunchFormat =
   | "scavenger hunt"
   | "pop-up"
   | "other";
-
-export type OnboardingState = {
-  completed: boolean;
-  mode: UserMode | null;
-  primaryIntent?: UserIntent;
-  authMethod?: "google" | "discord" | "email";
-  city: string;
-  fandoms: string[];
-  hostFormat?: LaunchFormat;
-  budgetRange?: string;
-  creatorRoles: string[];
-  portfolioLink: string;
-  availability: string;
-  fanEventTypes: string[];
-  travelDistance: string;
-  budgetComfort: string;
-  profileSetupCompleted: boolean;
-  usedSampleProfile: boolean;
-};
 
 export type LaunchStep = {
   time: string;
@@ -237,22 +217,6 @@ export const fanEventTypeOptions = [
   "scavenger hunts",
   "cosplay socials"
 ] as const;
-
-export const onboardingDefaults: OnboardingState = {
-  completed: false,
-  mode: null,
-  primaryIntent: undefined,
-  city: "",
-  fandoms: [],
-  creatorRoles: [],
-  portfolioLink: "",
-  availability: "",
-  fanEventTypes: [],
-  travelDistance: "",
-  budgetComfort: "",
-  profileSetupCompleted: false,
-  usedSampleProfile: false
-};
 
 function inferVenue(format: LaunchFormat, city: string) {
   switch (format) {

@@ -9,6 +9,7 @@ import { TagChip } from "@/src/components/Chips";
 import { Nav } from "@/src/components/Nav";
 import { getBusinessProfileById, matchExplanations } from "@/src/data/economy";
 import { useAppState } from "@/src/lib/app-state";
+import { getWorkTabHref, WORK_TABS } from "@/src/lib/routes";
 
 export default function BusinessProfilePage() {
   const params = useParams<{ businessId: string }>();
@@ -138,7 +139,7 @@ export default function BusinessProfilePage() {
 
             <Link
               className="block rounded-[28px] bg-white/[0.04] p-5 transition hover:bg-white/[0.06]"
-              href="/work?tab=business"
+              href={getWorkTabHref(WORK_TABS.venues)}
             >
               <p className="text-lg font-semibold text-white">Open business hub</p>
               <p className="mt-2 text-sm text-app-muted">See the full match slate and support actions.</p>

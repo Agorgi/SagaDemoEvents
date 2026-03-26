@@ -1,4 +1,5 @@
 import { type UserMode } from "@/src/data/launches";
+import { APP_ROUTES, getWorkTabHref, WORK_TABS } from "@/src/lib/routes";
 
 export type OnboardingIntent =
   | "explore"
@@ -419,15 +420,15 @@ export function getModeForBranch(branch?: OnboardingBranch): UserMode {
 
 export function getOnboardingLandingPath(branch?: OnboardingBranch) {
   if (branch === "talent") {
-    return "/work?tab=jobs";
+    return getWorkTabHref(WORK_TABS.roles);
   }
   if (branch === "organizer") {
-    return "/studio";
+    return APP_ROUTES.launch;
   }
   if (branch === "business") {
-    return "/work?tab=businesses";
+    return getWorkTabHref(WORK_TABS.venues);
   }
-  return "/explore";
+  return APP_ROUTES.home;
 }
 
 export function resolveBranch(

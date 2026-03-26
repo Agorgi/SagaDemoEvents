@@ -5,6 +5,7 @@ import { useEffect } from "react";
 
 import { getOnboardingLandingPath } from "@/src/data/onboarding";
 import { useAppState } from "@/src/lib/app-state";
+import { APP_ROUTES } from "@/src/lib/routes";
 
 export function OnboardingGate({
   children
@@ -24,12 +25,12 @@ export function OnboardingGate({
 
     // In the demo, onboarding should be the entry experience from root,
     // not a blocking guard on every route people click through.
-    if (!completed && pathname === "/") {
-      router.replace("/onboarding");
+    if (!completed && pathname === APP_ROUTES.root) {
+      router.replace(APP_ROUTES.onboarding);
       return;
     }
 
-    if (completed && (pathname === "/" || pathname === "/onboarding")) {
+    if (completed && (pathname === APP_ROUTES.root || pathname === APP_ROUTES.onboarding)) {
       router.replace(getOnboardingLandingPath(onboarding.primaryBranch));
     }
   }, [hydrated, onboarding.completed, onboarding.hasCompletedOnboarding, onboarding.primaryBranch, pathname, router]);

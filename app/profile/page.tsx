@@ -16,6 +16,7 @@ import { StarRatingValue } from "@/src/components/StarRatingValue";
 import { UnderlineTabs } from "@/src/components/UnderlineTabs";
 import { useAppState } from "@/src/lib/app-state";
 import { useDemoState } from "@/src/lib/demo-state";
+import { APP_ROUTES } from "@/src/lib/routes";
 
 export default function ProfilePage() {
   const {
@@ -91,13 +92,13 @@ export default function ProfilePage() {
 
               {menuOpen ? (
                 <div className="absolute right-0 top-12 z-20 min-w-[180px] overflow-hidden rounded-[20px] border border-white/10 bg-[#121826] p-2 shadow-[0_24px_44px_rgba(0,0,0,0.38)]">
-                  <MenuLink href="/profile/setup" label="Edit profile" onClick={() => setMenuOpen(false)} />
+                  <MenuLink href={APP_ROUTES.profileSetup} label="Edit profile" onClick={() => setMenuOpen(false)} />
                   <MenuLink
                     href={`/profiles/${currentUserId}`}
                     label="View public profile"
                     onClick={() => setMenuOpen(false)}
                   />
-                  <MenuLink href="/settings/data" label="Settings" onClick={() => setMenuOpen(false)} />
+                  <MenuLink href={APP_ROUTES.settings} label="Settings" onClick={() => setMenuOpen(false)} />
                 </div>
               ) : null}
             </div>
@@ -202,7 +203,7 @@ export default function ProfilePage() {
             className="inline-flex min-h-[48px] w-full items-center justify-center rounded-[22px] bg-white/[0.05] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
             onClick={() => {
               resetOnboarding();
-              router.push("/onboarding");
+              router.push(APP_ROUTES.onboarding);
             }}
             type="button"
           >

@@ -5,6 +5,7 @@ import { useEffect } from "react";
 
 import { getOnboardingLandingPath } from "@/src/data/onboarding";
 import { useAppState } from "@/src/lib/app-state";
+import { APP_ROUTES } from "@/src/lib/routes";
 
 export default function RootPage() {
   const router = useRouter();
@@ -20,7 +21,7 @@ export default function RootPage() {
       return;
     }
 
-    router.replace("/onboarding");
+    router.replace(APP_ROUTES.onboarding);
   }, [hydrated, onboarding.completed, onboarding.hasCompletedOnboarding, onboarding.primaryBranch, router]);
 
   return <div className="min-h-screen bg-app-bg" />;

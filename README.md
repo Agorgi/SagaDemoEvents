@@ -1,106 +1,119 @@
 # Saga Demo
 
-Saga is a mobile-first demo for creator-led fandom events.
+Saga is a mobile-first demo for fandom discovery, creator work, demand-first launches, and creator profiles.
 
-The product is organized around three clear paths:
-
-- `Host something`
-- `Join a team`
-- `Go to events`
-
-The demo uses local mock data, React state, and `localStorage` so the product feels stateful without a backend.
+The app is intentionally frontend-only. Product behavior is driven by seeded mock data, shared React state, and `localStorage` persistence so flows feel real without a backend.
 
 ## Stack
 
 - Next.js 14 App Router
 - TypeScript
 - Tailwind CSS
+- Local mock state via `src/lib/app-state.tsx`
+
+## Product shell
+
+The main product shell is intentionally small:
+
+- `Home` -> `/explore`
+- `Work` -> `/work`
+- `Launch` -> `/studio`
+- `Plans` -> `/my-events`
+- `Profile` -> `/profile`
+
+Top-level route helpers live in `src/lib/routes.ts` so shared navigation, onboarding routing, and redirects stay aligned.
 
 ## Primary routes
 
 - `/`
-  - Welcome screen for first-time users
-  - Redirects returning users based on their saved mode
+  - Entry redirect
+  - Sends first-run users to onboarding
+  - Sends returning users to the right part of the app
 - `/onboarding`
-  - Short, mode-aware onboarding flow
+  - Phone-first onboarding gate
+  - Config-driven adaptive wizard with Explorer / Talent / Organizer / Business branches
 - `/explore`
-  - Mode-aware event discovery
+  - Main nights feed
+  - Supports `All`, `Happening`, and `Soft launch` filtering
 - `/events/[eventId]`
-  - Public event page with mode-aware CTA hierarchy
-- `/my-events`
-  - Going, Working, Saved, Tickets
+  - Confirmed event detail
+  - Poster-first consumer layout
+- `/campaigns/[id]`
+  - Soft launch detail
+  - Reserve-first flow with date selection
 - `/studio`
-  - Host home for launches in progress
+  - Launch home
+  - New event entry point plus launch management
 - `/studio/new`
-  - Structured launch builder
+  - Adaptive launch wizard
 - `/studio/[id]`
-  - Launch workspace with `Overview`, `Team`, `Demand`, `Run of Show`, and `Payouts`
-- `/profile/setup`
-  - First-time creator profile setup
-- `/creators/[slug]`
-  - Creator trust profile for host review
+  - Launch workspace / management
+- `/studio/review/[draftId]`
+  - Draft review page before publish
+- `/work`
+  - `Roles` and `Venues` browsing
+- `/opportunities/[opportunityId]`
+  - Role detail page
+- `/businesses/[businessId]`
+  - Venue / business detail page
+- `/my-events`
+  - Plans hub for `Going`, `Pledged`, `Saved`, and `Applied`
 - `/inbox`
-  - Updates, Team, Tickets, Payments
+  - Updates feed
 - `/profile`
-  - User hub for identity, upcoming events, working roles, and saved items
+  - Private self-profile
+  - Earnings, portfolio, saved items, and service management
+- `/profiles/[userId]`
+  - Public creator profile
+- `/profile/services/new`
+  - Guided service creation flow
 
-## Product model
+## State and data model
 
-### Visitor modes
+### Shared app state
 
-- `fan`
-  - discover events
-  - get tickets or reserve spots
-- `creator`
-  - find openings
-  - join teams
-- `host`
-  - start and manage launches
+- `src/lib/app-state.tsx`
+  - central client state for onboarding, launches, plans, profile services, work applications, and business support actions
+  - persists demo state to `localStorage`
+  - intentionally owns cross-surface behavior so the rest of the app can stay route-focused
 
-### Core demo behaviors
+### Seed data
 
-- onboarding choices persist in `localStorage`
-- mode persists across sessions
-- starting a launch adds it to Studio
-- publishing a launch makes it discoverable in Explore
-- joining a team updates role/application state
-- booking an event updates ticket state and threshold progress
-- completing a launch reveals payout views
-- copying a launch to another city prefills the builder
+- `src/data/demo.ts`
+  - confirmed events, users, event roles
+- `src/data/launches.ts`
+  - launches, campaign lifecycles, inbox items
+- `src/data/launch-builder.ts`
+  - adaptive launch-wizard questions and draft helpers
+- `src/data/onboarding.ts`
+  - onboarding schema, branching, landing logic
+- `src/data/economy.ts`
+  - work opportunities, businesses, listings, support intents
+- `src/data/creator-profiles.ts`
+  - private/public profile content and shared services
 
-## Suggested demo flow
+## Key UI patterns
 
-### Fan flow
+- Image-first cards
+  - `EventCard`, `CampaignCard`, `OpportunityCard`, and `VenueCard` share the same overall hierarchy: artwork, status, title, one metadata line, one context line, one primary action.
+- Guided creation flows
+  - onboarding, launch creation, and service creation are all one-question-per-screen flows using the same visual system.
+- Shared route ownership
+  - Home = browse
+  - Work = roles and venue fits
+  - Launch = create/manage
+  - Plans = commitments
+  - Profile = identity
 
-1. Open `/`
-2. Choose `Go to events`
-3. Complete onboarding
-4. Browse `/explore`
-5. Open an event
-6. `Get ticket` or `Reserve spot`
-7. Check status in `/my-events`
+## Engineering notes
 
-### Creator flow
-
-1. Open `/`
-2. Choose `Join a team`
-3. Complete onboarding
-4. Finish `/profile/setup`
-5. Open `/explore?view=openings`
-6. Open an event
-7. `Join team`
-8. Track status in `/my-events` and `/inbox`
-
-### Host flow
-
-1. Open `/`
-2. Choose `Host something`
-3. Complete onboarding
-4. Land in `/studio`
-5. Click `Start a launch`
-6. Build a launch in `/studio/new`
-7. Open the workspace in `/studio/[id]`
-8. Publish, recruit a team, review payouts, or copy to another city
+- Use `src/lib/routes.ts` for shell-level destinations instead of scattering new route strings.
+- Add new demo behavior through `app-state` selectors/actions first, then wire pages/components to that shared behavior.
+- Keep heavy detail off feed cards. Put full explanations on detail routes.
+- Preserve backward compatibility where possible:
+  - `/discover` redirects to `/explore`
+  - `/saved` redirects to `/my-events?tab=saved`
+  - legacy host routes redirect into `/studio`
 
 ## Local development
 
@@ -122,10 +135,11 @@ npm run dev
 
 ```bash
 npm run lint
+npm run typecheck
 npm run build
 ```
 
 ## Notes
 
-- This repo still contains some legacy routes for earlier demos, but the current product story is driven by `/`, `/onboarding`, `/explore`, `/events/[eventId]`, `/my-events`, and the `/studio` flow.
-- All core demo media used by the event experience is bundled locally.
+- The repo still contains a few legacy demo routes outside the main Saga shell, but the current product story is driven by `/onboarding`, `/explore`, `/work`, `/studio`, `/my-events`, `/profile`, and the matching public detail routes.
+- Core demo media is bundled locally under `public/` and shared through the seeded data files above.

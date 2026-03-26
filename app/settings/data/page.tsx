@@ -2,6 +2,7 @@
 
 import { Nav } from "@/src/components/Nav";
 import { useAppState } from "@/src/lib/app-state";
+import { APP_ROUTES } from "@/src/lib/routes";
 
 export default function DataSettingsPage() {
   const { importedDataSettings, resetOnboarding, updateImportedDataSettings } = useAppState();
@@ -87,7 +88,7 @@ export default function DataSettingsPage() {
               className="mt-4 min-h-[46px] rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
               onClick={() => {
                 resetOnboarding();
-                window.location.assign("/onboarding");
+                window.location.assign(APP_ROUTES.onboarding);
               }}
               type="button"
             >

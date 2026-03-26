@@ -4,33 +4,34 @@ import { usePathname } from "next/navigation";
 
 import { Avatar } from "@/src/components/Avatar";
 import { useAppState } from "@/src/lib/app-state";
+import { APP_ROUTES } from "@/src/lib/routes";
 import { cn } from "@/src/lib/utils";
 
 function isActive(pathname: string, href: string) {
-  if (href === "/explore") {
-    return pathname === "/" || pathname.startsWith("/explore") || pathname.startsWith("/discover");
+  if (href === APP_ROUTES.home) {
+    return pathname === APP_ROUTES.root || pathname.startsWith(APP_ROUTES.home) || pathname.startsWith("/discover");
   }
 
-  if (href === "/work") {
+  if (href === APP_ROUTES.work) {
     return (
-      pathname.startsWith("/work") ||
+      pathname.startsWith(APP_ROUTES.work) ||
       pathname.startsWith("/opportunities/") ||
       pathname.startsWith("/listings/") ||
       pathname.startsWith("/businesses/")
     );
   }
 
-  if (href === "/studio") {
-    return pathname.startsWith("/studio") || pathname.startsWith("/host");
+  if (href === APP_ROUTES.launch) {
+    return pathname.startsWith(APP_ROUTES.launch) || pathname.startsWith("/host");
   }
 
-  if (href === "/my-events") {
-    return pathname.startsWith("/my-events") || pathname.startsWith("/saved");
+  if (href === APP_ROUTES.plans) {
+    return pathname.startsWith(APP_ROUTES.plans) || pathname.startsWith("/saved");
   }
 
-  if (href === "/profile") {
+  if (href === APP_ROUTES.profile) {
     return (
-      pathname === "/profile" ||
+      pathname === APP_ROUTES.profile ||
       pathname.startsWith("/profiles/") ||
       pathname.startsWith("/creators/") ||
       pathname.startsWith("/settings/")
@@ -46,11 +47,11 @@ export function Nav() {
   const unreadCount = inbox.filter((item) => item.unread).length;
 
   const desktopLinks = [
-    { href: "/explore", label: "Home", mobileLabel: "Home" },
-    { href: "/work", label: "Work", mobileLabel: "Work" },
-    { href: "/studio", label: "Launch", mobileLabel: "Launch" },
-    { href: "/my-events", label: "Plans", mobileLabel: "Plans" },
-    { href: "/profile", label: "Profile", mobileLabel: "Profile" }
+    { href: APP_ROUTES.home, label: "Home", mobileLabel: "Home" },
+    { href: APP_ROUTES.work, label: "Work", mobileLabel: "Work" },
+    { href: APP_ROUTES.launch, label: "Launch", mobileLabel: "Launch" },
+    { href: APP_ROUTES.plans, label: "Plans", mobileLabel: "Plans" },
+    { href: APP_ROUTES.profile, label: "Profile", mobileLabel: "Profile" }
   ];
   const mobileLinks = desktopLinks;
 
@@ -61,7 +62,7 @@ export function Nav() {
           <a
             aria-label="Saga home"
             className="flex shrink-0 items-center"
-            href="/explore"
+            href={APP_ROUTES.home}
             title="Go to Home"
           >
             <img
@@ -93,7 +94,7 @@ export function Nav() {
             <a
               aria-label="Open updates"
               className="relative inline-flex h-[38px] w-[38px] items-center justify-center rounded-full bg-white/[0.05] text-white transition hover:bg-white/[0.08]"
-              href="/inbox"
+              href={APP_ROUTES.updates}
             >
               <BellIcon />
               {unreadCount > 0 ? (
@@ -105,7 +106,7 @@ export function Nav() {
             <a
               aria-label={`Open ${currentUser.handle} profile`}
               className="rounded-full transition hover:scale-[1.02]"
-              href="/profile"
+              href={APP_ROUTES.profile}
             >
               <Avatar
                 className="h-[34px] w-[34px] text-xs"

@@ -8,10 +8,10 @@ import { OpportunityCard } from "@/src/components/OpportunityCard";
 import { UnderlineTabs } from "@/src/components/UnderlineTabs";
 import { VenueCard } from "@/src/components/VenueCard";
 import { getOpportunityContext, type ApplicationStatus, type BusinessProfile, type Opportunity } from "@/src/data/economy";
+import { normalizeWorkTab, type WorkTabKey } from "@/src/lib/routes";
 import { cn } from "@/src/lib/utils";
 import { useAppState } from "@/src/lib/app-state";
 
-type WorkTab = "roles" | "venues";
 type RoleFilter = "all" | "happening" | "soft_launch" | "nearby";
 type VenueFilter = "all" | "open" | "soft_launch_friendly" | "happening_ready";
 
@@ -58,13 +58,7 @@ function WorkPageContent() {
     preferredFandoms
   } = useAppState();
 
-  const [activeTab, setActiveTab] = useState<WorkTab>(() => {
-    const tab = searchParams.get("tab");
-    if (tab === "venue" || tab === "venues" || tab === "business" || tab === "businesses") {
-      return "venues";
-    }
-    return "roles";
-  });
+  const [activeTab, setActiveTab] = useState<WorkTabKey>(() => normalizeWorkTab(searchParams.get("tab")));
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("all");
   const [venueFilter, setVenueFilter] = useState<VenueFilter>("all");
 
