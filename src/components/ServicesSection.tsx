@@ -1,6 +1,6 @@
 "use client";
 
-import { StarRatingValue } from "@/src/components/StarRatingValue";
+import { ProfileServiceCard } from "@/src/components/ProfileServiceCard";
 import { type ProfileService } from "@/src/data/creator-profiles";
 
 export function ServicesSection({
@@ -49,47 +49,14 @@ export function ServicesSection({
       </div>
 
       {services.length > 0 ? (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {services.map((service) => (
-            <div
-              className="rounded-[24px] border border-white/8 bg-[#111622] px-4 py-4"
+            <ProfileServiceCard
+              className="p-3"
               key={service.id}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-base font-semibold text-white">{service.title}</p>
-                  <p className="mt-1 text-sm text-app-muted">{service.pricingLabel}</p>
-                </div>
-                {!publicView ? (
-                  <span
-                    className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                      service.visibleOnPublicProfile
-                        ? "bg-app-purple/14 text-[#DDD9FF]"
-                        : "bg-white/[0.06] text-app-muted"
-                    }`}
-                  >
-                    {service.visibleOnPublicProfile ? "Public" : "Private"}
-                  </span>
-                ) : null}
-              </div>
-
-              {service.shortDescription ? (
-                <p className="mt-3 text-sm leading-6 text-app-muted">
-                  {service.shortDescription}
-                </p>
-              ) : null}
-
-              {publicView && (service.reviewScore || service.reviewCount) ? (
-                <div className="mt-3 flex items-center gap-2 text-xs text-app-muted">
-                  {service.reviewScore ? (
-                    <StarRatingValue rating={service.reviewScore} variant="inline" />
-                  ) : null}
-                  {service.reviewCount ? (
-                    <span>{service.reviewCount} reviews</span>
-                  ) : null}
-                </div>
-              ) : null}
-            </div>
+              mode={publicView ? "public" : "private"}
+              service={service}
+            />
           ))}
         </div>
       ) : (

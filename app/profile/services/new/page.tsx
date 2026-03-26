@@ -8,6 +8,7 @@ import {
   OnboardingScreenShell,
   StickyFooter
 } from "@/src/components/OnboardingScreenShell";
+import { ProfileServiceCard } from "@/src/components/ProfileServiceCard";
 import { TagChip } from "@/src/components/Chips";
 import { type ProfileService } from "@/src/data/creator-profiles";
 import {
@@ -84,6 +85,8 @@ export default function NewProfileServicePage() {
     () => getServiceTitleSuggestion(draft.category),
     [draft.category]
   );
+  const categoryLabel =
+    serviceCategoryOptions.find((option) => option.value === draft.category)?.label ?? "Service";
 
   if (!currentCreatorProfile) {
     return <div className="min-h-screen bg-app-bg" />;
@@ -238,31 +241,44 @@ export default function NewProfileServicePage() {
         {currentStep.id === "review" ? (
           <div className="space-y-5">
             <div className="surface-card-strong overflow-hidden p-5">
-              <div className="rounded-[24px] border border-white/8 bg-[radial-gradient(circle_at_top,rgba(123,132,255,0.18),transparent_55%),linear-gradient(180deg,rgba(16,21,34,0.98),rgba(9,12,20,1))] p-5">
-                <div className="flex items-center justify-between gap-3">
-                  <TagChip
-                    label={draft.visibleOnPublicProfile ? "Public service" : "Private service"}
-                    subdued={!draft.visibleOnPublicProfile}
-                  />
-                  {draft.category ? (
-                    <span className="text-xs uppercase tracking-[0.14em] text-app-muted">
-                      {serviceCategoryOptions.find((option) => option.value === draft.category)?.label}
-                    </span>
-                  ) : null}
-                </div>
-
-                <div className="mt-5">
-                  <p className="text-xl font-semibold text-white">
-                    {draft.title.trim() || titlePlaceholder}
+              <div className="space-y-3">
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.16em] text-app-muted">
+                    Preview
                   </p>
-                  <p className="mt-2 text-sm text-app-muted">
-                    {draft.pricingLabel.trim() || getServicePricingPlaceholder(draft.category)}
+                  <p className="mt-1 text-sm text-app-muted">
+                    This is how it will look on your services section.
                   </p>
                 </div>
 
-                <p className="mt-4 text-sm leading-6 text-[#D5D9E8]">
-                  {draft.shortDescription.trim() || getServiceDescriptionPlaceholder(draft.category)}
-                </p>
+                <ProfileServiceCard
+                  categoryLabel={categoryLabel}
+                  creatorHandle={currentCreatorProfile.handle}
+                  mode="preview"
+                  service={buildServiceFromDraft(draft)}
+                />
+
+                <div className="rounded-[24px] border border-white/8 bg-white/[0.03] px-4 py-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.14em] text-app-muted">
+                        Showing as
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-white">
+                        {draft.visibleOnPublicProfile ? "Public service" : "Private service"}
+                      </p>
+                    </div>
+                    <TagChip
+                      label={draft.visibleOnPublicProfile ? "Visible" : "Private"}
+                      subdued={!draft.visibleOnPublicProfile}
+                    />
+                  </div>
+                  <p className="mt-3 text-sm leading-6 text-app-muted">
+                    {draft.visibleOnPublicProfile
+                      ? "People will see it on your public profile right away."
+                      : "It will stay on your private profile until you turn it on."}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
