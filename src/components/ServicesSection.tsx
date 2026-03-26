@@ -37,7 +37,7 @@ export function ServicesSection({
             ) : null}
             {actionLabel && onAction ? (
               <button
-                className="inline-flex min-h-[36px] items-center rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-sm font-semibold text-white transition hover:border-white/20 hover:bg-white/[0.05]"
+                className="inline-flex min-h-[36px] items-center rounded-full bg-white/[0.05] px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
                 onClick={onAction}
                 type="button"
               >

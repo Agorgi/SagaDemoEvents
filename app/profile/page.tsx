@@ -13,7 +13,7 @@ import { PortfolioGrid } from "@/src/components/PortfolioGrid";
 import { ProfileStatsCard } from "@/src/components/ProfileStatsCard";
 import { ServicesSection } from "@/src/components/ServicesSection";
 import { StarRatingValue } from "@/src/components/StarRatingValue";
-import { TagChip } from "@/src/components/Chips";
+import { UnderlineTabs } from "@/src/components/UnderlineTabs";
 import { useAppState } from "@/src/lib/app-state";
 import { useDemoState } from "@/src/lib/demo-state";
 
@@ -77,12 +77,12 @@ export default function ProfilePage() {
       <Nav />
 
       <main className="mx-auto w-full max-w-[520px] px-4 pb-28 pt-5 sm:px-6 sm:pb-14 sm:pt-8">
-        <div className="relative overflow-hidden rounded-[34px] border border-white/8 bg-[radial-gradient(circle_at_top,rgba(123,132,255,0.16),transparent_42%),linear-gradient(180deg,rgba(17,22,34,0.98),rgba(9,12,20,1))] px-5 pb-6 pt-5 shadow-soft sm:px-6">
+        <div className="relative overflow-hidden rounded-[34px] bg-[radial-gradient(circle_at_top,rgba(123,132,255,0.16),transparent_42%),linear-gradient(180deg,rgba(17,22,34,0.98),rgba(9,12,20,1))] px-5 pb-6 pt-5 shadow-soft sm:px-6">
           <div className="flex justify-end">
             <div className="relative">
               <button
                 aria-label="Open profile actions"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-app-muted transition hover:border-white/18 hover:text-white"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.05] text-app-muted transition hover:bg-white/[0.08] hover:text-white"
                 onClick={() => setMenuOpen((current) => !current)}
                 type="button"
               >
@@ -125,7 +125,12 @@ export default function ProfilePage() {
 
             <div className="mt-4 flex flex-wrap justify-center gap-2">
               {profile.tags.slice(0, 4).map((tag) => (
-                <TagChip key={tag} label={tag} subdued />
+                <span
+                  className="rounded-full bg-white/[0.05] px-3 py-1.5 text-sm text-white/76"
+                  key={tag}
+                >
+                  {tag}
+                </span>
               ))}
             </div>
           </section>
@@ -159,30 +164,14 @@ export default function ProfilePage() {
         </div>
 
         <section className="mt-6 space-y-4">
-          <div className="grid grid-cols-2 gap-2 rounded-[22px] border border-white/8 bg-[#101522] p-1">
-            <button
-              className={`min-h-[44px] rounded-[18px] text-sm font-semibold transition ${
-                activeTab === "portfolio"
-                  ? "bg-app-purple text-white"
-                  : "text-app-muted hover:text-white"
-              }`}
-              onClick={() => setActiveTab("portfolio")}
-              type="button"
-            >
-              Portfolio
-            </button>
-            <button
-              className={`min-h-[44px] rounded-[18px] text-sm font-semibold transition ${
-                activeTab === "saved"
-                  ? "bg-app-purple text-white"
-                  : "text-app-muted hover:text-white"
-              }`}
-              onClick={() => setActiveTab("saved")}
-              type="button"
-            >
-              Saved
-            </button>
-          </div>
+          <UnderlineTabs
+            items={[
+              { value: "portfolio", label: "Portfolio" },
+              { value: "saved", label: "Saved" }
+            ]}
+            value={activeTab}
+            onChange={setActiveTab}
+          />
 
           {activeTab === "portfolio" ? (
             <PortfolioGrid
@@ -210,7 +199,7 @@ export default function ProfilePage() {
 
         <div className="mt-8">
           <button
-            className="inline-flex min-h-[48px] w-full items-center justify-center rounded-[22px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-semibold text-white transition hover:border-white/18 hover:bg-white/[0.05]"
+            className="inline-flex min-h-[48px] w-full items-center justify-center rounded-[22px] bg-white/[0.05] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
             onClick={() => {
               resetOnboarding();
               router.push("/onboarding");
@@ -237,7 +226,7 @@ export default function ProfilePage() {
         title="Withdraw Funds"
       >
         <div className="space-y-4">
-          <div className="rounded-[24px] border border-white/8 bg-[#101522] p-4">
+          <div className="rounded-[24px] bg-[#101522] p-4">
             <p className="text-sm text-app-muted">Available now</p>
             <p className="mt-2 text-2xl font-semibold text-white">
               {profile.earnings?.available ?? "$0"}

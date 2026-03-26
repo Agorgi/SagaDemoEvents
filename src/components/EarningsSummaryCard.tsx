@@ -8,7 +8,7 @@ export function EarningsSummaryCard({
   earnings: EarningsSummary;
 }) {
   return (
-    <section className="overflow-hidden rounded-[30px] border border-white/8 bg-[linear-gradient(180deg,rgba(22,27,43,0.96),rgba(13,17,27,0.98))] p-5 shadow-soft">
+    <section className="overflow-hidden rounded-[30px] bg-[linear-gradient(180deg,rgba(22,27,43,0.96),rgba(13,17,27,0.98))] p-5 shadow-soft">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-[0.16em] text-app-muted">Total Earnings</p>
@@ -24,14 +24,14 @@ export function EarningsSummaryCard({
       </div>
 
       <div className="mt-5 grid grid-cols-2 gap-3">
-        <div className="rounded-[20px] border border-white/8 bg-white/[0.03] px-4 py-3">
+        <div className="rounded-[20px] bg-white/[0.04] px-4 py-3">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-app-purple" />
             <p className="text-xs uppercase tracking-[0.14em] text-app-muted">Available</p>
           </div>
           <p className="mt-2 text-base font-semibold text-white">{earnings.available}</p>
         </div>
-        <div className="rounded-[20px] border border-white/8 bg-white/[0.03] px-4 py-3">
+        <div className="rounded-[20px] bg-white/[0.04] px-4 py-3">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-[#7B84FF]" />
             <p className="text-xs uppercase tracking-[0.14em] text-app-muted">Pending</p>

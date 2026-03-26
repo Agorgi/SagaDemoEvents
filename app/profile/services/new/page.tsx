@@ -11,6 +11,7 @@ import {
 import { ProfileServiceCard } from "@/src/components/ProfileServiceCard";
 import { ImagePositionPicker } from "@/src/components/ImagePositionPicker";
 import { TagChip } from "@/src/components/Chips";
+import { UnderlineTabs } from "@/src/components/UnderlineTabs";
 import {
   buildServiceFromDraft,
   buildServicePricingLabel,
@@ -28,7 +29,6 @@ import {
 } from "@/src/data/service-flow";
 import { mediaPositionOptions } from "@/src/lib/media-position";
 import { useAppState } from "@/src/lib/app-state";
-import { cn } from "@/src/lib/utils";
 
 const steps = [
   { id: "category", title: "What kind of service is this?", subcopy: "Choose what fits best." },
@@ -213,44 +213,24 @@ export default function NewProfileServicePage() {
 
         {currentStep.id === "pricing" ? (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <PricingModeCard
-                accent="violet"
-                description="Best for ongoing coverage or flexible asks."
-                onClick={() =>
-                  patchDraft({
-                    pricingMode: "hourly",
-                    pricingLabel: buildServicePricingLabel("hourly", draft.priceAmount)
-                  })
-                }
-                sampleLabel={
-                  buildServicePricingLabel(
-                    "hourly",
-                    draft.priceAmount || getServicePricingPlaceholder(draft.category)
-                  ) || "$30/hr"
-                }
-                selected={draft.pricingMode === "hourly"}
-                title="Hourly"
-              />
-              <PricingModeCard
-                accent="gold"
-                description="Great for packaged work or a single deliverable."
-                onClick={() =>
-                  patchDraft({
-                    pricingMode: "flat",
-                    pricingLabel: buildServicePricingLabel("flat", draft.priceAmount)
-                  })
-                }
-                sampleLabel={
-                  buildServicePricingLabel(
-                    "flat",
-                    draft.priceAmount || getServicePricingPlaceholder(draft.category)
-                  ) || "$180 rate"
-                }
-                selected={draft.pricingMode === "flat"}
-                title="Flat fee"
-              />
-            </div>
+            <UnderlineTabs
+              items={[
+                { value: "hourly", label: "Hourly" },
+                { value: "flat", label: "Flat fee" }
+              ]}
+              value={draft.pricingMode}
+              onChange={(value) =>
+                patchDraft({
+                  pricingMode: value,
+                  pricingLabel: buildServicePricingLabel(value, draft.priceAmount)
+                })
+              }
+            />
+            <p className="text-sm text-app-muted">
+              {draft.pricingMode === "hourly"
+                ? "Best for ongoing coverage or flexible asks."
+                : "Great for packaged work or a single deliverable."}
+            </p>
             <QuestionField
               helper={`Shows as ${buildServicePricingLabel(draft.pricingMode, draft.priceAmount || getServicePricingPlaceholder(draft.category)) || (draft.pricingMode === "hourly" ? "$30/hr" : "$180 rate")}`}
               inputMode="decimal"
@@ -590,57 +570,6 @@ function QuestionField({
       </div>
       {helper ? <p className="text-sm text-app-muted">{helper}</p> : null}
     </div>
-  );
-}
-
-function PricingModeCard({
-  title,
-  description,
-  sampleLabel,
-  selected,
-  onClick,
-  accent
-}: {
-  title: string;
-  description: string;
-  sampleLabel: string;
-  selected?: boolean;
-  onClick: () => void;
-  accent: "violet" | "gold";
-}) {
-  return (
-    <button
-      className={cn(
-        "launch-choice-card relative overflow-hidden rounded-[28px] border text-left transition hover:-translate-y-0.5",
-        selected
-          ? "border-app-purple/40 shadow-[0_18px_42px_rgba(31,28,184,0.22)]"
-          : "border-white/8 hover:border-white/16",
-        accent === "gold"
-          ? "bg-[linear-gradient(180deg,rgba(32,24,38,0.98),rgba(13,17,25,0.98))]"
-          : "bg-[linear-gradient(180deg,rgba(23,28,48,0.98),rgba(13,17,25,0.98))]"
-      )}
-      onClick={onClick}
-      type="button"
-    >
-      <div
-        className={cn(
-          "absolute inset-0 opacity-90",
-          accent === "gold"
-            ? "bg-[radial-gradient(circle_at_top_right,rgba(240,196,83,0.18),transparent_36%),linear-gradient(180deg,rgba(255,255,255,0.02),transparent_44%)]"
-            : "bg-[radial-gradient(circle_at_top_left,rgba(123,132,255,0.22),transparent_36%),linear-gradient(180deg,rgba(255,255,255,0.02),transparent_44%)]"
-        )}
-      />
-      <div className="relative z-[1] flex min-h-[164px] flex-col justify-between p-4">
-        <div className="space-y-2">
-          <p className="text-lg font-semibold text-white">{title}</p>
-          <p className="text-sm leading-6 text-app-muted">{description}</p>
-        </div>
-        <div className="space-y-1">
-          <p className="text-[11px] uppercase tracking-[0.14em] text-white/52">Shows as</p>
-          <p className="text-base font-semibold text-white">{sampleLabel}</p>
-        </div>
-      </div>
-    </button>
   );
 }
 
