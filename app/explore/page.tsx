@@ -25,6 +25,7 @@ import {
   buildCreatorsOfWeek,
   buildEventsModeContent,
   buildFriendsGoingEvents,
+  buildGenreRailSummaries,
   buildGenreMatches,
   buildSoftLaunchRails,
   getTopInterest,
@@ -75,6 +76,15 @@ export default function ExplorePage() {
     browseGenres.find((genre) => genre.id === activeGenreId) ??
     EXPLORE_GENRES.find((genre) => genre.id === activeGenreId) ??
     null;
+  const genreSummaries = useMemo(
+    () =>
+      buildGenreRailSummaries({
+        genres: EXPLORE_GENRES,
+        events,
+        launches
+      }),
+    [events, launches]
+  );
   const becauseYouLikeEvents = useMemo(
     () =>
       buildBecauseYouLikeEvents({
@@ -269,6 +279,7 @@ export default function ExplorePage() {
                         compact
                         genre={genre}
                         key={genre.id}
+                        summary={genreSummaries.get(genre.id)}
                         onClick={() => {
                           setActiveGenreId(genre.id);
                           setActiveMode("genres");
@@ -376,6 +387,7 @@ export default function ExplorePage() {
                 <GenreBrowseStack
                   activeGenreId={activeGenreId}
                   genres={browseGenres}
+                  genreSummaries={genreSummaries}
                   onSelect={(genre) => setActiveGenreId(genre.id)}
                 />
               </section>

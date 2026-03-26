@@ -11,7 +11,11 @@ import {
   EVENT_CONTENT_FILTERS,
   HOME_MODES
 } from "@/src/features/explore/data";
-import { type CreatorSpotlight, type FriendEventSpotlight } from "@/src/features/explore/selectors";
+import {
+  type CreatorSpotlight,
+  type FriendEventSpotlight,
+  type GenreRailSummary
+} from "@/src/features/explore/selectors";
 import { type DemoEvent } from "@/src/data/demo";
 import { getLaunchFundingProgress, type DemoLaunch } from "@/src/data/launches";
 import { getMediaObjectPosition } from "@/src/lib/media-position";
@@ -349,20 +353,26 @@ export function CreatorWeekCard({
 
   return (
     <Link
-      className="group block w-[166px] shrink-0 snap-start overflow-hidden rounded-[26px] border border-white/8 bg-[#101520] p-3.5 shadow-card transition hover:border-white/12"
+      className="group block w-[178px] shrink-0 snap-start overflow-hidden rounded-[28px] border border-white/8 bg-[#101520] p-3.5 shadow-card transition hover:border-white/12"
       href={`/profiles/${creator.user.id}`}
     >
-      <div className="relative overflow-hidden rounded-[22px] bg-white/[0.04]">
+      <div className="relative overflow-hidden rounded-[24px] bg-white/[0.04]">
         <img
           alt={creator.profile.displayName}
-          className="h-[112px] w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+          className="h-[124px] w-full object-cover transition duration-500 group-hover:scale-[1.03]"
           src={creator.profile.coverImage ?? creator.profile.avatarImage}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#07090f]/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#07090f]/72 via-[#07090f]/18 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-br from-app-purple/12 via-transparent to-transparent" />
         {isOpenToWork ? (
           <div className="absolute right-2.5 top-2.5 inline-flex items-center gap-1 rounded-full bg-[#0a0d14]/72 px-2 py-1 text-[10px] font-medium text-white/82 backdrop-blur-sm">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" />
             Open
+          </div>
+        ) : null}
+        {creator.topTag ? (
+          <div className="absolute bottom-2.5 left-2.5 rounded-full bg-[#0a0d14]/68 px-2.5 py-1 text-[10px] font-medium text-white/78 backdrop-blur-sm">
+            {creator.topTag}
           </div>
         ) : null}
       </div>
@@ -376,11 +386,14 @@ export function CreatorWeekCard({
         />
       </div>
 
-      <div className="mt-3 space-y-1 text-center">
+      <div className="mt-3 space-y-1.5 text-center">
         <p className="line-clamp-1 text-sm font-semibold text-white">
           {creator.profile.displayName}
         </p>
-        <p className="line-clamp-1 text-xs text-app-muted">{creator.craft}</p>
+        <p className="line-clamp-1 text-xs text-white/76">{creator.craft}</p>
+        <p className="line-clamp-1 text-[11px] text-app-muted">
+          {creator.locationLabel}
+        </p>
       </div>
     </Link>
   );
@@ -402,21 +415,30 @@ export function CreatorSectionRow({
 
 export function GenreBrowseButton({
   genre,
+  summary,
   compact = false,
   active = false,
   onClick
 }: {
   genre: ExploreGenre;
+  summary?: GenreRailSummary;
   compact?: boolean;
   active?: boolean;
   onClick?: () => void;
 }) {
+  const statsLine =
+    summary && summary.eventCount + summary.launchCount > 0
+      ? `${summary.eventCount} live${summary.launchCount > 0 ? ` · ${summary.launchCount} soft launch${summary.launchCount > 1 ? "es" : ""}` : ""}`
+      : genre.description;
+
   return (
     <button
       className={cn(
         "group relative shrink-0 overflow-hidden rounded-[28px] border text-left shadow-card transition",
-        compact ? "h-[116px] w-[212px] snap-start" : "h-[134px] w-full",
-        active ? "border-white/16" : "border-white/8 hover:border-white/12"
+        compact ? "h-[122px] w-[224px] snap-start" : "h-[148px] w-full",
+        active
+          ? "border-white/16 shadow-[0_20px_44px_rgba(10,12,20,0.32)]"
+          : "border-white/8 hover:border-white/12"
       )}
       onClick={onClick}
       type="button"
@@ -428,14 +450,30 @@ export function GenreBrowseButton({
       />
       <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(10,12,20,0.18),rgba(10,12,20,0.82))]" />
       <div className="absolute inset-0 bg-gradient-to-r from-[#1F1CB8]/18 via-transparent to-transparent" />
+      {active ? (
+        <div className="absolute inset-0 bg-gradient-to-r from-white/8 via-transparent to-transparent" />
+      ) : null}
+
+      <div className="absolute left-4 top-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/58">
+        Genre
+      </div>
+
+      <div className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-[#0a0d14]/56 text-white/78 backdrop-blur-sm transition group-hover:bg-[#0a0d14]/68">
+        <ArrowUpRightIcon />
+      </div>
 
       <div className="relative flex h-full flex-col justify-end p-4">
         <p className="text-xl font-semibold tracking-[-0.03em] text-white">
           {genre.label}
         </p>
-        {!compact ? (
-          <p className="mt-1 max-w-[80%] text-sm text-white/72">{genre.description}</p>
-        ) : null}
+        <p
+          className={cn(
+            "mt-1 max-w-[82%] text-white/72",
+            compact ? "line-clamp-1 text-xs" : "line-clamp-2 text-sm"
+          )}
+        >
+          {statsLine}
+        </p>
       </div>
     </button>
   );
@@ -443,10 +481,12 @@ export function GenreBrowseButton({
 
 export function GenreBrowseStack({
   genres,
+  genreSummaries,
   activeGenreId,
   onSelect
 }: {
   genres: ExploreGenre[];
+  genreSummaries?: Map<string, GenreRailSummary>;
   activeGenreId?: string | null;
   onSelect: (genre: ExploreGenre) => void;
 }) {
@@ -457,6 +497,7 @@ export function GenreBrowseStack({
           active={activeGenreId === genre.id}
           genre={genre}
           key={genre.id}
+          summary={genreSummaries?.get(genre.id)}
           onClick={() => onSelect(genre)}
         />
       ))}
@@ -620,6 +661,20 @@ function GridIcon() {
       <path
         d="M4.75 4.75h5.5v5.5h-5.5Zm9 0h5.5v5.5h-5.5Zm-9 9h5.5v5.5h-5.5Zm9 0h5.5v5.5h-5.5Z"
         stroke="currentColor"
+        strokeLinejoin="round"
+        strokeWidth="1.6"
+      />
+    </svg>
+  );
+}
+
+function ArrowUpRightIcon() {
+  return (
+    <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 24 24">
+      <path
+        d="M8 16 16 8M10 8h6v6"
+        stroke="currentColor"
+        strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth="1.6"
       />

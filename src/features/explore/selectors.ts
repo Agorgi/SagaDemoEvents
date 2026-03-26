@@ -16,6 +16,13 @@ export type CreatorSpotlight = {
   craft: string;
   locationLabel: string;
   publicServices: number;
+  topTag?: string;
+};
+
+export type GenreRailSummary = {
+  genreId: string;
+  eventCount: number;
+  launchCount: number;
 };
 
 export type SoftLaunchRail = {
@@ -326,15 +333,14 @@ export function buildCreatorsOfWeek({
         craft: inferCreatorCraft(profile, user),
         locationLabel: profile.location,
         publicServices,
+        topTag: profile.tags[0],
         score
       };
     })
     .filter(
       (
         entry
-      ): entry is CreatorSpotlight & {
-        score: number;
-      } => Boolean(entry)
+      ): entry is NonNullable<typeof entry> => Boolean(entry)
     )
     .sort((left, right) => right.score - left.score)
     .map(({ score: _score, ...entry }) => entry);
@@ -441,4 +447,32 @@ export function buildCreatorsModeContent({
       creator.locationLabel.toLowerCase().includes(nearbyCity)
     )
   };
+}
+
+export function buildGenreRailSummaries({
+  genres,
+  events,
+  launches
+}: {
+  genres: ExploreGenre[];
+  events: DemoEvent[];
+  launches: DemoLaunch[];
+}) {
+  const summaries = new Map<string, GenreRailSummary>();
+
+  genres.forEach((genre) => {
+    summaries.set(genre.id, {
+      genreId: genre.id,
+      eventCount: events.filter((event) =>
+        matchesGenre(event.fandomTags, genre.label, genre.matchTags)
+      ).length,
+      launchCount: launches.filter(
+        (launch) =>
+          !launch.eventId &&
+          matchesGenre(launch.fandomTags, genre.label, genre.matchTags)
+      ).length
+    });
+  });
+
+  return summaries;
 }
