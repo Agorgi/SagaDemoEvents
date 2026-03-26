@@ -14,7 +14,7 @@ export function UnderlineTabs<T extends string>({
   className?: string;
 }) {
   return (
-    <div className={cn("flex items-center gap-6 border-b border-white/8", className)}>
+    <div className={cn("flex items-center gap-6 border-b border-white/6", className)}>
       {items.map((item) => {
         const active = item.value === value;
         return (

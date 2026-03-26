@@ -41,7 +41,6 @@ export default function ExplorePage() {
     currentUser,
     followingIds,
     homeCity,
-    inbox,
     launches,
     pledgeLaunch,
     preferredFandoms,
@@ -162,7 +161,6 @@ export default function ExplorePage() {
   const reserveLaunch = reserveLaunchId
     ? launches.find((launch) => launch.id === reserveLaunchId)
     : null;
-  const unreadCount = inbox.filter((item) => item.unread).length;
   const resolveRailUser = (userId?: string) =>
     users.find((user) => user.id === userId);
 
@@ -176,11 +174,9 @@ export default function ExplorePage() {
       <main className="mx-auto w-full max-w-[720px] px-4 pb-28 pt-5 sm:px-6 sm:pb-14 sm:pt-8">
         <section className="space-y-4">
           <HomeHeader
-            avatarUrl={currentUser.avatarUrl}
+            city={homeCity}
             firstName={getUserFirstName(currentUser)}
-            fullName={currentUser.name}
             subline="What are you feeling today?"
-            unreadCount={unreadCount}
           />
 
           <HomeSearchBar onChange={setQuery} value={query} />

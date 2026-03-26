@@ -78,12 +78,12 @@ export function ProfileServiceCard({
   return (
     <div
       className={cn(
-        "rounded-[28px] border border-white/8 bg-[#111622] p-3 shadow-[0_20px_44px_rgba(0,0,0,0.22)]",
+        "rounded-[28px] border border-white/6 bg-[#111622] p-3 shadow-[0_20px_44px_rgba(0,0,0,0.22)]",
         className
       )}
     >
       <div
-        className="relative h-[152px] overflow-hidden rounded-[24px] border border-white/8"
+        className="relative h-[152px] overflow-hidden rounded-[24px]"
         style={{ background: theme.background }}
       >
         {service.coverImage ? (
@@ -108,11 +108,11 @@ export function ProfileServiceCard({
 
         <div className="relative flex h-full flex-col justify-between p-4">
           <div className="flex items-start justify-between gap-3">
-            <span className="inline-flex rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/78 backdrop-blur-sm">
+            <span className="inline-flex rounded-full bg-black/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/78 backdrop-blur-sm">
               {resolvedCategoryLabel}
             </span>
             {previewLabel ? (
-              <span className="inline-flex rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] font-semibold text-white/76 backdrop-blur-sm">
+              <span className="inline-flex rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold text-white/76 backdrop-blur-sm">
                 {previewLabel}
               </span>
             ) : null}

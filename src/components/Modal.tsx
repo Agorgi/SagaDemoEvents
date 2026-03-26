@@ -55,7 +55,7 @@ export function Modal({
           </div>
           <button
             aria-label="Close modal"
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.05] text-base text-app-muted transition hover:bg-white/[0.08] hover:text-white"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.04] text-sm text-app-muted transition hover:bg-white/[0.06] hover:text-white"
             onClick={onClose}
             onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === " ") {

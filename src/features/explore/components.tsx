@@ -19,52 +19,26 @@ import {
 import { type DemoEvent } from "@/src/data/demo";
 import { getLaunchFundingProgress, type DemoLaunch } from "@/src/data/launches";
 import { getMediaObjectPosition } from "@/src/lib/media-position";
-import { APP_ROUTES } from "@/src/lib/routes";
 import { cn, formatCompactNumber } from "@/src/lib/utils";
 
 export function HomeHeader({
   firstName,
-  fullName,
+  city,
   subline,
-  avatarUrl,
-  unreadCount
 }: {
   firstName: string;
-  fullName: string;
+  city: string;
   subline: string;
-  avatarUrl?: string;
-  unreadCount: number;
 }) {
   return (
-    <div className="flex items-start justify-between gap-4">
-      <div className="space-y-1">
-        <p className="text-sm text-app-muted">Hey, {firstName}</p>
-        <h1 className="text-[2rem] font-semibold tracking-[-0.04em] text-white sm:text-[2.35rem]">
-          {subline}
-        </h1>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <Link
-          aria-label="Open updates"
-          className="relative inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.05] text-white transition hover:bg-white/[0.08]"
-          href={APP_ROUTES.updates}
-        >
-          <BellIcon />
-          {unreadCount > 0 ? (
-            <span className="absolute right-1 top-1 inline-flex min-h-[15px] min-w-[15px] items-center justify-center rounded-full bg-app-purple px-1 text-[9px] font-bold text-white">
-              {Math.min(unreadCount, 9)}
-            </span>
-          ) : null}
-        </Link>
-        <Link
-          aria-label="Open profile"
-          className="rounded-full transition hover:scale-[1.02]"
-          href={APP_ROUTES.profile}
-        >
-          <Avatar className="h-11 w-11 text-xs" name={fullName} size="md" src={avatarUrl} />
-        </Link>
-      </div>
+    <div className="space-y-1.5">
+      <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-app-muted">
+        {city}
+      </p>
+      <p className="text-sm text-white/74">Hey, {firstName}</p>
+      <h1 className="max-w-[14ch] text-[1.85rem] font-semibold tracking-[-0.045em] text-white sm:text-[2.15rem]">
+        {subline}
+      </h1>
     </div>
   );
 }
@@ -77,7 +51,7 @@ export function HomeSearchBar({
   onChange: (value: string) => void;
 }) {
   return (
-    <label className="flex items-center gap-3 rounded-[26px] border border-white/8 bg-[#0d1119] px-4 py-4 text-app-muted shadow-[0_18px_40px_rgba(0,0,0,0.18)] transition focus-within:border-white/14">
+    <label className="flex items-center gap-3 rounded-[24px] bg-white/[0.045] px-4 py-3.5 text-app-muted shadow-[0_16px_34px_rgba(0,0,0,0.16)] ring-1 ring-white/[0.04] transition focus-within:bg-white/[0.06] focus-within:ring-white/[0.08]">
       <SearchIcon />
       <input
         className="w-full bg-transparent text-sm text-white outline-none placeholder:text-app-muted"
@@ -98,20 +72,26 @@ export function TopModeChips({
   onChange: (mode: HomeMode) => void;
 }) {
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1 subtle-scrollbar">
+    <div className="-mx-1 flex gap-5 overflow-x-auto border-b border-white/6 px-1 subtle-scrollbar">
       {HOME_MODES.map((mode) => (
         <button
           className={cn(
-            "shrink-0 rounded-full px-4 py-2.5 text-sm font-semibold transition",
+            "relative shrink-0 pb-3 text-sm font-semibold transition",
             activeMode === mode.id
-              ? "bg-white text-[#090b10]"
-              : "bg-white/[0.05] text-app-muted hover:bg-white/[0.08] hover:text-white"
+              ? "text-white"
+              : "text-app-muted hover:text-white"
           )}
           key={mode.id}
           onClick={() => onChange(mode.id)}
           type="button"
         >
           {mode.label}
+          <span
+            className={cn(
+              "absolute inset-x-0 bottom-0 h-[2px] rounded-full bg-white transition-opacity",
+              activeMode === mode.id ? "opacity-100" : "opacity-0"
+            )}
+          />
         </button>
       ))}
     </div>
@@ -126,20 +106,26 @@ export function EventContentFilters({
   onChange: (filter: EventContentFilter) => void;
 }) {
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1 subtle-scrollbar">
+    <div className="-mx-1 flex gap-4 overflow-x-auto border-b border-white/6 px-1 subtle-scrollbar">
       {EVENT_CONTENT_FILTERS.map((filter) => (
         <button
           className={cn(
-            "shrink-0 rounded-full px-3 py-2 text-[11px] font-semibold tracking-[0.01em] transition",
+            "relative shrink-0 pb-3 text-[12px] font-medium transition",
             activeFilter === filter.id
-              ? "bg-app-purple text-white"
-              : "bg-white/[0.04] text-app-muted hover:bg-white/[0.07] hover:text-white"
+              ? "text-white"
+              : "text-app-muted hover:text-white"
           )}
           key={filter.id}
           onClick={() => onChange(filter.id)}
           type="button"
         >
           {filter.label}
+          <span
+            className={cn(
+              "absolute inset-x-0 bottom-0 h-[2px] rounded-full bg-white transition-opacity",
+              activeFilter === filter.id ? "opacity-100" : "opacity-0"
+            )}
+          />
         </button>
       ))}
     </div>
@@ -683,26 +669,6 @@ function SearchIcon() {
         stroke="currentColor"
         strokeLinecap="round"
         strokeLinejoin="round"
-        strokeWidth="1.7"
-      />
-    </svg>
-  );
-}
-
-function BellIcon() {
-  return (
-    <svg aria-hidden="true" fill="none" height="18" viewBox="0 0 24 24" width="18">
-      <path
-        d="M12 4.75a4.25 4.25 0 0 0-4.25 4.25v2.06c0 .77-.2 1.53-.58 2.21l-1.07 1.92a1 1 0 0 0 .87 1.49h10.16a1 1 0 0 0 .87-1.49l-1.07-1.92a4.54 4.54 0 0 1-.58-2.21V9A4.25 4.25 0 0 0 12 4.75Z"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.7"
-      />
-      <path
-        d="M9.75 18.25a2.25 2.25 0 0 0 4.5 0"
-        stroke="currentColor"
-        strokeLinecap="round"
         strokeWidth="1.7"
       />
     </svg>
