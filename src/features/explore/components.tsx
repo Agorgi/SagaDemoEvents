@@ -361,25 +361,38 @@ export function SoftLaunchRailCard({
 export function FriendInterestCard({
   item,
   metadataLine,
+  hostName,
+  hostAvatarUrl,
+  eyebrow,
   saved = false,
   onToggleSaved
 }: {
   item: FriendEventSpotlight;
   metadataLine: string;
+  hostName?: string;
+  hostAvatarUrl?: string;
+  eyebrow?: string;
   saved?: boolean;
   onToggleSaved?: () => void;
 }) {
   return (
-    <article className="overflow-hidden rounded-[30px] border border-white/8 bg-[#101520] shadow-card">
+    <article className="group overflow-hidden rounded-[30px] border border-white/8 bg-[#101520] shadow-card">
       <Link className="block" href={`/events/${item.event.id}`}>
-        <div className="relative h-[190px] overflow-hidden">
+        <div className="relative h-[214px] overflow-hidden">
           <img
             alt={item.event.title}
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
             src={item.event.posterUrl}
             style={{ objectPosition: getMediaObjectPosition(item.event.posterPosition) }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#07090f] via-[#07090f]/18 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent" />
+          <div className="absolute left-3 top-3">
+            <StatusChip status="confirmed" />
+          </div>
+          <div className="absolute left-3 top-[48px] inline-flex items-center gap-1 rounded-full bg-[#0a0d14]/68 px-2.5 py-1 text-[10px] font-medium text-white/82 backdrop-blur-sm">
+            {eyebrow ?? item.event.fandomTags[0] ?? "Friends"}
+          </div>
           {onToggleSaved ? (
             <div className="absolute right-3 top-3 z-[2]">
               <OverlayIconButton
@@ -391,29 +404,63 @@ export function FriendInterestCard({
               </OverlayIconButton>
             </div>
           ) : null}
+
+          <div className="absolute inset-x-0 bottom-0 p-3">
+            <div className="inline-flex max-w-full items-center gap-3 rounded-full bg-[#0a0d14]/68 px-3 py-2 backdrop-blur-sm">
+              <AvatarStack
+                people={item.actorUsers.map((user) => ({
+                  id: user.id,
+                  name: user.name,
+                  avatarUrl: user.avatarUrl
+                }))}
+              />
+              <p className="line-clamp-1 text-[11px] text-white/86">{item.socialLine}</p>
+            </div>
+          </div>
         </div>
       </Link>
 
       <div className="space-y-3 p-4">
-        <div className="flex items-center gap-3">
-          <AvatarStack
-            people={item.actorUsers.map((user) => ({
-              id: user.id,
-              name: user.name,
-              avatarUrl: user.avatarUrl
-            }))}
-          />
-          <p className="line-clamp-1 text-xs text-app-muted">{item.socialLine}</p>
-        </div>
-
         <div className="space-y-1.5">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/45">
+            Friends are going
+          </p>
           <Link href={`/events/${item.event.id}`}>
-            <h3 className="text-xl font-semibold leading-tight text-white">
+            <h3 className="text-[1.1rem] font-semibold leading-tight text-white">
               {item.event.title}
             </h3>
           </Link>
-          <p className="text-sm text-white/68">{metadataLine}</p>
+          <p className="text-xs text-white/64">{metadataLine}</p>
         </div>
+
+        {hostName ? (
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <Avatar
+                className="h-9 w-9 border-[#101520]"
+                name={hostName}
+                size="sm"
+                src={hostAvatarUrl}
+              />
+              <div className="min-w-0">
+                <p className="truncate text-xs font-semibold text-white">{hostName}</p>
+                <p className="truncate text-[11px] text-app-muted">Hosted in your scene</p>
+              </div>
+            </div>
+
+            <div className="shrink-0 inline-flex items-center gap-1 text-[11px] font-medium text-white/76 transition group-hover:text-white">
+              View
+              <ArrowUpRightIcon />
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center justify-end">
+            <div className="inline-flex items-center gap-1 text-[11px] font-medium text-white/76 transition group-hover:text-white">
+              View
+              <ArrowUpRightIcon />
+            </div>
+          </div>
+        )}
       </div>
     </article>
   );

@@ -228,15 +228,21 @@ export default function ExplorePage() {
                     title="Friends are going"
                   />
                   <div className="space-y-3">
-                    {friendEvents.map((item) => (
-                      <FriendInterestCard
-                        item={item}
-                        key={item.event.id}
-                        metadataLine={`${formatDateRange(item.event.startsAt, item.event.endsAt)} · ${item.event.city}`}
-                        onToggleSaved={() => toggleSavedEvent(item.event.id)}
-                        saved={savedEventIds.includes(item.event.id)}
-                      />
-                    ))}
+                    {friendEvents.map((item) => {
+                      const host = resolveRailUser(item.event.hostId);
+
+                      return (
+                        <FriendInterestCard
+                          hostAvatarUrl={host?.avatarUrl}
+                          hostName={host?.name}
+                          item={item}
+                          key={item.event.id}
+                          metadataLine={`${formatDateRange(item.event.startsAt, item.event.endsAt)} · ${item.event.city}`}
+                          onToggleSaved={() => toggleSavedEvent(item.event.id)}
+                          saved={savedEventIds.includes(item.event.id)}
+                        />
+                      );
+                    })}
                   </div>
                 </section>
               ) : null}
