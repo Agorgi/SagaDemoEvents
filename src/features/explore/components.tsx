@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-
 import { Avatar, AvatarStack } from "@/src/components/Avatar";
 import { PageHeroHeader } from "@/src/components/PageHeroHeader";
 import { StatusChip } from "@/src/components/StatusChip";
@@ -179,7 +177,7 @@ export function HomeEventRailCard({
   eyebrow?: string;
 }) {
   return (
-    <Link
+    <a
       className="group block w-[252px] shrink-0 snap-start overflow-hidden rounded-[30px] border border-white/8 bg-[#101520] shadow-card transition hover:border-white/12"
       href={`/events/${event.id}`}
     >
@@ -241,7 +239,7 @@ export function HomeEventRailCard({
           </div>
         )}
       </div>
-    </Link>
+    </a>
   );
 }
 
@@ -265,7 +263,7 @@ export function SoftLaunchRailCard({
   );
 
   return (
-    <Link
+    <a
       className="group block w-[252px] shrink-0 snap-start overflow-hidden rounded-[30px] border border-[#93a6ff]/16 bg-[#101520] shadow-card transition hover:border-[#93a6ff]/24"
       href={`/campaigns/${launch.id}`}
     >
@@ -331,7 +329,7 @@ export function SoftLaunchRailCard({
           </div>
         </div>
       </div>
-    </Link>
+    </a>
   );
 }
 
@@ -353,8 +351,22 @@ export function FriendInterestCard({
   onToggleSaved?: () => void;
 }) {
   return (
-    <article className="group overflow-hidden rounded-[30px] border border-white/8 bg-[#101520] shadow-card">
-      <Link className="block" href={`/events/${item.event.id}`}>
+    <div className="relative">
+      {onToggleSaved ? (
+        <div className="absolute right-3 top-3 z-[3]">
+          <OverlayIconButton
+            ariaLabel={saved ? "Unsave event" : "Save event"}
+            onClick={onToggleSaved}
+            selected={saved}
+          >
+            <BookmarkIcon />
+          </OverlayIconButton>
+        </div>
+      ) : null}
+      <a
+        className="group block overflow-hidden rounded-[30px] border border-white/8 bg-[#101520] shadow-card"
+        href={`/events/${item.event.id}`}
+      >
         <div className="relative h-[214px] overflow-hidden">
           <img
             alt={item.event.title}
@@ -370,18 +382,6 @@ export function FriendInterestCard({
           <div className="absolute left-3 top-[48px] inline-flex items-center gap-1 rounded-full bg-[#0a0d14]/68 px-2.5 py-1 text-[10px] font-medium text-white/82 backdrop-blur-sm">
             {eyebrow ?? item.event.fandomTags[0] ?? "Friends"}
           </div>
-          {onToggleSaved ? (
-            <div className="absolute right-3 top-3 z-[2]">
-              <OverlayIconButton
-                ariaLabel={saved ? "Unsave event" : "Save event"}
-                onClick={onToggleSaved}
-                selected={saved}
-              >
-                <BookmarkIcon />
-              </OverlayIconButton>
-            </div>
-          ) : null}
-
           <div className="absolute inset-x-0 bottom-0 p-3">
             <div className="inline-flex max-w-full items-center gap-3 rounded-full bg-[#0a0d14]/68 px-3 py-2 backdrop-blur-sm">
               <AvatarStack
@@ -395,18 +395,13 @@ export function FriendInterestCard({
             </div>
           </div>
         </div>
-      </Link>
 
       <div className="space-y-3 p-4">
         <div className="space-y-1.5">
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/45">
             Friends are going
           </p>
-          <Link href={`/events/${item.event.id}`}>
-            <h3 className="text-[1.1rem] font-semibold leading-tight text-white">
-              {item.event.title}
-            </h3>
-          </Link>
+          <h3 className="text-[1.1rem] font-semibold leading-tight text-white">{item.event.title}</h3>
           <p className="text-xs text-white/64">{metadataLine}</p>
         </div>
 
@@ -439,7 +434,8 @@ export function FriendInterestCard({
           </div>
         )}
       </div>
-    </article>
+      </a>
+    </div>
   );
 }
 
@@ -451,7 +447,7 @@ export function CreatorWeekCard({
   const isOpenToWork = creator.publicServices > 0;
 
   return (
-    <Link
+    <a
       className="group block w-[178px] shrink-0 snap-start overflow-hidden rounded-[28px] border border-white/8 bg-[#101520] p-3.5 shadow-card transition hover:border-white/12"
       href={`/profiles/${creator.user.id}`}
     >
@@ -494,7 +490,7 @@ export function CreatorWeekCard({
           {creator.locationLabel}
         </p>
       </div>
-    </Link>
+    </a>
   );
 }
 
@@ -517,12 +513,14 @@ export function GenreBrowseButton({
   summary,
   compact = false,
   active = false,
+  href,
   onClick
 }: {
   genre: ExploreGenre;
   summary?: GenreRailSummary;
   compact?: boolean;
   active?: boolean;
+  href?: string;
   onClick?: () => void;
 }) {
   const statsLine =
@@ -531,7 +529,7 @@ export function GenreBrowseButton({
       : genre.description;
 
   return (
-    <button
+    <a
       className={cn(
         "group relative shrink-0 overflow-hidden rounded-[28px] border text-left shadow-card transition",
         compact ? "h-[122px] w-[224px] snap-start" : "h-[148px] w-full",
@@ -539,8 +537,8 @@ export function GenreBrowseButton({
           ? "border-white/16 shadow-[0_20px_44px_rgba(10,12,20,0.32)]"
           : "border-white/8 hover:border-white/12"
       )}
+      href={href ?? `/explore?mode=genres&genre=${genre.id}`}
       onClick={onClick}
-      type="button"
     >
       <img
         alt={genre.label}
@@ -574,7 +572,7 @@ export function GenreBrowseButton({
           {statsLine}
         </p>
       </div>
-    </button>
+    </a>
   );
 }
 

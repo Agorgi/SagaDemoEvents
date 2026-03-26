@@ -62,6 +62,29 @@ export default function ExplorePage() {
     setMode("fan");
   }, [setMode]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const modeParam = params.get("mode");
+    const genreParam = params.get("genre");
+
+    if (
+      modeParam === "for_you" ||
+      modeParam === "events" ||
+      modeParam === "creators" ||
+      modeParam === "genres"
+    ) {
+      setActiveMode(modeParam);
+    } else if (genreParam) {
+      setActiveMode("genres");
+    }
+
+    setActiveGenreId(genreParam);
+  }, []);
+
   const topInterest = useMemo(() => getTopInterest(preferredFandoms), [preferredFandoms]);
   const browseGenres = useMemo(() => {
     const search = query.trim().toLowerCase();
@@ -294,6 +317,7 @@ export default function ExplorePage() {
                       <GenreBrowseButton
                         compact
                         genre={genre}
+                        href={`/explore?mode=genres&genre=${genre.id}`}
                         key={genre.id}
                         summary={genreSummaries.get(genre.id)}
                         onClick={() => {
