@@ -34,7 +34,7 @@ export function PledgeModal({
       title="Reserve your spot"
     >
       <div className="space-y-5">
-        <div className="rounded-[24px] border border-white/8 bg-[#0d1119] p-4">
+        <div className="rounded-[24px] bg-white/[0.04] p-4">
           <p className="text-sm text-app-muted">Pending ticket</p>
           <p className="mt-2 text-3xl font-semibold text-white">${launch.ticketPrice}</p>
           <p className="mt-2 text-sm leading-6 text-app-muted">{launch.softLaunchSummary}</p>
@@ -44,10 +44,10 @@ export function PledgeModal({
           <p className="text-sm font-semibold text-white">Pick your best date</p>
           {launch.dateOptions.map((option) => (
             <button
-              className={`flex w-full items-center justify-between rounded-[22px] border px-4 py-3 text-left transition ${
+              className={`flex w-full items-center justify-between rounded-[22px] px-4 py-3 text-left transition ${
                 selectedDateOptionId === option.id
-                  ? "border-app-purple/30 bg-app-purple/12 text-white"
-                  : "border-white/10 bg-white/[0.02] text-white hover:border-white/20"
+                  ? "bg-app-purple/12 text-white shadow-[0_14px_30px_rgba(31,28,184,0.16)]"
+                  : "bg-white/[0.04] text-white hover:bg-white/[0.07]"
               }`}
               key={option.id}
               onClick={() => setSelectedDateOptionId(option.id)}
@@ -61,7 +61,7 @@ export function PledgeModal({
 
         <div className="grid gap-3 sm:grid-cols-2">
           <button
-            className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
+            className="rounded-2xl bg-white/[0.05] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
             onClick={() => {
               onWatch(selectedDateOptionId || undefined);
               onClose();

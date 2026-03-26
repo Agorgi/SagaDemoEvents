@@ -27,7 +27,7 @@ export function PortfolioModal({
       title="Portfolio submitted"
     >
       <div className="space-y-5">
-        <div className="rounded-[24px] border border-white/8 bg-[#0d1119] p-6 text-center">
+        <div className="rounded-[24px] bg-white/[0.04] p-6 text-center">
           <div className="mx-auto mb-4 flex justify-center">
             <Avatar
               className="h-24 w-24 text-2xl"

@@ -47,14 +47,14 @@ export function TicketModal({
     >
       {success || isJoined ? (
         <div className="space-y-5">
-          <div className="overflow-hidden rounded-[24px] border border-white/8">
+          <div className="overflow-hidden rounded-[24px]">
             <img
               alt={event.title}
               className="h-48 w-full object-cover"
               src={event.posterUrl}
             />
           </div>
-          <div className="rounded-[22px] border border-white/8 bg-[#0d1119] p-5 text-center">
+          <div className="rounded-[22px] bg-white/[0.04] p-5 text-center">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-app-success/10 text-2xl text-app-success">
               ✓
             </div>
@@ -74,7 +74,7 @@ export function TicketModal({
               Join event room
             </Link>
             <button
-              className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
+              className="rounded-2xl bg-white/[0.05] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
               onClick={onClose}
               type="button"
             >
@@ -84,14 +84,14 @@ export function TicketModal({
         </div>
       ) : (
         <div className="space-y-5">
-          <div className="overflow-hidden rounded-[24px] border border-white/8">
+          <div className="overflow-hidden rounded-[24px]">
             <img
               alt={event.title}
               className="h-48 w-full object-cover"
               src={event.posterUrl}
             />
           </div>
-          <div className="rounded-[22px] border border-white/8 bg-[#0d1119] p-4">
+          <div className="rounded-[22px] bg-white/[0.04] p-4">
             <p className="text-sm text-app-muted">{formatDateRange(event.startsAt, event.endsAt)}</p>
             <h3 className="mt-2 text-2xl font-semibold text-white">{event.title}</h3>
             <p className="mt-2 text-sm text-app-muted">{event.city}</p>
@@ -100,7 +100,7 @@ export function TicketModal({
               <p className="text-sm text-app-muted">Friends already going</p>
             </div>
           </div>
-          <div className="rounded-[22px] border border-white/8 bg-[#0d1119] p-4">
+          <div className="rounded-[22px] bg-white/[0.04] p-4">
             <div className="flex items-center justify-between text-sm text-app-muted">
               <span>{event.isFree ? "RSVP" : "Event ticket"}</span>
               <span>{event.isFree ? "Free" : "$10"}</span>

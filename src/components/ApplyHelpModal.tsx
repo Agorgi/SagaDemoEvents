@@ -82,7 +82,7 @@ export function ApplyHelpModal({
 
             return (
               <div
-                className="rounded-[24px] border border-white/8 bg-[#0d1119] p-4"
+                className="rounded-[24px] bg-white/[0.04] p-4"
                 key={role.id}
               >
                 <div className="flex items-start justify-between gap-4">
@@ -122,7 +122,7 @@ export function ApplyHelpModal({
             );
           })
         ) : (
-          <div className="rounded-[24px] border border-white/8 bg-[#0d1119] p-5">
+          <div className="rounded-[24px] bg-white/[0.04] p-5">
             <p className="font-semibold text-white">No open roles right now</p>
             <p className="mt-2 text-sm text-app-muted">
               This event is already staffed. You can still RSVP and follow it in the room after joining.
@@ -132,7 +132,7 @@ export function ApplyHelpModal({
 
         <div className="flex justify-end">
           <Link
-            className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
+            className="rounded-2xl bg-white/[0.05] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
             href="/my-events"
             onClick={onClose}
           >

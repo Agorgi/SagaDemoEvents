@@ -80,7 +80,7 @@ export function ProfilePreviewModal({
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[20px] border border-white/8 bg-[#0d1119] p-3">
+    <div className="rounded-[20px] bg-white/[0.04] p-3">
       <p className="text-xs text-app-muted">{label}</p>
       <p className="mt-2 text-sm font-semibold text-white">{value}</p>
     </div>

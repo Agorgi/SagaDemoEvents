@@ -25,7 +25,7 @@ export function PortfolioLightboxModal({
       title={item.title ?? "Portfolio"}
     >
       <div className="space-y-4">
-        <div className="overflow-hidden rounded-[28px] border border-white/8 bg-[#0d1119]">
+        <div className="overflow-hidden rounded-[28px] bg-[#0d1119]">
           <img
             alt={item.title ?? "Portfolio item"}
             className="max-h-[70dvh] w-full object-cover"

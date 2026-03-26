@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { Modal } from "@/src/components/Modal";
+import { UnderlineTabs } from "@/src/components/UnderlineTabs";
 import {
   formatServicePricing,
   type ProfileService,
@@ -45,7 +46,7 @@ export function ManageServicesModal({
     >
       <div className="space-y-4">
         {draftServices.map((service, index) => (
-          <div className="rounded-[24px] border border-white/8 bg-[#101522] p-4" key={service.id}>
+          <div className="rounded-[24px] bg-white/[0.04] p-4" key={service.id}>
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-semibold text-white">Service {index + 1}</p>
               <button
@@ -65,7 +66,7 @@ export function ManageServicesModal({
                   Title
                 </span>
                 <input
-                  className="h-12 w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 text-sm text-white outline-none transition placeholder:text-app-muted focus:border-white/20"
+                  className="h-12 w-full rounded-[18px] bg-white/[0.05] px-4 text-sm text-white outline-none transition placeholder:text-app-muted focus:bg-white/[0.07]"
                   onChange={(event) =>
                     setDraftServices((current) =>
                       current.map((item) =>
@@ -84,48 +85,36 @@ export function ManageServicesModal({
                   Pricing
                 </span>
                 <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-2">
-                    {(["hourly", "flat"] as ServicePricingMode[]).map((mode) => {
-                      const selectedMode =
-                        service.pricingMode ?? inferServicePricingMode(service.pricingLabel);
-                      return (
-                        <button
-                          className={`rounded-[18px] border px-3 py-3 text-sm font-semibold transition ${
-                            selectedMode === mode
-                              ? "border-app-purple/40 bg-app-purple/12 text-white"
-                              : "border-white/10 bg-white/[0.03] text-app-muted hover:border-white/20 hover:text-white"
-                          }`}
-                          key={mode}
-                          onClick={() =>
-                            setDraftServices((current) =>
-                              current.map((item) => {
-                                if (item.id !== service.id) {
-                                  return item;
-                                }
-                                const nextAmount =
-                                  item.priceAmount?.toString() || inferServicePriceAmount(item.pricingLabel);
-                                return {
-                                  ...item,
-                                  pricingMode: mode,
-                                  pricingLabel:
-                                    buildServicePricingLabel(mode, nextAmount) || item.pricingLabel
-                                };
-                              })
-                            )
+                  <UnderlineTabs
+                    items={[
+                      { value: "hourly", label: "Hourly" },
+                      { value: "flat", label: "Flat fee" }
+                    ]}
+                    onChange={(mode) =>
+                      setDraftServices((current) =>
+                        current.map((item) => {
+                          if (item.id !== service.id) {
+                            return item;
                           }
-                          type="button"
-                        >
-                          {mode === "hourly" ? "Hourly" : "Flat fee"}
-                        </button>
-                      );
-                    })}
-                  </div>
+                          const nextAmount =
+                            item.priceAmount?.toString() || inferServicePriceAmount(item.pricingLabel);
+                          return {
+                            ...item,
+                            pricingMode: mode as ServicePricingMode,
+                            pricingLabel:
+                              buildServicePricingLabel(mode as ServicePricingMode, nextAmount) || item.pricingLabel
+                          };
+                        })
+                      )
+                    }
+                    value={(service.pricingMode ?? inferServicePricingMode(service.pricingLabel)) as ServicePricingMode}
+                  />
                   <div className="relative">
                     <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-white/68">
                       $
                     </span>
                     <input
-                      className="h-12 w-full rounded-[18px] border border-white/10 bg-white/[0.03] pl-8 pr-4 text-sm text-white outline-none transition placeholder:text-app-muted focus:border-white/20"
+                      className="h-12 w-full rounded-[18px] bg-white/[0.05] pl-8 pr-4 text-sm text-white outline-none transition placeholder:text-app-muted focus:bg-white/[0.07]"
                       inputMode="decimal"
                       onChange={(event) =>
                         setDraftServices((current) =>
@@ -161,7 +150,7 @@ export function ManageServicesModal({
                   Short description
                 </span>
                 <textarea
-                  className="min-h-[96px] w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none transition placeholder:text-app-muted focus:border-white/20"
+                  className="min-h-[96px] w-full rounded-[18px] bg-white/[0.05] px-4 py-3 text-sm text-white outline-none transition placeholder:text-app-muted focus:bg-white/[0.07]"
                   onChange={(event) =>
                     setDraftServices((current) =>
                       current.map((item) =>
@@ -176,7 +165,7 @@ export function ManageServicesModal({
                 />
               </label>
 
-              <label className="flex items-center justify-between rounded-[18px] border border-white/8 bg-white/[0.02] px-4 py-3">
+              <label className="flex items-center justify-between rounded-[18px] bg-white/[0.05] px-4 py-3">
                 <span className="text-sm font-medium text-white">Open to volunteering</span>
                 <input
                   checked={Boolean(service.openToVolunteering)}
@@ -194,7 +183,7 @@ export function ManageServicesModal({
                 />
               </label>
 
-              <label className="flex items-center justify-between rounded-[18px] border border-white/8 bg-white/[0.02] px-4 py-3">
+              <label className="flex items-center justify-between rounded-[18px] bg-white/[0.05] px-4 py-3">
                 <span className="text-sm font-medium text-white">Visible on public profile</span>
                 <input
                   checked={service.visibleOnPublicProfile}
