@@ -79,6 +79,12 @@ export default function MyEventsPage() {
     router.push(item.href);
   }
 
+  function dismissOverlay() {
+    setSelectedDateKey(null);
+    setActivePreviewIndex(0);
+    setOverlayOrigin(null);
+  }
+
   function handleDaySelect(day: CalendarDay, anchor: { x: number; y: number }) {
     if (day.items.length === 0) {
       setSelectedDateKey(day.key);
@@ -126,6 +132,7 @@ export default function MyEventsPage() {
           <CalendarGrid
             activeIndex={activePreviewIndex}
             days={days}
+            onDismissOverlay={dismissOverlay}
             overlayAnimationKey={overlayAnimationKey}
             overlayOrigin={overlayOrigin}
             onOpenItem={openPlanItem}

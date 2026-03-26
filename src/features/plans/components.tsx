@@ -42,6 +42,7 @@ export function CalendarGrid({
   activeIndex,
   overlayAnimationKey,
   overlayOrigin,
+  onDismissOverlay,
   onSelectDay,
   onSelectItem,
   onOpenItem
@@ -53,6 +54,7 @@ export function CalendarGrid({
   activeIndex: number;
   overlayAnimationKey: string;
   overlayOrigin: { dx: number; dy: number } | null;
+  onDismissOverlay: () => void;
   onSelectDay: (day: CalendarDay, anchor: { x: number; y: number }) => void;
   onSelectItem: (index: number) => void;
   onOpenItem: (item: PlanCalendarItem) => void;
@@ -117,7 +119,14 @@ export function CalendarGrid({
       </section>
 
       {featuredItem && tone && overlayOrigin ? (
-        <div className="pointer-events-none fixed inset-0 z-30 flex items-center justify-center px-4">
+        <div className="fixed inset-0 z-30">
+          <button
+            aria-label="Close plan preview"
+            className="absolute inset-0 bg-black/18 backdrop-blur-[1px]"
+            onClick={onDismissOverlay}
+            type="button"
+          />
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-4">
           <SelectedDayOverlay
             activeIndex={activeIndex}
             animationKey={overlayAnimationKey}
@@ -129,6 +138,7 @@ export function CalendarGrid({
             selectedDateLabel={selectedDateLabel}
             tone={tone}
           />
+          </div>
         </div>
       ) : null}
     </>
