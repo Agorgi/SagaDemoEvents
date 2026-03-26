@@ -24,6 +24,7 @@ import {
   SERVICE_FLOW_STORAGE_KEY,
   type ServiceDraft
 } from "@/src/data/service-flow";
+import { mediaPositionOptions } from "@/src/lib/media-position";
 import { useAppState } from "@/src/lib/app-state";
 
 const steps = [
@@ -412,6 +413,30 @@ export default function NewProfileServicePage() {
                   mode="preview"
                   service={buildServiceFromDraft(draft)}
                 />
+
+                {draft.coverImage ? (
+                  <div className="flex items-center justify-between gap-3 rounded-[22px] border border-white/8 bg-[#0d1119] px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-app-muted">
+                      Reposition
+                    </p>
+                    <div className="flex items-center gap-2">
+                      {mediaPositionOptions.map((option) => (
+                        <button
+                          className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                            draft.coverImagePosition === option.value
+                              ? "bg-app-purple text-white shadow-[0_10px_24px_rgba(31,28,184,0.22)]"
+                              : "border border-white/10 bg-white/[0.03] text-app-muted hover:border-white/18 hover:text-white"
+                          }`}
+                          key={option.value}
+                          onClick={() => patchDraft({ coverImagePosition: option.value })}
+                          type="button"
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
 
                 <div className="rounded-[24px] border border-white/8 bg-white/[0.03] px-4 py-4">
                   <div className="flex items-center justify-between gap-3">
