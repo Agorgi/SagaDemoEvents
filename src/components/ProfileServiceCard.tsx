@@ -1,6 +1,7 @@
 "use client";
 
 import { StarRatingValue } from "@/src/components/StarRatingValue";
+import { VolunteerBadge } from "@/src/components/VolunteerBadge";
 import { type ProfileService } from "@/src/data/creator-profiles";
 import { getServiceCategoryOption } from "@/src/data/service-flow";
 import { getMediaObjectPosition } from "@/src/lib/media-position";
@@ -110,11 +111,7 @@ export function ProfileServiceCard({
               {resolvedCategoryLabel}
             </span>
             <div className="flex flex-col items-end gap-2">
-              {volunteerBadge ? (
-                <span className="inline-flex rounded-full border border-[#F0C453]/30 bg-[#F0C453]/12 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#F0C453] backdrop-blur-sm">
-                  {volunteerBadge}
-                </span>
-              ) : null}
+              {volunteerBadge ? <VolunteerBadge /> : null}
               {previewLabel ? (
                 <span className="inline-flex rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] font-semibold text-white/76 backdrop-blur-sm">
                   {previewLabel}

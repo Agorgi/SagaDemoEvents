@@ -41,6 +41,7 @@ export type Opportunity = {
   dateLabel: string;
   locationLabel: string;
   compensation: string;
+  openToVolunteering?: boolean;
   perks: string[];
   skillTags: string[];
   eventId?: string;
@@ -705,6 +706,7 @@ export const opportunities: Opportunity[] = [
     dateLabel: "Apr 18 · 6:30 PM",
     locationLabel: "Downtown social hall",
     compensation: "$140 shift",
+    openToVolunteering: true,
     perks: ["Free ticket + creator intro"],
     eventId: "jujutsu-night-out",
     hostUserId: "user-iris",
@@ -825,6 +827,7 @@ export const opportunities: Opportunity[] = [
     dateLabel: "Jun 14 · 8:00 PM",
     locationLabel: "Night Shift rooftop",
     compensation: "$180 shift",
+    openToVolunteering: true,
     perks: ["Priority on next city expansion"],
     eventId: "marvel-rivals-night-shift",
     hostUserId: "user-iris",
@@ -855,6 +858,7 @@ export const opportunities: Opportunity[] = [
     dateLabel: "Remote this week",
     locationLabel: "Async",
     compensation: "$120 project",
+    openToVolunteering: true,
     perks: ["Byline on launch assets"],
     campaignId: "launch-moonlit-salon-0x1",
     hostUserId: "user-zo",

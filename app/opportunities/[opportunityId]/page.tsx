@@ -8,6 +8,7 @@ import { Avatar } from "@/src/components/Avatar";
 import { ExpandableText } from "@/src/components/ExpandableText";
 import { TagChip } from "@/src/components/Chips";
 import { Nav } from "@/src/components/Nav";
+import { VolunteerBadge } from "@/src/components/VolunteerBadge";
 import { getOpportunityById, getOpportunityContext } from "@/src/data/economy";
 import { getUserById } from "@/src/data/demo";
 import { useAppState } from "@/src/lib/app-state";
@@ -40,6 +41,7 @@ export default function OpportunityDetailPage() {
     : `/campaigns/${opportunity.campaignId}`;
   const projectImage =
     context && "coverImageUrl" in context ? context.coverImageUrl : context?.posterUrl;
+  const volunteerBadge = opportunity.openToVolunteering ? "Volunteer" : null;
 
   function submitApplication(customNote?: string) {
     applyToOpportunity(
@@ -64,6 +66,11 @@ export default function OpportunityDetailPage() {
               <div className="absolute left-4 top-4">
                 <ProjectStateChip state={projectState} />
               </div>
+              {volunteerBadge ? (
+                <div className="absolute right-4 top-4">
+                  <VolunteerBadge className="shadow-[0_10px_30px_rgba(0,0,0,0.28)]" />
+                </div>
+              ) : null}
             </div>
           </div>
 
@@ -135,6 +142,7 @@ export default function OpportunityDetailPage() {
 
           <DetailSection title="Pay & perks">
             <div className="flex flex-wrap gap-2">
+              {volunteerBadge ? <VolunteerBadge /> : null}
               <TagChip label={opportunity.compensation} subdued />
               {opportunity.perks.map((perk) => (
                 <TagChip key={perk} label={perk} subdued />

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { VolunteerBadge } from "@/src/components/VolunteerBadge";
 import { getOpportunityContext, type ApplicationStatus, type Opportunity } from "@/src/data/economy";
 import { cn } from "@/src/lib/utils";
 
@@ -72,6 +73,7 @@ export function OpportunityCard({
       : applicationStatus
         ? statusLabel[applicationStatus]
         : opportunity.socialProof);
+  const volunteerBadge = opportunity.openToVolunteering ? "Volunteer" : null;
 
   return (
     <article
@@ -94,6 +96,11 @@ export function OpportunityCard({
           <div className="absolute left-4 top-4">
             <ProjectStateChip state={projectState} />
           </div>
+          {volunteerBadge ? (
+            <div className="absolute right-4 top-4">
+              <VolunteerBadge className="shadow-[0_10px_30px_rgba(0,0,0,0.28)]" />
+            </div>
+          ) : null}
         </div>
       </Link>
 
