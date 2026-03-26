@@ -9,6 +9,7 @@ export type ProfileService = {
   title: string;
   category?: string;
   pricingLabel: string;
+  openToVolunteering?: boolean;
   reviewScore?: number;
   reviewCount?: number;
   shortDescription?: string;

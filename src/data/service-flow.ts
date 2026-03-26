@@ -8,6 +8,7 @@ export type ServiceDraft = {
   category: string;
   title: string;
   pricingLabel: string;
+  openToVolunteering: boolean;
   shortDescription: string;
   coverStyle: ServiceCoverStyle;
   coverImage?: string;
@@ -119,6 +120,7 @@ export function createEmptyServiceDraft(): ServiceDraft {
     category: "",
     title: "",
     pricingLabel: "",
+    openToVolunteering: false,
     shortDescription: "",
     coverStyle: "violet",
     coverImagePosition: "center",
@@ -152,6 +154,7 @@ export function buildServiceFromDraft(draft: ServiceDraft): ProfileService {
     category: draft.category.trim() || "other",
     title: draft.title.trim() || getServiceTitleSuggestion(draft.category),
     pricingLabel: draft.pricingLabel.trim() || getServicePricingPlaceholder(draft.category),
+    openToVolunteering: draft.openToVolunteering,
     shortDescription: draft.shortDescription.trim(),
     coverStyle: draft.coverStyle,
     coverImage: draft.coverImage,

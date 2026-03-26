@@ -209,12 +209,43 @@ export default function NewProfileServicePage() {
         ) : null}
 
         {currentStep.id === "pricing" ? (
-          <QuestionField
-            helper={`Try something like ${getServicePricingPlaceholder(draft.category)}`}
-            onChange={(value) => patchDraft({ pricingLabel: value })}
-            placeholder={getServicePricingPlaceholder(draft.category)}
-            value={draft.pricingLabel}
-          />
+          <div className="space-y-4">
+            <QuestionField
+              helper={`Try something like ${getServicePricingPlaceholder(draft.category)}`}
+              onChange={(value) => patchDraft({ pricingLabel: value })}
+              placeholder={getServicePricingPlaceholder(draft.category)}
+              value={draft.pricingLabel}
+            />
+            <button
+              className={`w-full rounded-[24px] border px-4 py-4 text-left transition ${
+                draft.openToVolunteering
+                  ? "border-app-purple/40 bg-app-purple/12 shadow-[0_18px_42px_rgba(31,28,184,0.16)]"
+                  : "border-white/10 bg-[#0d1119] hover:border-white/18"
+              }`}
+              onClick={() =>
+                patchDraft({ openToVolunteering: !draft.openToVolunteering })
+              }
+              type="button"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-white">Open to volunteering</p>
+                  <p className="mt-1 text-xs leading-5 text-app-muted">
+                    Let people know you are open to unpaid community asks too.
+                  </p>
+                </div>
+                <span
+                  className={`mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full border text-xs font-semibold ${
+                    draft.openToVolunteering
+                      ? "border-app-purple/50 bg-app-purple/20 text-white"
+                      : "border-white/10 bg-white/[0.03] text-app-muted"
+                  }`}
+                >
+                  {draft.openToVolunteering ? "✓" : ""}
+                </span>
+              </div>
+            </button>
+          </div>
         ) : null}
 
         {currentStep.id === "description" ? (
@@ -458,6 +489,11 @@ export default function NewProfileServicePage() {
                       ? "People will see it on your public profile right away."
                       : "It will stay on your private profile until you turn it on."}
                   </p>
+                  {draft.openToVolunteering ? (
+                    <p className="mt-2 text-sm font-medium text-[#F0C453]">
+                      Open to volunteering
+                    </p>
+                  ) : null}
                   <p className="mt-2 text-xs text-app-muted">
                     {draft.coverImage
                       ? `Cover image: ${draft.coverImageSourceTitle || "Custom upload"} · ${draft.coverImagePosition} focus`

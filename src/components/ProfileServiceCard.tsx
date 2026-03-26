@@ -128,6 +128,11 @@ export function ProfileServiceCard({
 
       <div className="px-1 pb-1 pt-4">
         <p className="text-sm font-semibold text-white">{service.pricingLabel}</p>
+        {service.openToVolunteering ? (
+          <p className="mt-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#F0C453]">
+            Open to volunteering
+          </p>
+        ) : null}
         {service.shortDescription ? (
           <p className="mt-2 text-sm leading-6 text-app-muted">{service.shortDescription}</p>
         ) : null}

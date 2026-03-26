@@ -112,6 +112,24 @@ export function ManageServicesModal({
               </label>
 
               <label className="flex items-center justify-between rounded-[18px] border border-white/8 bg-white/[0.02] px-4 py-3">
+                <span className="text-sm font-medium text-white">Open to volunteering</span>
+                <input
+                  checked={Boolean(service.openToVolunteering)}
+                  className="h-4 w-4 accent-[#7B84FF]"
+                  onChange={(event) =>
+                    setDraftServices((current) =>
+                      current.map((item) =>
+                        item.id === service.id
+                          ? { ...item, openToVolunteering: event.target.checked }
+                          : item
+                      )
+                    )
+                  }
+                  type="checkbox"
+                />
+              </label>
+
+              <label className="flex items-center justify-between rounded-[18px] border border-white/8 bg-white/[0.02] px-4 py-3">
                 <span className="text-sm font-medium text-white">Visible on public profile</span>
                 <input
                   checked={service.visibleOnPublicProfile}
