@@ -39,6 +39,8 @@ export default function MyEventsPage() {
   const [currentMonth, setCurrentMonth] = useState(() => getDefaultPlansMonth());
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
   const [activePreviewIndex, setActivePreviewIndex] = useState(0);
+  const [overlayOrigin, setOverlayOrigin] = useState<{ dx: number; dy: number } | null>(null);
+  const [overlayAnimationKey, setOverlayAnimationKey] = useState("plans-overlay-0");
 
   const { itemsByDate, noDateItems } = useMemo(
     () =>
@@ -70,16 +72,18 @@ export default function MyEventsPage() {
     setCurrentMonth(nextMonth);
     setSelectedDateKey(null);
     setActivePreviewIndex(0);
+    setOverlayOrigin(null);
   }
 
   function openPlanItem(item: PlanCalendarItem) {
     router.push(item.href);
   }
 
-  function handleDaySelect(day: CalendarDay) {
+  function handleDaySelect(day: CalendarDay, anchor: { x: number; y: number }) {
     if (day.items.length === 0) {
       setSelectedDateKey(day.key);
       setActivePreviewIndex(0);
+      setOverlayOrigin(null);
       return;
     }
 
@@ -93,6 +97,11 @@ export default function MyEventsPage() {
 
     setSelectedDateKey(day.key);
     setActivePreviewIndex(0);
+    setOverlayOrigin({
+      dx: anchor.x - window.innerWidth / 2,
+      dy: anchor.y - window.innerHeight / 2
+    });
+    setOverlayAnimationKey(`plans-overlay-${day.key}-${Date.now()}`);
   }
 
   return (
@@ -117,6 +126,8 @@ export default function MyEventsPage() {
           <CalendarGrid
             activeIndex={activePreviewIndex}
             days={days}
+            overlayAnimationKey={overlayAnimationKey}
+            overlayOrigin={overlayOrigin}
             onOpenItem={openPlanItem}
             onSelectDay={handleDaySelect}
             onSelectItem={setActivePreviewIndex}

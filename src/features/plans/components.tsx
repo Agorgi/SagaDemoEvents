@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { type CSSProperties } from "react";
+import { useState } from "react";
 
 import { getMediaObjectPosition } from "@/src/lib/media-position";
 import { cn } from "@/src/lib/utils";
@@ -11,11 +12,6 @@ import {
 } from "@/src/features/plans/selectors";
 
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const DAY_CELL_HEIGHT = 86;
-const DAY_CELL_GAP = 8;
-const WEEKDAY_ROW_OFFSET = 34;
-const OVERLAY_TOP_OFFSET = 14;
-const OVERLAY_HEIGHT_ALLOWANCE = 224;
 
 export function CalendarMonthHeader({
   monthLabel,
@@ -44,6 +40,8 @@ export function CalendarGrid({
   selectedDateLabel,
   selectedItems,
   activeIndex,
+  overlayAnimationKey,
+  overlayOrigin,
   onSelectDay,
   onSelectItem,
   onOpenItem
@@ -53,47 +51,20 @@ export function CalendarGrid({
   selectedDateLabel: string | null;
   selectedItems: PlanCalendarItem[];
   activeIndex: number;
-  onSelectDay: (day: CalendarDay) => void;
+  overlayAnimationKey: string;
+  overlayOrigin: { dx: number; dy: number } | null;
+  onSelectDay: (day: CalendarDay, anchor: { x: number; y: number }) => void;
   onSelectItem: (index: number) => void;
   onOpenItem: (item: PlanCalendarItem) => void;
 }) {
   const [legendOpen, setLegendOpen] = useState(false);
 
-  const overlayAnchor = useMemo(() => {
-    if (!selectedDateKey || selectedItems.length === 0) {
-      return null;
-    }
-
-    const selectedIndex = days.findIndex((day) => day.key === selectedDateKey);
-    if (selectedIndex < 0) {
-      return null;
-    }
-
-    const column = selectedIndex % 7;
-    const row = Math.floor(selectedIndex / 7);
-    const overlayWidthPercent = 52;
-    const centerPercent = ((column + 0.5) / 7) * 100;
-    const leftPercent = Math.min(
-      Math.max(centerPercent - overlayWidthPercent / 2, 0),
-      100 - overlayWidthPercent
-    );
-    const arrowPercent = ((centerPercent - leftPercent) / overlayWidthPercent) * 100;
-
-    return {
-      top: WEEKDAY_ROW_OFFSET + row * (DAY_CELL_HEIGHT + DAY_CELL_GAP) + DAY_CELL_HEIGHT + OVERLAY_TOP_OFFSET,
-      leftPercent,
-      arrowPercent
-    };
-  }, [days, selectedDateKey, selectedItems.length]);
-
   const featuredItem = selectedItems[Math.min(activeIndex, selectedItems.length - 1)];
   const tone = featuredItem ? getPlanTone(featuredItem.state, featuredItem.tentative) : null;
 
   return (
-    <section
-      className="relative overflow-hidden rounded-[34px] bg-[linear-gradient(180deg,rgba(19,24,40,0.98),rgba(9,13,22,1))] px-4 pb-4 pt-4 shadow-[0_28px_90px_rgba(0,0,0,0.42)] ring-1 ring-white/6"
-      style={{ paddingBottom: overlayAnchor ? OVERLAY_HEIGHT_ALLOWANCE : 16 }}
-    >
+    <>
+      <section className="relative overflow-hidden rounded-[34px] bg-[linear-gradient(180deg,rgba(19,24,40,0.98),rgba(9,13,22,1))] px-4 pb-4 pt-4 shadow-[0_28px_90px_rgba(0,0,0,0.42)] ring-1 ring-white/6">
       <button
         aria-label="Plan color guide"
         className="absolute right-4 top-4 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.05] text-sm font-semibold text-white/70 transition hover:bg-white/[0.08] hover:text-white"
@@ -138,39 +109,29 @@ export function CalendarGrid({
               day={day}
               key={day.key}
               selected={selectedDateKey === day.key}
-              onClick={() => onSelectDay(day)}
+              onClick={(anchor) => onSelectDay(day, anchor)}
             />
           ))}
         </div>
-
-        {overlayAnchor && featuredItem && tone ? (
-          <div
-            className="absolute z-10 w-[52%] min-w-[196px] max-w-[320px]"
-            style={{ left: `${overlayAnchor.leftPercent}%`, top: overlayAnchor.top }}
-          >
-            <div
-              className={cn(
-                "absolute -top-2 h-4 w-4 rotate-45 rounded-[4px]",
-                tone.overlayPointerClass
-              )}
-              style={{
-                left: `${overlayAnchor.arrowPercent}%`,
-                transform: "translateX(-50%) rotate(45deg)"
-              }}
-            />
-            <SelectedDayOverlay
-              activeIndex={activeIndex}
-              item={featuredItem}
-              itemCount={selectedItems.length}
-              onOpen={() => onOpenItem(featuredItem)}
-              onSelectItem={onSelectItem}
-              selectedDateLabel={selectedDateLabel}
-              tone={tone}
-            />
-          </div>
-        ) : null}
       </div>
-    </section>
+      </section>
+
+      {featuredItem && tone && overlayOrigin ? (
+        <div className="pointer-events-none fixed inset-0 z-30 flex items-center justify-center px-4">
+          <SelectedDayOverlay
+            activeIndex={activeIndex}
+            animationKey={overlayAnimationKey}
+            item={featuredItem}
+            itemCount={selectedItems.length}
+            onOpen={() => onOpenItem(featuredItem)}
+            onSelectItem={onSelectItem}
+            overlayOrigin={overlayOrigin}
+            selectedDateLabel={selectedDateLabel}
+            tone={tone}
+          />
+        </div>
+      ) : null}
+    </>
   );
 }
 
@@ -235,7 +196,7 @@ function CalendarDayCell({
 }: {
   day: CalendarDay;
   selected: boolean;
-  onClick: () => void;
+  onClick: (anchor: { x: number; y: number }) => void;
 }) {
   const tone = getPlanTone(day.glowState, day.isTentative) ?? getPlanTone("saved", false)!;
 
@@ -245,7 +206,13 @@ function CalendarDayCell({
         "relative h-[86px] overflow-hidden rounded-[22px] text-left transition duration-300",
         selected ? "scale-[1.02]" : "hover:scale-[1.01]"
       )}
-      onClick={onClick}
+      onClick={(event) => {
+        const rect = event.currentTarget.getBoundingClientRect();
+        onClick({
+          x: rect.left + rect.width / 2,
+          y: rect.top + rect.height / 2
+        });
+      }}
       type="button"
     >
       {day.count > 0 && tone ? (
@@ -290,7 +257,9 @@ function SelectedDayOverlay({
   itemCount,
   tone,
   onOpen,
-  onSelectItem
+  onSelectItem,
+  overlayOrigin,
+  animationKey
 }: {
   item: PlanCalendarItem;
   selectedDateLabel: string | null;
@@ -299,11 +268,14 @@ function SelectedDayOverlay({
   tone: PlanTone;
   onOpen: () => void;
   onSelectItem: (index: number) => void;
+  overlayOrigin: { dx: number; dy: number };
+  animationKey: string;
 }) {
   return (
     <div
+      key={animationKey}
       className={cn(
-        "group relative overflow-hidden rounded-[26px] p-3 text-left shadow-[0_30px_70px_rgba(0,0,0,0.42)] ring-1 backdrop-blur-xl transition hover:scale-[1.01]",
+        "plans-overlay-enter pointer-events-auto group relative w-[min(86vw,360px)] overflow-hidden rounded-[26px] p-3 text-left shadow-[0_30px_70px_rgba(0,0,0,0.42)] ring-1 backdrop-blur-xl transition hover:scale-[1.01]",
         tone.overlayShellClass
       )}
       onClick={onOpen}
@@ -314,8 +286,29 @@ function SelectedDayOverlay({
         }
       }}
       role="button"
+      style={
+        {
+          "--plans-origin-dx": `${overlayOrigin.dx}px`,
+          "--plans-origin-dy": `${overlayOrigin.dy}px`
+        } as CSSProperties
+      }
       tabIndex={0}
     >
+      {itemCount > 1 ? (
+        <>
+          <OverlayArrow
+            ariaLabel="Previous event"
+            direction="left"
+            onClick={() => onSelectItem(activeIndex === 0 ? itemCount - 1 : activeIndex - 1)}
+          />
+          <OverlayArrow
+            ariaLabel="Next event"
+            direction="right"
+            onClick={() => onSelectItem(activeIndex === itemCount - 1 ? 0 : activeIndex + 1)}
+          />
+        </>
+      ) : null}
+
       <div className="relative h-[190px] overflow-hidden rounded-[22px]">
         <img
           alt={item.title}
@@ -364,6 +357,41 @@ function SelectedDayOverlay({
   );
 }
 
+function OverlayArrow({
+  ariaLabel,
+  direction,
+  onClick
+}: {
+  ariaLabel: string;
+  direction: "left" | "right";
+  onClick: () => void;
+}) {
+  return (
+    <button
+      aria-label={ariaLabel}
+      className={cn(
+        "absolute top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/24 text-white/82 backdrop-blur-md transition hover:bg-black/36 hover:text-white",
+        direction === "left" ? "left-4" : "right-4"
+      )}
+      onClick={(event) => {
+        event.stopPropagation();
+        onClick();
+      }}
+      type="button"
+    >
+      <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 24 24">
+        <path
+          d={direction === "left" ? "M15 18 9 12l6-6" : "M9 6l6 6-6 6"}
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.8"
+        />
+      </svg>
+    </button>
+  );
+}
+
 function MonthControlButton({
   ariaLabel,
   direction,
@@ -399,7 +427,6 @@ type PlanTone = {
   dotClass: string;
   badgeClass: string;
   overlayShellClass: string;
-  overlayPointerClass: string;
 };
 
 function getPlanTone(
@@ -419,8 +446,7 @@ function getPlanTone(
       dotClass: "bg-[#d2c2ff]",
       badgeClass: "bg-app-purple/26 text-white",
       overlayShellClass:
-        "bg-[linear-gradient(180deg,rgba(39,29,81,0.94),rgba(18,16,36,0.98))] ring-white/14",
-      overlayPointerClass: "bg-[rgba(39,29,81,0.96)]"
+        "bg-[linear-gradient(180deg,rgba(39,29,81,0.94),rgba(18,16,36,0.98))] ring-white/14"
     };
   }
 
@@ -433,8 +459,7 @@ function getPlanTone(
       dotClass: "bg-[#bad1ff]",
       badgeClass: "bg-[#5E8BFF]/24 text-white",
       overlayShellClass:
-        "bg-[linear-gradient(180deg,rgba(21,39,86,0.94),rgba(11,19,42,0.98))] ring-white/14",
-      overlayPointerClass: "bg-[rgba(21,39,86,0.96)]"
+        "bg-[linear-gradient(180deg,rgba(21,39,86,0.94),rgba(11,19,42,0.98))] ring-white/14"
     };
   }
 
@@ -446,8 +471,7 @@ function getPlanTone(
       dotClass: "bg-[#a8e7ff]",
       badgeClass: "bg-[#8CD7FF]/18 text-white",
       overlayShellClass:
-        "bg-[linear-gradient(180deg,rgba(16,53,72,0.94),rgba(8,24,34,0.98))] ring-white/14",
-      overlayPointerClass: "bg-[rgba(16,53,72,0.96)]"
+        "bg-[linear-gradient(180deg,rgba(16,53,72,0.94),rgba(8,24,34,0.98))] ring-white/14"
     };
   }
 
@@ -458,8 +482,7 @@ function getPlanTone(
     dotClass: "bg-white/78",
     badgeClass: "bg-white/12 text-white",
     overlayShellClass:
-      "bg-[linear-gradient(180deg,rgba(34,38,51,0.94),rgba(16,18,27,0.98))] ring-white/12",
-    overlayPointerClass: "bg-[rgba(34,38,51,0.96)]"
+      "bg-[linear-gradient(180deg,rgba(34,38,51,0.94),rgba(16,18,27,0.98))] ring-white/12"
   };
 }
 
