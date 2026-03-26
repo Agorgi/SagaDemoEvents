@@ -71,13 +71,13 @@ export function CommissionCard({
     return (
       <Link
         className={cn(
-          "surface-card block overflow-hidden p-4 transition hover:border-white/12",
+          "block overflow-hidden rounded-[30px] bg-white/[0.04] p-4 transition hover:bg-white/[0.05]",
           className
         )}
         href={href}
       >
         <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
-          <div className="relative overflow-hidden rounded-[28px] border border-white/8">
+          <div className="relative overflow-hidden rounded-[28px]">
             <img
               alt={commission.title}
               className="h-[320px] w-full object-cover sm:h-[380px]"
@@ -88,7 +88,7 @@ export function CommissionCard({
               <StatusChip label={getStatusLabel(commission)} tone={getStatusTone(commission)} />
               {backed ? <StatusChip label="Backed" tone="open" /> : null}
               {openRoleCount > 0 ? (
-                <span className="rounded-full border border-app-purple/35 px-3 py-1 text-xs font-semibold text-[#DEDCFF]">
+                <span className="rounded-full bg-app-purple/14 px-3 py-1 text-xs font-semibold text-[#DEDCFF]">
                   Open Roles: {openRoleCount}
                 </span>
               ) : null}
@@ -108,7 +108,7 @@ export function CommissionCard({
             </div>
           </div>
 
-          <div className="flex flex-col justify-between rounded-[28px] border border-white/8 bg-[#0d1119] p-5">
+          <div className="flex flex-col justify-between rounded-[28px] bg-white/[0.04] p-5">
             <div>
               <p className="text-sm uppercase tracking-[0.16em] text-app-muted">
                 Featured boost
@@ -129,17 +129,17 @@ export function CommissionCard({
                 />
               </div>
               <div className="mt-6 grid grid-cols-3 gap-3">
-                <div className="rounded-[20px] border border-white/8 bg-black/20 p-3">
+                <div className="rounded-[20px] bg-white/[0.05] p-3">
                   <p className="text-xs text-app-muted">Backers</p>
                   <p className="mt-2 text-xl font-semibold text-white">
                     {formatCompactNumber(commission.backerCount)}
                   </p>
                 </div>
-                <div className="rounded-[20px] border border-white/8 bg-black/20 p-3">
+                <div className="rounded-[20px] bg-white/[0.05] p-3">
                   <p className="text-xs text-app-muted">Days left</p>
                   <p className="mt-2 text-xl font-semibold text-white">{commission.daysLeft}</p>
                 </div>
-                <div className="rounded-[20px] border border-white/8 bg-black/20 p-3">
+                <div className="rounded-[20px] bg-white/[0.05] p-3">
                   <p className="text-xs text-app-muted">Type</p>
                   <p className="mt-2 text-xl font-semibold text-white">
                     {commission.type === "event" ? "Event boost" : "Creator add-on"}
@@ -151,7 +151,7 @@ export function CommissionCard({
               <span className="rounded-2xl bg-app-purple px-4 py-3 text-center text-sm font-semibold text-white">
                 {getPrimaryCta(commission)}
               </span>
-              <span className="rounded-2xl border border-white/10 px-4 py-3 text-center text-sm font-semibold text-white">
+              <span className="rounded-2xl bg-white/[0.06] px-4 py-3 text-center text-sm font-semibold text-white">
                 {getSecondaryCta(commission, openRoleCount)}
               </span>
             </div>
@@ -164,12 +164,12 @@ export function CommissionCard({
   return (
     <Link
       className={cn(
-        "surface-card block overflow-hidden p-4 transition duration-200 hover:-translate-y-1 hover:border-white/12",
+        "block overflow-hidden rounded-[30px] bg-white/[0.04] p-4 transition duration-200 hover:-translate-y-1 hover:bg-white/[0.05]",
         className
       )}
       href={href}
     >
-      <div className="relative overflow-hidden rounded-[24px] border border-white/8">
+      <div className="relative overflow-hidden rounded-[24px]">
         <img
           alt={commission.title}
           className="h-[260px] w-full object-cover"
@@ -180,7 +180,7 @@ export function CommissionCard({
           <StatusChip label={getStatusLabel(commission)} tone={getStatusTone(commission)} />
           {backed ? <StatusChip label="Backed" tone="open" /> : null}
           {openRoleCount > 0 ? (
-            <span className="rounded-full border border-app-purple/35 px-3 py-1 text-xs font-semibold text-[#DEDCFF]">
+            <span className="rounded-full bg-app-purple/14 px-3 py-1 text-xs font-semibold text-[#DEDCFF]">
               Open Roles: {openRoleCount}
             </span>
           ) : null}
@@ -222,7 +222,7 @@ export function CommissionCard({
           <span className="rounded-2xl bg-app-purple px-4 py-3 text-center text-sm font-semibold text-white">
             {getPrimaryCta(commission)}
           </span>
-          <span className="rounded-2xl border border-white/10 px-4 py-3 text-center text-sm font-semibold text-white">
+          <span className="rounded-2xl bg-white/[0.06] px-4 py-3 text-center text-sm font-semibold text-white">
             {getSecondaryCta(commission, openRoleCount)}
           </span>
         </div>

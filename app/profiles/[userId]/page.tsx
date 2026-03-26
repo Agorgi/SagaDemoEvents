@@ -76,7 +76,7 @@ export default function UserProfilePage() {
                 src={profile.avatarImage || user.avatarUrl}
               />
 
-              <div className="mt-4 inline-flex items-center rounded-full bg-white/[0.05] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-app-muted">
+              <div className="mt-4 inline-flex items-center rounded-full bg-white/[0.04] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-app-muted">
                 Creator profile
               </div>
 
@@ -92,7 +92,7 @@ export default function UserProfilePage() {
                 </span>
                 {profile.tags.slice(0, 4).map((tag) => (
                   <span
-                    className="inline-flex items-center rounded-full bg-white/[0.05] px-3 py-1 text-xs text-app-muted"
+                    className="inline-flex items-center rounded-full bg-white/[0.04] px-3 py-1 text-xs text-app-muted"
                     key={tag}
                   >
                     {tag}

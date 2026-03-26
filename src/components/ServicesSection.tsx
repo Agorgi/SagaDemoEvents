@@ -60,7 +60,7 @@ export function ServicesSection({
           ))}
         </div>
       ) : (
-        <div className="rounded-[24px] border border-dashed border-white/10 bg-white/[0.02] px-4 py-8 text-center">
+        <div className="rounded-[24px] bg-white/[0.03] px-4 py-8 text-center">
           <p className="text-sm text-app-muted">
             {publicView ? "No public services yet." : "No services added yet."}
           </p>

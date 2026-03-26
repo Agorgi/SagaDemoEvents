@@ -164,7 +164,7 @@ export default function OpportunityDetailPage() {
           <DetailSection title="Apply">
             <div className="space-y-4 rounded-[24px] bg-white/[0.04] p-4">
               <textarea
-                className="h-28 w-full rounded-[22px] bg-[#090d15] px-4 py-3 text-sm text-white outline-none placeholder:text-app-muted"
+                className="h-28 w-full rounded-[22px] bg-[#090d15]/88 px-4 py-3 text-sm text-white outline-none placeholder:text-app-muted"
                 onChange={(event) => setNote(event.target.value)}
                 placeholder="Add a short note if you want."
                 value={note}
@@ -232,10 +232,10 @@ function ProjectStateChip({
 }) {
   return (
     <span
-      className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold text-white shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-sm ${
+      className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold text-white shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-sm ${
         state === "happening"
-          ? "border-app-success/25 bg-app-success/12"
-          : "border-[#87A6FF]/25 bg-[#87A6FF]/12"
+          ? "bg-app-success/14"
+          : "bg-[#87A6FF]/14"
       }`}
     >
       {state === "happening" ? "Happening" : "Soft launch"}

@@ -78,8 +78,8 @@ export default function CommissionDetailPage() {
       <Nav />
       <main className="mx-auto max-w-[1380px] px-4 py-6 sm:px-6">
         <div className="space-y-6">
-          <section className="surface-card-strong overflow-hidden p-4">
-            <div className="relative overflow-hidden rounded-[32px] border border-white/8">
+          <section className="overflow-hidden rounded-[32px] bg-white/[0.04] p-4 shadow-soft">
+            <div className="relative overflow-hidden rounded-[32px]">
               <img
                 alt={commission.title}
                 className="h-[320px] w-full object-cover sm:h-[460px]"
@@ -118,7 +118,7 @@ export default function CommissionDetailPage() {
 
           <div className="grid gap-6 lg:grid-cols-[1.04fr_0.96fr]">
             <section className="space-y-6">
-              <div className="surface-card p-6">
+              <div className="rounded-[30px] bg-white/[0.04] p-6">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-sm uppercase tracking-[0.16em] text-app-muted">
@@ -130,7 +130,7 @@ export default function CommissionDetailPage() {
                   </div>
                   {commission.linkedEventId ? (
                     <Link
-                      className="rounded-2xl border border-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/20"
+                      className="rounded-2xl bg-white/[0.06] px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/[0.1]"
                       href={`/events/${commission.linkedEventId}`}
                     >
                       View event
@@ -138,17 +138,17 @@ export default function CommissionDetailPage() {
                   ) : null}
                 </div>
                 <div className="mt-5 grid gap-4 sm:grid-cols-3">
-                  <div className="rounded-[22px] border border-white/8 bg-[#0d1119] p-4">
+                  <div className="rounded-[22px] bg-white/[0.05] p-4">
                     <p className="text-sm text-app-muted">Location</p>
                     <p className="mt-3 text-xl font-semibold text-white">{commission.city}</p>
                   </div>
-                  <div className="rounded-[22px] border border-white/8 bg-[#0d1119] p-4">
+                  <div className="rounded-[22px] bg-white/[0.05] p-4">
                     <p className="text-sm text-app-muted">Timing</p>
                     <p className="mt-3 text-xl font-semibold text-white">
                       {commission.timingLabel}
                     </p>
                   </div>
-                  <div className="rounded-[22px] border border-white/8 bg-[#0d1119] p-4">
+                  <div className="rounded-[22px] bg-white/[0.05] p-4">
                     <p className="text-sm text-app-muted">Type</p>
                     <p className="mt-3 text-xl font-semibold text-white">
                       {commission.type === "event" ? "Event upgrade" : "Creator add-on"}
@@ -160,23 +160,20 @@ export default function CommissionDetailPage() {
                 </p>
               </div>
 
-              <div className="surface-card p-6">
+              <div className="rounded-[30px] bg-white/[0.04] p-6">
                 <p className="text-sm uppercase tracking-[0.16em] text-app-muted">
                   What this unlocks
                 </p>
                 <div className="mt-5 grid gap-4">
                   {commission.whatThisUnlocks.map((item) => (
-                    <div
-                      className="rounded-[24px] border border-white/8 bg-[#0d1119] p-4"
-                      key={item}
-                    >
+                    <div className="rounded-[24px] bg-white/[0.05] p-4" key={item}>
                       <p className="text-base font-semibold text-white">{item}</p>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="surface-card p-6">
+              <div className="rounded-[30px] bg-white/[0.04] p-6">
                 <div className="mb-5 flex items-start justify-between gap-4">
                   <div>
                     <p className="text-sm uppercase tracking-[0.16em] text-app-muted">
@@ -194,7 +191,7 @@ export default function CommissionDetailPage() {
                 </div>
               </div>
 
-              <div className="surface-card p-6" id="open-roles">
+              <div className="rounded-[30px] bg-white/[0.04] p-6" id="open-roles">
                 <div className="mb-5 flex items-start justify-between gap-4">
                   <div>
                     <p className="text-sm uppercase tracking-[0.16em] text-app-muted">
@@ -239,7 +236,7 @@ export default function CommissionDetailPage() {
             </section>
 
             <aside className="space-y-6">
-              <div className="surface-card p-6">
+              <div className="rounded-[30px] bg-white/[0.04] p-6">
                 <p className="text-sm uppercase tracking-[0.16em] text-app-muted">
                   Funding progress
                 </p>
@@ -250,19 +247,19 @@ export default function CommissionDetailPage() {
                   />
                 </div>
                 <div className="mt-5 grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
-                  <div className="rounded-[22px] border border-white/8 bg-[#0d1119] p-4">
+                  <div className="rounded-[22px] bg-white/[0.05] p-4">
                     <p className="text-sm text-app-muted">Backers</p>
                     <p className="mt-3 text-3xl font-semibold text-white">
                       {formatCompactNumber(commission.backerCount)}
                     </p>
                   </div>
-                  <div className="rounded-[22px] border border-white/8 bg-[#0d1119] p-4">
+                  <div className="rounded-[22px] bg-white/[0.05] p-4">
                     <p className="text-sm text-app-muted">Days left</p>
                     <p className="mt-3 text-3xl font-semibold text-white">
                       {commission.daysLeft}
                     </p>
                   </div>
-                  <div className="rounded-[22px] border border-white/8 bg-[#0d1119] p-4">
+                  <div className="rounded-[22px] bg-white/[0.05] p-4">
                     <p className="text-sm text-app-muted">Open roles</p>
                     <p className="mt-3 text-3xl font-semibold text-white">{openRoleCount}</p>
                   </div>
@@ -276,7 +273,7 @@ export default function CommissionDetailPage() {
                     Boost this event
                   </button>
                   <button
-                    className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
+                    className="rounded-2xl bg-white/[0.06] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.1]"
                     onClick={handleShare}
                     type="button"
                   >
@@ -293,7 +290,7 @@ export default function CommissionDetailPage() {
                   ) : null}
                   {commission.linkedEventId ? (
                     <button
-                      className="sm:col-span-2 rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
+                      className="sm:col-span-2 rounded-2xl bg-white/[0.06] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.1]"
                       onClick={() => router.push(`/events/${commission.linkedEventId}`)}
                       type="button"
                     >
@@ -303,7 +300,7 @@ export default function CommissionDetailPage() {
                 </div>
               </div>
 
-              <div className="surface-card p-6">
+              <div className="rounded-[30px] bg-white/[0.04] p-6">
                 <p className="text-sm uppercase tracking-[0.16em] text-app-muted">
                   Host
                 </p>
@@ -315,7 +312,7 @@ export default function CommissionDetailPage() {
                   </div>
                 </div>
                 {backerPreview.length > 0 ? (
-                  <div className="mt-5 rounded-[22px] border border-white/8 bg-[#0d1119] p-4">
+                  <div className="mt-5 rounded-[22px] bg-white/[0.05] p-4">
                     <p className="text-sm text-app-muted">Community backing</p>
                     <div className="mt-3 flex items-center gap-3">
                       <AvatarStack people={backerPreview} />
@@ -327,23 +324,20 @@ export default function CommissionDetailPage() {
                 ) : null}
               </div>
 
-              <div className="surface-card p-6">
+              <div className="rounded-[30px] bg-white/[0.04] p-6">
                 <p className="text-sm uppercase tracking-[0.16em] text-app-muted">
                   Why this is scoped well
                 </p>
                 <div className="mt-5 grid gap-3">
                   {commission.trustNotes.map((note) => (
-                    <div
-                      className="rounded-[22px] border border-white/8 bg-[#0d1119] p-4"
-                      key={note}
-                    >
+                    <div className="rounded-[22px] bg-white/[0.05] p-4" key={note}>
                       <p className="text-sm leading-6 text-app-muted">{note}</p>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="surface-card p-6">
+              <div className="rounded-[30px] bg-white/[0.04] p-6">
                 <p className="text-sm uppercase tracking-[0.16em] text-app-muted">
                   Backer activity
                 </p>

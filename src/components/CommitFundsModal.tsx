@@ -114,7 +114,7 @@ export function CommitFundsModal({
               ))}
             </div>
 
-            <div className="rounded-[24px] border border-white/8 bg-[#0d1119] p-5">
+            <div className="rounded-[24px] bg-white/[0.04] p-5">
               <p className="text-sm uppercase tracking-[0.16em] text-app-muted">Summary</p>
               <div className="mt-4 space-y-4">
                 <label className="block">
@@ -141,7 +141,7 @@ export function CommitFundsModal({
                   />
                 </label>
               </div>
-              <div className="mt-6 rounded-[22px] border border-white/8 bg-black/20 p-4">
+              <div className="mt-6 rounded-[22px] bg-black/20 p-4">
                 <p className="text-sm text-app-muted">Commitment total</p>
                 <p className="mt-2 text-3xl font-semibold text-white">
                   {formatCurrency(amount)}

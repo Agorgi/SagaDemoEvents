@@ -1,5 +1,8 @@
 import Link from "next/link";
 
+import { Nav } from "@/src/components/Nav";
+import { PageHeroHeader } from "@/src/components/PageHeroHeader";
+
 export function PlaceholderPage({
   eyebrow,
   title,
@@ -10,26 +13,25 @@ export function PlaceholderPage({
   description: string;
 }) {
   return (
-    <div className="min-h-screen bg-app-grid px-4 py-20">
-      <div className="mx-auto max-w-3xl rounded-[32px] border border-white/8 bg-[#0e121a] p-8 shadow-soft">
-        <p className="text-sm uppercase tracking-[0.24em] text-app-muted">{eyebrow}</p>
-        <h1 className="mt-4 text-5xl font-semibold text-white">{title}</h1>
-        <p className="mt-4 text-lg text-app-muted">{description}</p>
-        <div className="mt-8 flex flex-wrap gap-3">
+    <div className="min-h-screen bg-app-grid">
+      <Nav />
+      <main className="mx-auto max-w-3xl px-4 pb-28 pt-5 sm:px-6 sm:pb-14 sm:pt-8">
+        <PageHeroHeader eyebrow={eyebrow} label="Saga" subtitle={description} title={title} />
+        <div className="mt-6 flex flex-wrap gap-3 rounded-[30px] bg-white/[0.04] p-5 shadow-soft">
           <Link
-            className="rounded-2xl bg-app-purple px-5 py-3 text-sm font-semibold text-white transition hover:bg-app-purple-hover"
+            className="inline-flex min-h-[48px] items-center rounded-2xl bg-app-purple px-5 py-3 text-sm font-semibold text-white transition hover:bg-app-purple-hover"
             href="/explore"
           >
             Back to Explore
           </Link>
           <Link
-            className="rounded-2xl border border-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:border-white/20"
+            className="inline-flex min-h-[48px] items-center rounded-2xl bg-white/[0.06] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.1]"
             href="/events/court-of-stars"
           >
             Open demo event
           </Link>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

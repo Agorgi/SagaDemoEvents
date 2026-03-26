@@ -31,10 +31,7 @@ export function CommissionActivityFeed({
       {activity.map((item) => {
         const user = getUserById(item.authorId);
         return (
-          <div
-            className="rounded-[24px] border border-white/8 bg-[#0d1119] p-4"
-            key={item.id}
-          >
+          <div className="rounded-[24px] bg-white/[0.04] p-4" key={item.id}>
             <div className="flex items-start gap-3">
               <Avatar
                 name={user?.name ?? "Saga user"}
@@ -46,7 +43,7 @@ export function CommissionActivityFeed({
                   <p className="font-semibold text-white">
                     {user?.handle ?? "@saga"}
                   </p>
-                  <span className="rounded-full border border-white/8 px-2.5 py-0.5 text-[11px] font-semibold text-app-muted">
+                  <span className="rounded-full bg-white/[0.05] px-2.5 py-0.5 text-[11px] font-semibold text-app-muted">
                     {getActivityLabel(item)}
                   </span>
                   <span className="text-xs text-app-muted">

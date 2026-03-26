@@ -42,7 +42,7 @@ export function BusinessMatchCard({
         ))}
       </div>
 
-      <div className="mt-4 rounded-[22px] bg-[#0d1119] p-4">
+      <div className="mt-5 border-t border-white/6 pt-4">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-app-muted">
           Why this match
         </p>
@@ -64,7 +64,7 @@ export function BusinessMatchCard({
                   : "bg-app-purple text-white hover:bg-app-purple-hover"
                 : actionState === action
                   ? "bg-white/[0.08] text-white"
-                  : "bg-white/[0.04] text-app-muted hover:bg-white/[0.08] hover:text-white"
+                  : "bg-white/[0.06] text-app-muted hover:bg-white/[0.1] hover:text-white"
             )}
             key={action}
             onClick={() => onRespond?.(action)}

@@ -170,7 +170,7 @@ export default function EventDetailPage() {
       <Nav />
       <main className="mx-auto w-full max-w-[540px] px-4 pb-36 pt-5 sm:max-w-[620px] sm:px-6 sm:pb-16 sm:pt-8">
         <section className="space-y-5">
-          <div className="mx-auto max-w-[340px] overflow-hidden rounded-[30px] border border-white/8 bg-[#0f1320] shadow-soft">
+          <div className="mx-auto max-w-[340px] overflow-hidden rounded-[30px] bg-[#0f1320] shadow-soft">
             <div className="relative">
               <img
                 alt={eventData.title}
@@ -222,7 +222,7 @@ export default function EventDetailPage() {
               </Link>
             </div>
 
-            <div className="rounded-[24px] border border-white/8 bg-[#0d1119] px-4 py-4">
+            <div className="rounded-[24px] bg-white/[0.04] px-4 py-4">
               <div className="space-y-2 text-sm text-white/86">
                 <p>{formatDateRange(eventData.startsAt, eventData.endsAt)}</p>
                 <p>{formatTimeLabel(eventData.startsAt)}</p>
@@ -270,7 +270,7 @@ export default function EventDetailPage() {
               <div className="grid grid-cols-2 gap-3">
                 {contributorEntries.map((entry) => (
                   <Link
-                    className="rounded-[22px] border border-white/8 bg-[#0d1119] p-3 transition hover:border-white/15"
+                    className="rounded-[22px] bg-white/[0.04] p-3 transition hover:bg-white/[0.06]"
                     href={`/profiles/${entry.user.id}`}
                     key={entry.id}
                   >
@@ -292,7 +292,7 @@ export default function EventDetailPage() {
             <DetailSection title="Open roles">
               <div className="space-y-3">
                 {openRoles.map((role) => (
-                  <div className="rounded-[24px] border border-white/8 bg-[#0d1119] p-4" key={role.id}>
+                  <div className="rounded-[24px] bg-white/[0.04] p-4" key={role.id}>
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
                         <p className="text-base font-semibold text-white">{role.roleName}</p>
@@ -321,10 +321,10 @@ export default function EventDetailPage() {
 
           {roomUnlocked ? (
             <DetailSection title="Room">
-              <div className="flex items-center justify-between gap-4 rounded-[24px] border border-white/8 bg-[#0d1119] p-4">
+              <div className="flex items-center justify-between gap-4 rounded-[24px] bg-white/[0.04] p-4">
                 <p className="text-sm text-app-muted">Updates and chat are unlocked.</p>
                 <Link
-                  className="inline-flex min-h-[44px] items-center rounded-[18px] border border-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:border-white/20"
+                  className="inline-flex min-h-[44px] items-center rounded-[18px] bg-white/[0.07] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/[0.11]"
                   href={`/communities/${eventData.id}`}
                 >
                   Join room
@@ -374,10 +374,10 @@ function IconActionButton({
   return (
     <button
       aria-label={ariaLabel}
-      className={`flex h-10 w-10 items-center justify-center rounded-full border shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-sm transition ${
+      className={`flex h-10 w-10 items-center justify-center rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-sm transition ${
         selected
-          ? "border-[#bc8b43]/60 bg-[#bc8b43]/20 text-[#f3c070]"
-          : "border-white/12 bg-[#0a0d14]/72 text-white/88 hover:border-white/24"
+          ? "bg-[#bc8b43]/18 text-[#f3c070]"
+          : "bg-[#0a0d14]/72 text-white/88 hover:bg-[#141925]/84"
       }`}
       onClick={(event) => {
         event.preventDefault();

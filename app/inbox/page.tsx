@@ -3,6 +3,7 @@
 import { ActivityItem } from "@/src/components/ActivityItem";
 import { Avatar } from "@/src/components/Avatar";
 import { Nav } from "@/src/components/Nav";
+import { PageHeroHeader } from "@/src/components/PageHeroHeader";
 import { getUserById } from "@/src/data/demo";
 import { useAppState } from "@/src/lib/app-state";
 
@@ -16,11 +17,12 @@ export default function InboxPage() {
     <div className="min-h-screen">
       <Nav />
       <main className="mx-auto w-full max-w-[760px] px-4 pb-28 pt-5 sm:px-6 sm:pb-14 sm:pt-8">
-        <section className="space-y-2">
-          <p className="text-sm uppercase tracking-[0.16em] text-app-muted">Updates</p>
-          <h1 className="text-4xl font-semibold text-white sm:text-5xl">Updates</h1>
-          <p className="text-sm text-app-muted">What changed.</p>
-        </section>
+        <PageHeroHeader
+          eyebrow="Updates"
+          label="Saga"
+          subtitle="Everything worth noticing."
+          title="What changed?"
+        />
 
         <section className="mt-6 space-y-3">
           {combined.length > 0 ? (
@@ -29,7 +31,7 @@ export default function InboxPage() {
                 <ActivityItem item={item} key={item.id} onRead={() => markInboxRead(item.id)} />
               ) : (
                 <a
-                  className="surface-card block p-4 transition hover:border-white/12"
+                  className="block rounded-[24px] bg-white/[0.04] p-4 transition hover:bg-white/[0.06]"
                   href={item.href}
                   key={item.id}
                 >
@@ -48,7 +50,7 @@ export default function InboxPage() {
               )
             )
           ) : (
-            <div className="surface-card p-5">
+            <div className="rounded-[24px] bg-white/[0.04] p-5">
               <p className="text-sm text-app-muted">Nothing new yet.</p>
             </div>
           )}

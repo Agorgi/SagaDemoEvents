@@ -13,8 +13,8 @@ export function ActivityItem({
   return (
     <Link
       className={cn(
-        "surface-card block p-4 transition hover:border-white/12",
-        item.unread && "border-app-purple/20"
+        "block rounded-[24px] bg-white/[0.04] p-4 transition hover:bg-white/[0.06]",
+        item.unread && "bg-app-purple/[0.08]"
       )}
       href={item.href}
       onClick={onRead}
@@ -25,7 +25,7 @@ export function ActivityItem({
           <p className="mt-1 line-clamp-2 text-sm text-app-muted">{item.body}</p>
         </div>
         {item.unread ? (
-          <span className="mt-1 h-2.5 w-2.5 rounded-full bg-app-purple" />
+          <span className="mt-1 h-2.5 w-2.5 rounded-full bg-app-purple shadow-[0_0_20px_rgba(86,80,255,0.45)]" />
         ) : null}
       </div>
     </Link>

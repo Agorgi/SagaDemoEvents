@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { CommissionCard } from "@/src/components/CommissionCard";
 import { FilterChip } from "@/src/components/Chips";
 import { Nav } from "@/src/components/Nav";
+import { PageHeroHeader } from "@/src/components/PageHeroHeader";
 import { StartCommissionModal } from "@/src/components/StartCommissionModal";
 import { getUserById } from "@/src/data/demo";
 import { useDemoState } from "@/src/lib/demo-state";
@@ -65,21 +66,16 @@ export default function CommissionsPage() {
       <Nav />
       <main className="mx-auto w-full max-w-[1480px] px-4 py-6 sm:px-6">
         <div className="space-y-6">
-          <section className="surface-card-strong p-5 sm:p-6">
+          <section className="space-y-5">
             <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-              <div>
-                <p className="text-sm uppercase tracking-[0.16em] text-app-muted">
-                  Event boosts
-                </p>
-                <h1 className="mt-3 text-4xl font-semibold text-white sm:text-5xl">
-                  Unlock better productions
-                </h1>
-                <p className="mt-3 max-w-2xl text-base text-app-muted sm:text-lg">
-                  Back the nights, upgrades, and creator-led add-ons you want to see happen.
-                </p>
-              </div>
+              <PageHeroHeader
+                eyebrow="Event boosts"
+                label={activeUser?.city ?? "Saga"}
+                subtitle="Back the nights, upgrades, and creator-led add-ons you want to see happen."
+                title="Unlock better productions"
+              />
               <button
-                className="inline-flex rounded-2xl bg-app-purple px-5 py-3 text-sm font-semibold text-white transition hover:bg-app-purple-hover"
+                className="inline-flex min-h-[48px] rounded-2xl bg-app-purple px-5 py-3 text-sm font-semibold text-white transition hover:bg-app-purple-hover"
                 onClick={() => setCreateOpen(true)}
                 type="button"
               >
@@ -87,8 +83,8 @@ export default function CommissionsPage() {
               </button>
             </div>
 
-            <div className="mt-6 grid gap-4 xl:grid-cols-[1fr_auto] xl:items-center">
-              <label className="flex w-full items-center gap-3 rounded-[20px] border border-white/8 bg-[#0d1119] px-4 py-3 text-app-muted transition focus-within:border-app-purple/45">
+            <div className="grid gap-4 rounded-[30px] bg-white/[0.04] p-5 xl:grid-cols-[1fr_auto] xl:items-center">
+              <label className="flex w-full items-center gap-3 rounded-[20px] bg-[#0d1119]/92 px-4 py-3 text-app-muted transition focus-within:bg-[#111728]">
                 <span aria-hidden="true">⌕</span>
                 <input
                   className="w-full bg-transparent text-sm text-white outline-none placeholder:text-app-muted"
@@ -151,7 +147,7 @@ export default function CommissionsPage() {
               ))}
             </section>
           ) : (
-            <section className="surface-card p-8 text-center">
+            <section className="rounded-[30px] bg-white/[0.04] p-8 text-center">
               <h2 className="text-2xl font-semibold text-white">No boosts match that view</h2>
               <p className="mt-3 text-app-muted">
                 Adjust the filters or publish a new boost for an upcoming event.

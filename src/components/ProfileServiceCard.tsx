@@ -78,7 +78,7 @@ export function ProfileServiceCard({
   return (
     <div
       className={cn(
-        "rounded-[28px] border border-white/6 bg-[#111622] p-3 shadow-[0_20px_44px_rgba(0,0,0,0.22)]",
+        "rounded-[28px] bg-[#111622] p-3 shadow-[0_20px_44px_rgba(0,0,0,0.22)]",
         className
       )}
     >

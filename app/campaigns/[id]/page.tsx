@@ -74,7 +74,7 @@ export default function CampaignDetailPage() {
       <Nav />
       <main className="mx-auto w-full max-w-[540px] px-4 pb-40 pt-5 sm:max-w-[620px] sm:px-6 sm:pb-16 sm:pt-8">
         <section className="space-y-5">
-          <div className="mx-auto max-w-[340px] overflow-hidden rounded-[30px] border border-white/8 bg-[#0f1320] shadow-soft">
+          <div className="mx-auto max-w-[340px] overflow-hidden rounded-[30px] bg-[#0f1320] shadow-soft">
             <div className="relative">
               <img
                 alt={launch.title}
@@ -132,7 +132,7 @@ export default function CampaignDetailPage() {
               </Link>
             </div>
 
-            <div className="rounded-[24px] border border-white/8 bg-[#0d1119] px-4 py-4">
+            <div className="rounded-[24px] bg-white/[0.04] px-4 py-4">
               <div className="space-y-2 text-sm text-white/86">
                 <p>{launch.city}</p>
                 <p>{launch.dateOptions.length} date options</p>
@@ -172,7 +172,7 @@ export default function CampaignDetailPage() {
         </section>
 
         <div className="mt-8 space-y-8">
-          <section className="surface-card p-5 sm:p-6">
+          <section className="rounded-[28px] bg-white/[0.04] p-5 sm:p-6">
             <h2 className="text-lg font-semibold text-white">Progress</h2>
             <div className="mt-4">
               <ThresholdProgress
@@ -183,11 +183,11 @@ export default function CampaignDetailPage() {
             </div>
           </section>
 
-          <section className="surface-card p-5 sm:p-6">
+          <section className="rounded-[28px] bg-white/[0.04] p-5 sm:p-6">
             <h2 className="text-lg font-semibold text-white">Date options</h2>
             <div className="mt-4 space-y-3">
               {launch.dateOptions.map((option) => (
-                <div className="rounded-[24px] border border-white/8 bg-[#0d1119] p-4" key={option.id}>
+                <div className="rounded-[24px] bg-white/[0.05] p-4" key={option.id}>
                   <div className="flex items-center justify-between gap-4">
                     <p className="font-semibold text-white">{option.label}</p>
                     <p className="text-sm text-app-muted">{option.votes} picks</p>
@@ -197,18 +197,18 @@ export default function CampaignDetailPage() {
             </div>
           </section>
 
-          <section className="surface-card p-5 sm:p-6">
+          <section className="rounded-[28px] bg-white/[0.04] p-5 sm:p-6">
             <h2 className="text-lg font-semibold text-white">About</h2>
             <div className="mt-4">
               <ExpandableText collapsedLines={4} text={launch.description} />
             </div>
           </section>
 
-          <section className="surface-card p-5 sm:p-6">
+          <section className="rounded-[28px] bg-white/[0.04] p-5 sm:p-6">
             <h2 className="text-lg font-semibold text-white">Updates</h2>
             <div className="mt-4 space-y-3">
               {launch.updates.slice(0, 4).map((update) => (
-                <div className="rounded-[24px] border border-white/8 bg-[#0d1119] p-4" key={update.id}>
+                <div className="rounded-[24px] bg-white/[0.05] p-4" key={update.id}>
                   <p className="font-semibold text-white">{update.title}</p>
                   <p className="mt-2 text-sm text-app-muted">{update.body}</p>
                 </div>
@@ -217,7 +217,7 @@ export default function CampaignDetailPage() {
           </section>
 
           {isConfirmed && launch.eventId ? (
-            <section className="surface-card p-5 sm:p-6">
+            <section className="rounded-[28px] bg-white/[0.04] p-5 sm:p-6">
               <h2 className="text-lg font-semibold text-white">Confirmed</h2>
               <p className="mt-3 text-sm text-app-muted">This launch cleared its goal and is now a live event.</p>
               <Link
@@ -256,10 +256,10 @@ function IconActionButton({
   return (
     <button
       aria-label={ariaLabel}
-      className={`flex h-10 w-10 items-center justify-center rounded-full border transition ${
+      className={`flex h-10 w-10 items-center justify-center rounded-full transition ${
         selected
-          ? "border-app-purple/60 bg-app-purple/20 text-white shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-sm"
-          : "border-white/12 bg-[#0a0d14]/72 text-white/88 shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-sm hover:border-white/24"
+          ? "bg-app-purple/20 text-white shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-sm"
+          : "bg-[#0a0d14]/72 text-white/88 shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-sm hover:bg-[#141925]/84"
       }`}
       onClick={(event) => {
         event.preventDefault();
