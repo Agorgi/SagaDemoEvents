@@ -1,16 +1,21 @@
 "use client";
 
+import { useMemo, useState } from "react";
+
 import { getMediaObjectPosition } from "@/src/lib/media-position";
 import { cn } from "@/src/lib/utils";
 
 import {
   type CalendarDay,
-  type PlanCalendarItem,
-  type PlanFilter,
-  PLAN_FILTER_OPTIONS
+  type PlanCalendarItem
 } from "@/src/features/plans/selectors";
 
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DAY_CELL_HEIGHT = 86;
+const DAY_CELL_GAP = 8;
+const WEEKDAY_ROW_OFFSET = 34;
+const OVERLAY_TOP_OFFSET = 14;
+const OVERLAY_HEIGHT_ALLOWANCE = 224;
 
 export function CalendarMonthHeader({
   monthLabel,
@@ -25,38 +30,10 @@ export function CalendarMonthHeader({
     <div className="flex items-center justify-between">
       <MonthControlButton ariaLabel="Previous month" direction="left" onClick={onPrevious} />
       <div className="text-center">
-        <p className="text-[11px] uppercase tracking-[0.24em] text-white/42">Calendar</p>
-        <h2 className="mt-1 text-[30px] font-semibold text-white">{monthLabel}</h2>
+        <p className="text-[11px] uppercase tracking-[0.24em] text-white/38">Calendar</p>
+        <h2 className="mt-1 text-[30px] font-semibold tracking-[-0.04em] text-white">{monthLabel}</h2>
       </div>
       <MonthControlButton ariaLabel="Next month" direction="right" onClick={onNext} />
-    </div>
-  );
-}
-
-export function CalendarFilterChips({
-  value,
-  onChange
-}: {
-  value: PlanFilter;
-  onChange: (next: PlanFilter) => void;
-}) {
-  return (
-    <div className="flex gap-2 overflow-x-auto pb-1 subtle-scrollbar">
-      {PLAN_FILTER_OPTIONS.map((option) => (
-        <button
-          className={cn(
-            "rounded-full px-3.5 py-1.5 text-xs font-medium transition",
-            value === option.value
-              ? "bg-white text-[#0A0E17] shadow-[0_12px_30px_rgba(255,255,255,0.12)]"
-              : "bg-white/[0.05] text-white/68 hover:bg-white/[0.08] hover:text-white"
-          )}
-          key={option.value}
-          onClick={() => onChange(option.value)}
-          type="button"
-        >
-          {option.label}
-        </button>
-      ))}
     </div>
   );
 }
@@ -64,105 +41,135 @@ export function CalendarFilterChips({
 export function CalendarGrid({
   days,
   selectedDateKey,
-  onSelectDay
+  selectedDateLabel,
+  selectedItems,
+  activeIndex,
+  onSelectDay,
+  onSelectItem,
+  onOpenItem
 }: {
   days: CalendarDay[];
   selectedDateKey: string | null;
+  selectedDateLabel: string | null;
+  selectedItems: PlanCalendarItem[];
+  activeIndex: number;
   onSelectDay: (day: CalendarDay) => void;
+  onSelectItem: (index: number) => void;
+  onOpenItem: (item: PlanCalendarItem) => void;
 }) {
+  const [legendOpen, setLegendOpen] = useState(false);
+
+  const overlayAnchor = useMemo(() => {
+    if (!selectedDateKey || selectedItems.length === 0) {
+      return null;
+    }
+
+    const selectedIndex = days.findIndex((day) => day.key === selectedDateKey);
+    if (selectedIndex < 0) {
+      return null;
+    }
+
+    const column = selectedIndex % 7;
+    const row = Math.floor(selectedIndex / 7);
+    const overlayWidthPercent = 52;
+    const centerPercent = ((column + 0.5) / 7) * 100;
+    const leftPercent = Math.min(
+      Math.max(centerPercent - overlayWidthPercent / 2, 0),
+      100 - overlayWidthPercent
+    );
+    const arrowPercent = ((centerPercent - leftPercent) / overlayWidthPercent) * 100;
+
+    return {
+      top: WEEKDAY_ROW_OFFSET + row * (DAY_CELL_HEIGHT + DAY_CELL_GAP) + DAY_CELL_HEIGHT + OVERLAY_TOP_OFFSET,
+      leftPercent,
+      arrowPercent
+    };
+  }, [days, selectedDateKey, selectedItems.length]);
+
+  const featuredItem = selectedItems[Math.min(activeIndex, selectedItems.length - 1)];
+  const tone = featuredItem ? getPlanTone(featuredItem.state, featuredItem.tentative) : null;
+
   return (
-    <section className="overflow-hidden rounded-[32px] bg-[linear-gradient(180deg,rgba(19,24,40,0.98),rgba(9,13,22,1))] p-4 shadow-[0_28px_90px_rgba(0,0,0,0.42)] ring-1 ring-white/6">
-      <div className="mb-3 grid grid-cols-7 gap-1 px-1">
+    <section
+      className="relative overflow-hidden rounded-[34px] bg-[linear-gradient(180deg,rgba(19,24,40,0.98),rgba(9,13,22,1))] px-4 pb-4 pt-4 shadow-[0_28px_90px_rgba(0,0,0,0.42)] ring-1 ring-white/6"
+      style={{ paddingBottom: overlayAnchor ? OVERLAY_HEIGHT_ALLOWANCE : 16 }}
+    >
+      <button
+        aria-label="Plan color guide"
+        className="absolute right-4 top-4 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.05] text-sm font-semibold text-white/70 transition hover:bg-white/[0.08] hover:text-white"
+        onClick={() => setLegendOpen((current) => !current)}
+        type="button"
+      >
+        i
+      </button>
+
+      {legendOpen ? (
+        <div className="absolute right-4 top-14 z-20 w-[220px] rounded-[24px] bg-[linear-gradient(180deg,rgba(20,25,40,0.96),rgba(11,14,22,0.98))] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.38)] ring-1 ring-white/8 backdrop-blur-xl">
+          <p className="text-xs uppercase tracking-[0.2em] text-white/40">Color guide</p>
+          <div className="mt-3 space-y-2.5">
+            {PLAN_LEGEND_ITEMS.map((item) => (
+              <div className="flex items-start gap-3" key={item.label}>
+                <span className={cn("mt-0.5 h-3.5 w-3.5 rounded-full plans-shimmer", item.swatchClass)} />
+                <div>
+                  <p className="text-sm font-medium text-white">{item.label}</p>
+                  <p className="text-xs text-white/54">{item.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      <div className="mb-3 grid grid-cols-7 gap-2 px-1 pr-10">
         {WEEKDAY_LABELS.map((label) => (
           <div
-            className="pb-1 text-center text-[10px] uppercase tracking-[0.18em] text-white/38"
+            className="pb-1 text-center text-[10px] uppercase tracking-[0.18em] text-white/34"
             key={label}
           >
             {label}
           </div>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-1.5">
-        {days.map((day) => (
-          <CalendarDayCell
-            day={day}
-            key={day.key}
-            selected={selectedDateKey === day.key}
-            onClick={() => onSelectDay(day)}
-          />
-        ))}
-      </div>
-    </section>
-  );
-}
 
-export function SelectedDayPreview({
-  items,
-  activeIndex,
-  selectedDateLabel,
-  onOpenItem,
-  onSelectItem
-}: {
-  items: PlanCalendarItem[];
-  activeIndex: number;
-  selectedDateLabel: string | null;
-  onSelectItem: (index: number) => void;
-  onOpenItem: (item: PlanCalendarItem) => void;
-}) {
-  if (!selectedDateLabel) {
-    return (
-      <section className="rounded-[30px] bg-[linear-gradient(180deg,rgba(18,22,34,0.9),rgba(9,12,19,0.96))] p-5 ring-1 ring-white/6">
-        <p className="text-sm font-medium text-white">Pick a glowing day</p>
-        <p className="mt-1 text-sm text-white/56">Your posters will light up here.</p>
-      </section>
-    );
-  }
-
-  if (items.length === 0) {
-    return (
-      <section className="rounded-[30px] bg-[linear-gradient(180deg,rgba(18,22,34,0.9),rgba(9,12,19,0.96))] p-5 ring-1 ring-white/6">
-        <p className="text-xs uppercase tracking-[0.24em] text-white/38">{selectedDateLabel}</p>
-        <p className="mt-3 text-lg font-semibold text-white">Nothing locked in yet</p>
-        <p className="mt-1 text-sm text-white/56">Try another day or keep exploring.</p>
-      </section>
-    );
-  }
-
-  const featuredItem = items[Math.min(activeIndex, items.length - 1)];
-
-  return (
-    <section className="space-y-3">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-xs uppercase tracking-[0.24em] text-white/38">{selectedDateLabel}</p>
-          <h3 className="mt-1 text-xl font-semibold text-white">
-            {items.length > 1 ? `${items.length} plans this day` : "Preview"}
-          </h3>
-        </div>
-        <p className="text-xs text-white/46">Tap the card to open</p>
-      </div>
-
-      {items.length === 1 ? (
-        <PreviewCard item={featuredItem} onClick={() => onOpenItem(featuredItem)} selected />
-      ) : (
-        <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 subtle-scrollbar">
-          {items.map((item, index) => (
-            <PreviewCard
-              item={item}
-              key={item.id}
-              onClick={() => {
-                if (activeIndex === index) {
-                  onOpenItem(item);
-                  return;
-                }
-
-                onSelectItem(index);
-              }}
-              selected={activeIndex === index}
+      <div className="relative">
+        <div className="grid grid-cols-7 gap-2">
+          {days.map((day) => (
+            <CalendarDayCell
+              day={day}
+              key={day.key}
+              selected={selectedDateKey === day.key}
+              onClick={() => onSelectDay(day)}
             />
           ))}
         </div>
-      )}
+
+        {overlayAnchor && featuredItem && tone ? (
+          <div
+            className="absolute z-10 w-[52%] min-w-[196px] max-w-[320px]"
+            style={{ left: `${overlayAnchor.leftPercent}%`, top: overlayAnchor.top }}
+          >
+            <div
+              className={cn(
+                "absolute -top-2 h-4 w-4 rotate-45 rounded-[4px]",
+                tone.overlayPointerClass
+              )}
+              style={{
+                left: `${overlayAnchor.arrowPercent}%`,
+                transform: "translateX(-50%) rotate(45deg)"
+              }}
+            />
+            <SelectedDayOverlay
+              activeIndex={activeIndex}
+              item={featuredItem}
+              itemCount={selectedItems.length}
+              onOpen={() => onOpenItem(featuredItem)}
+              onSelectItem={onSelectItem}
+              selectedDateLabel={selectedDateLabel}
+              tone={tone}
+            />
+          </div>
+        ) : null}
+      </div>
     </section>
   );
 }
@@ -185,31 +192,37 @@ export function NoDatePlansTray({
         <h3 className="mt-1 text-xl font-semibold text-white">Flexible plans</h3>
       </div>
       <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 subtle-scrollbar">
-        {items.map((item) => (
-          <button
-            className="group w-[220px] shrink-0 overflow-hidden rounded-[28px] bg-[linear-gradient(180deg,rgba(19,24,40,0.95),rgba(10,13,21,0.98))] text-left ring-1 ring-white/6 transition hover:ring-white/12"
-            key={item.id}
-            onClick={() => onOpenItem(item)}
-            type="button"
-          >
-            <div className="relative h-[132px] overflow-hidden">
-              <img
-                alt={item.title}
-                className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
-                src={item.imageUrl}
-                style={{ objectPosition: getMediaObjectPosition(item.imagePosition) }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#070a12] via-[#070a12]/20 to-transparent" />
-              <div className="absolute left-3 top-3">
-                <MiniStateBadge item={item} />
+        {items.map((item) => {
+          const tone = getPlanTone(item.state, item.tentative) ?? getPlanTone("saved", false)!;
+
+          return (
+            <button
+              className="group w-[220px] shrink-0 overflow-hidden rounded-[28px] bg-[linear-gradient(180deg,rgba(19,24,40,0.95),rgba(10,13,21,0.98))] text-left ring-1 ring-white/6 transition hover:ring-white/12"
+              key={item.id}
+              onClick={() => onOpenItem(item)}
+              type="button"
+            >
+              <div className="relative h-[132px] overflow-hidden">
+                <img
+                  alt={item.title}
+                  className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                  src={item.imageUrl}
+                  style={{ objectPosition: getMediaObjectPosition(item.imagePosition) }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#070a12] via-[#070a12]/20 to-transparent" />
+                <div className="absolute left-3 top-3">
+                  <span className={cn("inline-flex rounded-full px-3 py-1 text-[11px] font-semibold backdrop-blur-sm", tone.badgeClass)}>
+                    {item.previewChip}
+                  </span>
+                </div>
               </div>
-            </div>
-            <div className="space-y-1.5 p-3.5">
-              <p className="line-clamp-2 text-base font-semibold text-white">{item.title}</p>
-              <p className="line-clamp-1 text-sm text-white/58">{item.previewCaption}</p>
-            </div>
-          </button>
-        ))}
+              <div className="space-y-1.5 p-3.5">
+                <p className="line-clamp-2 text-base font-semibold text-white">{item.title}</p>
+                <p className="line-clamp-1 text-sm text-white/58">{item.previewCaption}</p>
+              </div>
+            </button>
+          );
+        })}
       </div>
     </section>
   );
@@ -224,64 +237,43 @@ function CalendarDayCell({
   selected: boolean;
   onClick: () => void;
 }) {
-  const tone = getGlowTone(day.glowState, day.isTentative);
-  const showCount = day.count > 1;
+  const tone = getPlanTone(day.glowState, day.isTentative) ?? getPlanTone("saved", false)!;
 
   return (
     <button
       className={cn(
-        "relative aspect-square overflow-hidden rounded-[22px] p-0.5 text-left transition duration-300",
+        "relative h-[86px] overflow-hidden rounded-[22px] text-left transition duration-300",
         selected ? "scale-[1.02]" : "hover:scale-[1.01]"
       )}
       onClick={onClick}
       type="button"
     >
-      {day.count > 0 ? (
+      {day.count > 0 && tone ? (
         <>
-          <div
-            className={cn(
-              "absolute inset-[18%] rounded-full blur-2xl opacity-70 transition duration-300 motion-safe:animate-[pulse_5.5s_ease-in-out_infinite]",
-              tone.glow,
-              selected ? "opacity-95" : "opacity-65"
-            )}
-          />
-          <div
-            className={cn(
-              "absolute inset-[10%] rounded-[20px] transition duration-300",
-              tone.fill,
-              day.isTentative ? "ring-1 ring-inset ring-white/10" : "",
-              selected ? "opacity-100" : "opacity-88"
-            )}
-          />
+          <div className={cn("absolute inset-0 plans-shimmer", tone.dayFillClass, selected ? "opacity-100" : "opacity-88")} />
+          <div className={cn("absolute inset-[12%] rounded-[18px] blur-xl", tone.dayGlowClass)} />
         </>
       ) : null}
       <div
         className={cn(
-          "relative flex h-full flex-col rounded-[20px] px-2 py-2 transition",
-          day.inMonth ? "bg-white/[0.035]" : "bg-white/[0.02]",
+          "relative flex h-full flex-col rounded-[22px] px-2.5 py-2",
+          day.inMonth ? "bg-white/[0.04]" : "bg-white/[0.02]",
           selected
-            ? "ring-1 ring-white/16"
+            ? "ring-1 ring-white/18"
             : day.count > 0
               ? "ring-1 ring-white/8"
               : "ring-1 ring-white/4"
         )}
       >
-        <span
-          className={cn(
-            "text-sm font-semibold transition",
-            day.inMonth ? "text-white" : "text-white/28",
-            day.count > 0 && day.inMonth ? tone.number : ""
-          )}
-        >
+        <span className={cn("text-sm font-semibold", day.inMonth ? "text-white" : "text-white/24")}>
           {day.date.getDate()}
         </span>
-
         {day.count > 0 ? (
           <div className="mt-auto flex items-end justify-between">
-            <div className={cn("h-1.5 w-1.5 rounded-full", tone.dot)} />
-            {showCount ? (
-              <span className="rounded-full bg-black/22 px-1.5 py-0.5 text-[10px] font-medium text-white/72 backdrop-blur-sm">
-                +{day.count - 1}
+            <span className={cn("h-1.5 w-1.5 rounded-full", tone.dotClass)} />
+            {day.count > 1 ? (
+              <span className="rounded-full bg-black/20 px-1.5 py-0.5 text-[10px] font-medium text-white/72 backdrop-blur-sm">
+                {day.count}
               </span>
             ) : null}
           </div>
@@ -291,73 +283,84 @@ function CalendarDayCell({
   );
 }
 
-function PreviewCard({
+function SelectedDayOverlay({
   item,
-  selected,
-  onClick
+  selectedDateLabel,
+  activeIndex,
+  itemCount,
+  tone,
+  onOpen,
+  onSelectItem
 }: {
   item: PlanCalendarItem;
-  selected?: boolean;
-  onClick: () => void;
+  selectedDateLabel: string | null;
+  activeIndex: number;
+  itemCount: number;
+  tone: PlanTone;
+  onOpen: () => void;
+  onSelectItem: (index: number) => void;
 }) {
   return (
-    <button
+    <div
       className={cn(
-        "group relative min-h-[320px] w-full overflow-hidden rounded-[32px] text-left transition duration-300",
-        selected
-          ? "ring-1 ring-white/12 shadow-[0_28px_80px_rgba(0,0,0,0.45)]"
-          : "opacity-78 ring-1 ring-white/8 hover:opacity-100",
-        "sm:min-h-[360px]",
-        selected ? "sm:w-full" : "sm:w-[280px]",
-        !selected ? "snap-center shrink-0" : ""
+        "group relative overflow-hidden rounded-[26px] p-3 text-left shadow-[0_30px_70px_rgba(0,0,0,0.42)] ring-1 backdrop-blur-xl transition hover:scale-[1.01]",
+        tone.overlayShellClass
       )}
-      onClick={onClick}
-      type="button"
+      onClick={onOpen}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onOpen();
+        }
+      }}
+      role="button"
+      tabIndex={0}
     >
-      <img
-        alt={item.title}
-        className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
-        src={item.imageUrl}
-        style={{ objectPosition: getMediaObjectPosition(item.imagePosition) }}
-      />
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,8,13,0.14),rgba(6,8,13,0.48),rgba(6,8,13,0.95))]" />
-      <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-app-purple/18 to-transparent" />
-
-      <div className="absolute inset-x-0 top-0 flex items-start justify-between p-4">
-        <MiniStateBadge item={item} />
-        {item.progressLabel ? (
-          <span className="rounded-full bg-black/24 px-2.5 py-1 text-[11px] font-medium text-white/78 backdrop-blur-sm">
-            {item.progressLabel}
+      <div className="relative h-[190px] overflow-hidden rounded-[22px]">
+        <img
+          alt={item.title}
+          className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+          src={item.imageUrl}
+          style={{ objectPosition: getMediaObjectPosition(item.imagePosition) }}
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,10,16,0.15),rgba(8,10,16,0.34),rgba(8,10,16,0.92))]" />
+        <div className="absolute left-3 top-3">
+          <span className={cn("inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold backdrop-blur-sm", tone.badgeClass)}>
+            {item.previewChip}
           </span>
-        ) : null}
-      </div>
-
-      <div className="absolute inset-x-0 bottom-0 space-y-3 p-4">
-        <div className="space-y-1.5">
-          <h4 className="line-clamp-2 text-[28px] font-semibold leading-tight text-white">
-            {item.title}
-          </h4>
-          <p className="line-clamp-1 text-sm text-white/72">{item.previewCaption}</p>
         </div>
-        <div className="flex items-center justify-between text-sm text-white/66">
-          <span>{item.city}</span>
-          <span className="text-white/52">{selected ? "Open" : "Preview"}</span>
+        <div className="absolute inset-x-0 bottom-0 space-y-1.5 p-3">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-white/48">{selectedDateLabel}</p>
+          <h4 className="line-clamp-2 text-lg font-semibold leading-tight text-white">{item.title}</h4>
+          <p className="line-clamp-1 text-sm text-white/70">{item.previewCaption}</p>
         </div>
       </div>
-    </button>
-  );
-}
 
-function MiniStateBadge({ item }: { item: PlanCalendarItem }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex rounded-full px-3 py-1 text-[11px] font-semibold shadow-[0_12px_24px_rgba(0,0,0,0.2)] backdrop-blur-sm",
-        getBadgeTone(item)
-      )}
-    >
-      {item.previewChip}
-    </span>
+      <div className="mt-3 flex items-center justify-between">
+        {itemCount > 1 ? (
+          <div className="flex items-center gap-1.5">
+            {Array.from({ length: itemCount }).map((_, index) => (
+              <button
+                aria-label={`Show plan ${index + 1}`}
+                className={cn(
+                  "h-1.5 w-1.5 rounded-full transition",
+                  index === activeIndex ? "bg-white" : "bg-white/30"
+                )}
+                key={index}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onSelectItem(index);
+                }}
+                type="button"
+              />
+            ))}
+          </div>
+        ) : (
+          <span className="text-xs text-white/46">Preview</span>
+        )}
+        <span className="text-xs font-medium text-white/64">Tap again to open</span>
+      </div>
+    </div>
   );
 }
 
@@ -390,66 +393,95 @@ function MonthControlButton({
   );
 }
 
-function getGlowTone(state?: CalendarDay["glowState"], tentative = false) {
+type PlanTone = {
+  dayFillClass: string;
+  dayGlowClass: string;
+  dotClass: string;
+  badgeClass: string;
+  overlayShellClass: string;
+  overlayPointerClass: string;
+};
+
+function getPlanTone(
+  state?: CalendarDay["glowState"],
+  tentative = false
+): PlanTone | null {
+  if (!state) {
+    return null;
+  }
+
   if (state === "hosting") {
     return {
-      glow: "bg-[radial-gradient(circle,rgba(119,77,255,0.62)_0%,rgba(119,77,255,0.12)_58%,transparent_78%)]",
-      fill: tentative
-        ? "bg-[linear-gradient(180deg,rgba(82,58,173,0.18),rgba(25,22,42,0.02))]"
-        : "bg-[linear-gradient(180deg,rgba(82,58,173,0.3),rgba(25,22,42,0.04))]",
-      number: "text-white",
-      dot: "bg-[#b8a2ff]"
+      dayFillClass: tentative
+        ? "bg-[linear-gradient(120deg,rgba(93,66,204,0.32),rgba(133,103,255,0.18),rgba(93,66,204,0.28))] bg-[length:200%_100%]"
+        : "bg-[linear-gradient(120deg,rgba(83,52,215,0.72),rgba(155,127,255,0.4),rgba(83,52,215,0.62))] bg-[length:200%_100%]",
+      dayGlowClass: "bg-[radial-gradient(circle,rgba(135,96,255,0.65)_0%,rgba(135,96,255,0.12)_68%,transparent_88%)]",
+      dotClass: "bg-[#d2c2ff]",
+      badgeClass: "bg-app-purple/26 text-white",
+      overlayShellClass:
+        "bg-[linear-gradient(180deg,rgba(39,29,81,0.94),rgba(18,16,36,0.98))] ring-white/14",
+      overlayPointerClass: "bg-[rgba(39,29,81,0.96)]"
     };
   }
 
   if (state === "going") {
     return {
-      glow: "bg-[radial-gradient(circle,rgba(88,132,255,0.58)_0%,rgba(88,132,255,0.12)_56%,transparent_76%)]",
-      fill: tentative
-        ? "bg-[linear-gradient(180deg,rgba(51,83,178,0.18),rgba(15,21,39,0.02))]"
-        : "bg-[linear-gradient(180deg,rgba(51,83,178,0.3),rgba(15,21,39,0.04))]",
-      number: "text-white",
-      dot: "bg-[#90aaff]"
+      dayFillClass: tentative
+        ? "bg-[linear-gradient(120deg,rgba(71,112,216,0.3),rgba(106,155,255,0.16),rgba(71,112,216,0.26))] bg-[length:200%_100%]"
+        : "bg-[linear-gradient(120deg,rgba(59,108,236,0.7),rgba(122,166,255,0.34),rgba(59,108,236,0.56))] bg-[length:200%_100%]",
+      dayGlowClass: "bg-[radial-gradient(circle,rgba(98,151,255,0.6)_0%,rgba(98,151,255,0.14)_68%,transparent_88%)]",
+      dotClass: "bg-[#bad1ff]",
+      badgeClass: "bg-[#5E8BFF]/24 text-white",
+      overlayShellClass:
+        "bg-[linear-gradient(180deg,rgba(21,39,86,0.94),rgba(11,19,42,0.98))] ring-white/14",
+      overlayPointerClass: "bg-[rgba(21,39,86,0.96)]"
     };
   }
 
   if (state === "pledged") {
     return {
-      glow: "bg-[radial-gradient(circle,rgba(100,193,255,0.54)_0%,rgba(100,193,255,0.12)_56%,transparent_78%)]",
-      fill: tentative
-        ? "bg-[linear-gradient(180deg,rgba(34,78,112,0.2),rgba(10,20,30,0.02))]"
-        : "bg-[linear-gradient(180deg,rgba(34,78,112,0.28),rgba(10,20,30,0.04))]",
-      number: "text-white",
-      dot: "bg-[#88daff]"
+      dayFillClass:
+        "bg-[linear-gradient(120deg,rgba(54,133,176,0.42),rgba(109,217,255,0.22),rgba(54,133,176,0.3))] bg-[length:200%_100%]",
+      dayGlowClass: "bg-[radial-gradient(circle,rgba(116,220,255,0.52)_0%,rgba(116,220,255,0.14)_68%,transparent_88%)]",
+      dotClass: "bg-[#a8e7ff]",
+      badgeClass: "bg-[#8CD7FF]/18 text-white",
+      overlayShellClass:
+        "bg-[linear-gradient(180deg,rgba(16,53,72,0.94),rgba(8,24,34,0.98))] ring-white/14",
+      overlayPointerClass: "bg-[rgba(16,53,72,0.96)]"
     };
   }
 
   return {
-    glow: "bg-[radial-gradient(circle,rgba(255,255,255,0.25)_0%,rgba(160,174,255,0.08)_56%,transparent_76%)]",
-    fill: tentative
-      ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.01))]"
-      : "bg-[linear-gradient(180deg,rgba(255,255,255,0.1),rgba(255,255,255,0.02))]",
-    number: "text-white/92",
-    dot: "bg-white/80"
+    dayFillClass:
+      "bg-[linear-gradient(120deg,rgba(110,118,147,0.3),rgba(188,194,215,0.16),rgba(110,118,147,0.24))] bg-[length:200%_100%]",
+    dayGlowClass: "bg-[radial-gradient(circle,rgba(255,255,255,0.22)_0%,rgba(174,184,221,0.08)_68%,transparent_88%)]",
+    dotClass: "bg-white/78",
+    badgeClass: "bg-white/12 text-white",
+    overlayShellClass:
+      "bg-[linear-gradient(180deg,rgba(34,38,51,0.94),rgba(16,18,27,0.98))] ring-white/12",
+    overlayPointerClass: "bg-[rgba(34,38,51,0.96)]"
   };
 }
 
-function getBadgeTone(item: PlanCalendarItem) {
-  if (item.previewChip === "Hosting") {
-    return "bg-app-purple/22 text-white";
+const PLAN_LEGEND_ITEMS = [
+  {
+    label: "Hosting",
+    description: "Your own nights and launches.",
+    swatchClass: "bg-[linear-gradient(120deg,rgba(83,52,215,0.82),rgba(155,127,255,0.48),rgba(83,52,215,0.68))]"
+  },
+  {
+    label: "Going",
+    description: "Locked-in plans you’re attending.",
+    swatchClass: "bg-[linear-gradient(120deg,rgba(59,108,236,0.82),rgba(122,166,255,0.44),rgba(59,108,236,0.7))]"
+  },
+  {
+    label: "Pledged",
+    description: "Soft launches still taking shape.",
+    swatchClass: "bg-[linear-gradient(120deg,rgba(54,133,176,0.62),rgba(109,217,255,0.34),rgba(54,133,176,0.52))]"
+  },
+  {
+    label: "Saved",
+    description: "Ideas you don’t want to lose.",
+    swatchClass: "bg-[linear-gradient(120deg,rgba(110,118,147,0.5),rgba(188,194,215,0.28),rgba(110,118,147,0.4))]"
   }
-
-  if (item.previewChip === "Going") {
-    return "bg-[#5E8BFF]/20 text-white";
-  }
-
-  if (item.previewChip === "Soft launch") {
-    return "bg-[#8CD7FF]/18 text-white";
-  }
-
-  if (item.previewChip === "Pledged") {
-    return "bg-[#8CD7FF]/18 text-white";
-  }
-
-  return "bg-white/12 text-white";
-}
+];

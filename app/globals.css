@@ -330,6 +330,16 @@ button {
       animation: none;
     }
   }
+
+  .plans-shimmer {
+    background-size: 200% 100%;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .plans-shimmer {
+      animation: launch-shimmer 6.4s ease-in-out infinite;
+    }
+  }
 }
 
 @keyframes launch-shimmer {

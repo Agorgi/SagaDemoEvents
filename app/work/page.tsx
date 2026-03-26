@@ -4,6 +4,7 @@ import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { Nav } from "@/src/components/Nav";
+import { PageHeroHeader } from "@/src/components/PageHeroHeader";
 import { OpportunityCard } from "@/src/components/OpportunityCard";
 import { UnderlineTabs } from "@/src/components/UnderlineTabs";
 import { VenueCard } from "@/src/components/VenueCard";
@@ -50,9 +51,9 @@ export default function WorkPage() {
 function WorkPageContent() {
   const searchParams = useSearchParams();
   const {
-    businessProfiles,
-    getApplicationForCurrentUser,
-    homeCity,
+        businessProfiles,
+        getApplicationForCurrentUser,
+        homeCity,
     onboarding,
     opportunities,
     preferredFandoms
@@ -165,12 +166,12 @@ function WorkPageContent() {
     <div className="min-h-screen">
       <Nav />
       <main className="mx-auto w-full max-w-[760px] px-4 pb-28 pt-5 sm:px-6 sm:pb-14 sm:pt-8">
-        <section className="space-y-1.5">
-          <h1 className="text-4xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">
-            Open roles & venues
-          </h1>
-          <p className="text-sm text-app-muted">Find ways to join live projects.</p>
-        </section>
+        <PageHeroHeader
+          eyebrow={homeCity}
+          label="Work"
+          title="Open roles & venues"
+          subtitle="Find ways to join live projects."
+        />
 
         <UnderlineTabs
           className="mt-6"

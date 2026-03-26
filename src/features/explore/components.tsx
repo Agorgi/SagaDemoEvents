@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { Avatar, AvatarStack } from "@/src/components/Avatar";
+import { PageHeroHeader } from "@/src/components/PageHeroHeader";
 import { StatusChip } from "@/src/components/StatusChip";
 import {
   type EventContentFilter,
@@ -30,17 +31,7 @@ export function HomeHeader({
   city: string;
   subline: string;
 }) {
-  return (
-    <div className="space-y-1.5">
-      <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-app-muted">
-        {city}
-      </p>
-      <p className="text-sm text-white/74">Hey, {firstName}</p>
-      <h1 className="max-w-[14ch] text-[1.85rem] font-semibold tracking-[-0.045em] text-white sm:text-[2.15rem]">
-        {subline}
-      </h1>
-    </div>
-  );
+  return <PageHeroHeader eyebrow={city} label={`Hey, ${firstName}`} title={subline} />;
 }
 
 export function HomeSearchBar({

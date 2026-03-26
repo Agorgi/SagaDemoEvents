@@ -7,13 +7,14 @@ import { useRouter } from "next/navigation";
 import { LaunchChoiceCard } from "@/src/components/LaunchChoiceCard";
 import { LaunchSummaryCard } from "@/src/components/LaunchSummaryCard";
 import { Nav } from "@/src/components/Nav";
+import { PageHeroHeader } from "@/src/components/PageHeroHeader";
 import { useAppState } from "@/src/lib/app-state";
 import { HOST_DEMO_USER_ID } from "@/src/lib/host-mode";
 import { formatDateLabel } from "@/src/lib/utils";
 
 export default function StudioPage() {
   const router = useRouter();
-  const { launchDrafts, launches, mode, setMode, startLaunchDraft } = useAppState();
+  const { homeCity, launchDrafts, launches, mode, setMode, startLaunchDraft } = useAppState();
 
   useEffect(() => {
     if (mode !== "host") {
@@ -39,13 +40,12 @@ export default function StudioPage() {
       <Nav />
       <main className="mx-auto w-full max-w-[760px] px-4 pb-28 pt-5 sm:px-6 sm:pb-12 sm:pt-8">
         <section className="space-y-4">
-          <div className="space-y-2">
-            <p className="text-sm uppercase tracking-[0.16em] text-app-muted">Launch</p>
-            <h1 className="text-4xl font-semibold text-white sm:text-5xl">New Event</h1>
-            <p className="text-sm text-app-muted">
-              Start with the basics. We’ll turn it into a draft you can review.
-            </p>
-          </div>
+          <PageHeroHeader
+            eyebrow={homeCity}
+            label="Launch"
+            title="New Event"
+            subtitle="Start with the basics. We’ll turn it into a draft you can review."
+          />
 
           <div className="space-y-4">
             <LaunchChoiceCard
