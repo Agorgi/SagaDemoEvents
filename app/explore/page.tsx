@@ -35,6 +35,62 @@ import { useAppState } from "@/src/lib/app-state";
 import { useDemoState } from "@/src/lib/demo-state";
 import { formatDateRange } from "@/src/lib/utils";
 
+function isHomeMode(value: string | null): value is HomeMode {
+  return value === "for_you" || value === "events" || value === "creators" || value === "genres";
+}
+
+function isEventFilter(value: string | null): value is EventContentFilter {
+  return value === "all" || value === "happening" || value === "soft_launch" || value === "nearby";
+}
+
+function readExploreRouteState() {
+  if (typeof window === "undefined") {
+    return {
+      mode: "for_you" as HomeMode,
+      filter: "all" as EventContentFilter,
+      genreId: null as string | null
+    };
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const modeParam = params.get("mode");
+  const filterParam = params.get("filter");
+  const genreParam = params.get("genre");
+
+  return {
+    mode: isHomeMode(modeParam) ? modeParam : genreParam ? ("genres" as HomeMode) : ("for_you" as HomeMode),
+    filter: isEventFilter(filterParam) ? filterParam : ("all" as EventContentFilter),
+    genreId: genreParam
+  };
+}
+
+function buildExploreHref({
+  mode,
+  filter,
+  genreId
+}: {
+  mode: HomeMode;
+  filter: EventContentFilter;
+  genreId: string | null;
+}) {
+  const params = new URLSearchParams();
+
+  if (mode !== "for_you") {
+    params.set("mode", mode);
+  }
+
+  if (mode === "events" && filter !== "all") {
+    params.set("filter", filter);
+  }
+
+  if (mode === "genres" && genreId) {
+    params.set("genre", genreId);
+  }
+
+  const query = params.toString();
+  return query ? `/explore?${query}` : "/explore";
+}
+
 export default function ExplorePage() {
   const {
     creatorProfiles,
@@ -63,27 +119,49 @@ export default function ExplorePage() {
   }, [setMode]);
 
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
+    const applyRouteState = () => {
+      const routeState = readExploreRouteState();
+      setActiveMode(routeState.mode);
+      setEventFilter(routeState.filter);
+      setActiveGenreId(routeState.genreId);
+    };
 
-    const params = new URLSearchParams(window.location.search);
-    const modeParam = params.get("mode");
-    const genreParam = params.get("genre");
+    applyRouteState();
+    window.addEventListener("popstate", applyRouteState);
 
-    if (
-      modeParam === "for_you" ||
-      modeParam === "events" ||
-      modeParam === "creators" ||
-      modeParam === "genres"
-    ) {
-      setActiveMode(modeParam);
-    } else if (genreParam) {
-      setActiveMode("genres");
-    }
-
-    setActiveGenreId(genreParam);
+    return () => window.removeEventListener("popstate", applyRouteState);
   }, []);
+
+  function setExploreRoute({
+    mode,
+    filter,
+    genreId
+  }: {
+    mode?: HomeMode;
+    filter?: EventContentFilter;
+    genreId?: string | null;
+  }) {
+    const nextMode = mode ?? activeMode;
+    const nextFilter = nextMode === "events" ? filter ?? eventFilter : "all";
+    const nextGenreId =
+      nextMode === "genres" ? (genreId === undefined ? activeGenreId : genreId) : null;
+
+    setActiveMode(nextMode);
+    setEventFilter(nextFilter);
+    setActiveGenreId(nextGenreId);
+
+    if (typeof window !== "undefined") {
+      window.history.pushState(
+        {},
+        "",
+        buildExploreHref({
+          mode: nextMode,
+          filter: nextFilter,
+          genreId: nextGenreId
+        })
+      );
+    }
+  }
 
   const topInterest = useMemo(() => getTopInterest(preferredFandoms), [preferredFandoms]);
   const browseGenres = useMemo(() => {
@@ -203,7 +281,16 @@ export default function ExplorePage() {
           />
 
           <HomeSearchBar onChange={setQuery} value={query} />
-          <TopModeChips activeMode={activeMode} onChange={setActiveMode} />
+          <TopModeChips
+            activeMode={activeMode}
+            onChange={(mode) =>
+              setExploreRoute({
+                mode,
+                filter: mode === "events" ? eventFilter : undefined,
+                genreId: mode === "genres" ? activeGenreId : null
+              })
+            }
+          />
         </section>
 
         <section className="mt-8 space-y-8">
@@ -213,7 +300,7 @@ export default function ExplorePage() {
                 <section className="space-y-3">
                   <SectionHeader
                     icon="spark"
-                    onSeeAll={() => setActiveMode("events")}
+                    onSeeAll={() => setExploreRoute({ mode: "events", filter: "all", genreId: null })}
                     title={`Because you like ${topInterest}`}
                   />
                   <HorizontalRail>
@@ -243,7 +330,7 @@ export default function ExplorePage() {
                 <section className="space-y-3">
                   <SectionHeader
                     icon="social"
-                    onSeeAll={() => setActiveMode("events")}
+                    onSeeAll={() => setExploreRoute({ mode: "events", filter: "all", genreId: null })}
                     title="Friends are going"
                   />
                   <div className="space-y-3">
@@ -271,8 +358,7 @@ export default function ExplorePage() {
                   <SectionHeader
                     icon="launch"
                     onSeeAll={() => {
-                      setActiveMode("events");
-                      setEventFilter("soft_launch");
+                      setExploreRoute({ mode: "events", filter: "soft_launch", genreId: null });
                     }}
                     title={rail.title}
                   />
@@ -298,7 +384,7 @@ export default function ExplorePage() {
                 <section className="space-y-3">
                   <SectionHeader
                     icon="creator"
-                    onSeeAll={() => setActiveMode("creators")}
+                    onSeeAll={() => setExploreRoute({ mode: "creators", genreId: null })}
                     title="Creators of the week"
                   />
                   <CreatorSectionRow creators={creatorSpotlights.slice(0, 8)} />
@@ -309,7 +395,7 @@ export default function ExplorePage() {
                 <section className="space-y-3">
                   <SectionHeader
                     icon="genres"
-                    onSeeAll={() => setActiveMode("genres")}
+                    onSeeAll={() => setExploreRoute({ mode: "genres" })}
                     title="Browse genres"
                   />
                   <HorizontalRail>
@@ -321,8 +407,7 @@ export default function ExplorePage() {
                         key={genre.id}
                         summary={genreSummaries.get(genre.id)}
                         onClick={() => {
-                          setActiveGenreId(genre.id);
-                          setActiveMode("genres");
+                          setExploreRoute({ mode: "genres", genreId: genre.id });
                         }}
                       />
                     ))}
@@ -336,7 +421,7 @@ export default function ExplorePage() {
             <>
               <EventContentFilters
                 activeFilter={eventFilter}
-                onChange={setEventFilter}
+                onChange={(filter) => setExploreRoute({ mode: "events", filter, genreId: null })}
               />
 
               {(eventFilter === "all" ||
@@ -446,7 +531,7 @@ export default function ExplorePage() {
                   activeGenreId={activeGenreId}
                   genres={browseGenres}
                   genreSummaries={genreSummaries}
-                  onSelect={(genre) => setActiveGenreId(genre.id)}
+                  onSelect={(genre) => setExploreRoute({ mode: "genres", genreId: genre.id })}
                 />
               </section>
 
