@@ -105,16 +105,16 @@ export default function MyEventsPage() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="h-[100dvh] overflow-hidden md:min-h-screen md:h-auto md:overflow-visible">
       <Nav />
-      <main className="mx-auto w-full max-w-[760px] px-4 pb-28 pt-5 sm:px-6 sm:pb-14 sm:pt-8">
+      <main className="mx-auto flex h-[calc(100dvh-56px)] w-full max-w-[760px] flex-col overflow-hidden px-4 pb-[74px] pt-3 md:h-auto md:min-h-0 md:overflow-visible md:pb-14 md:pt-8 sm:px-6">
         <PageHeroHeader
           eyebrow={homeCity}
           label="Plans"
           title="Coming up"
         />
 
-        <section className="mt-5 space-y-4">
+        <section className="mt-3 space-y-3 md:mt-5 md:space-y-4">
           <CalendarMonthHeader
             monthLabel={formatMonthLabel(currentMonth)}
             onNext={() => resetSelection(shiftMonth(currentMonth, 1))}
@@ -122,7 +122,7 @@ export default function MyEventsPage() {
           />
         </section>
 
-        <section className="mt-5 space-y-5">
+        <section className="mt-3 flex min-h-0 flex-1 flex-col gap-3 md:mt-5 md:block md:space-y-5">
           <CalendarGrid
             activeIndex={activePreviewIndex}
             days={days}
@@ -137,7 +137,7 @@ export default function MyEventsPage() {
           />
 
           {!monthHasVisibleItems && noDateItems.length === 0 ? (
-            <section className="rounded-[30px] bg-[linear-gradient(180deg,rgba(18,22,34,0.9),rgba(9,12,19,0.96))] p-5 ring-1 ring-white/6">
+            <section className="rounded-[24px] bg-[linear-gradient(180deg,rgba(18,22,34,0.9),rgba(9,12,19,0.96))] p-4 ring-1 ring-white/6 md:rounded-[30px] md:p-5">
               <p className="text-lg font-semibold text-white">Nothing locked in yet</p>
               <p className="mt-1 text-sm text-white/56">A quieter month can still surprise you.</p>
               <Link
@@ -149,7 +149,9 @@ export default function MyEventsPage() {
             </section>
           ) : null}
 
-          <NoDatePlansTray items={noDateItems} onOpenItem={openPlanItem} />
+          <div className="min-h-0 shrink-0">
+            <NoDatePlansTray items={noDateItems} onOpenItem={openPlanItem} />
+          </div>
         </section>
       </main>
     </div>

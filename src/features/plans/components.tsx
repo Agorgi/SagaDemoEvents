@@ -27,7 +27,7 @@ export function CalendarMonthHeader({
       <MonthControlButton ariaLabel="Previous month" direction="left" onClick={onPrevious} />
       <div className="text-center">
         <p className="text-[11px] uppercase tracking-[0.24em] text-white/38">Calendar</p>
-        <h2 className="mt-1 text-[30px] font-semibold tracking-[-0.04em] text-white">{monthLabel}</h2>
+        <h2 className="mt-1 text-[26px] font-semibold tracking-[-0.04em] text-white sm:text-[30px]">{monthLabel}</h2>
       </div>
       <MonthControlButton ariaLabel="Next month" direction="right" onClick={onNext} />
     </div>
@@ -64,7 +64,7 @@ export function CalendarGrid({
 
   return (
     <>
-      <section className="relative overflow-hidden rounded-[34px] bg-[linear-gradient(180deg,rgba(19,24,40,0.98),rgba(9,13,22,1))] px-4 pb-4 pt-4 shadow-[0_28px_90px_rgba(0,0,0,0.42)] ring-1 ring-white/6">
+      <section className="relative overflow-hidden rounded-[30px] bg-[linear-gradient(180deg,rgba(19,24,40,0.98),rgba(9,13,22,1))] px-3.5 pb-3.5 pt-3.5 shadow-[0_28px_90px_rgba(0,0,0,0.42)] ring-1 ring-white/6 sm:rounded-[34px] sm:px-4 sm:pb-4 sm:pt-4">
       <button
         aria-label="Plan color guide"
         className="absolute right-4 top-4 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.05] text-sm font-semibold text-white/70 transition hover:bg-white/[0.08] hover:text-white"
@@ -91,7 +91,7 @@ export function CalendarGrid({
         </div>
       ) : null}
 
-      <div className="mb-3 grid grid-cols-7 gap-2 px-1 pr-10">
+      <div className="mb-2.5 grid grid-cols-7 gap-1.5 px-0.5 pr-10 sm:mb-3 sm:gap-2 sm:px-1">
         {WEEKDAY_LABELS.map((label) => (
           <div
             className="pb-1 text-center text-[10px] uppercase tracking-[0.18em] text-white/34"
@@ -103,7 +103,7 @@ export function CalendarGrid({
       </div>
 
       <div className="relative">
-        <div className="grid grid-cols-7 gap-2">
+        <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
           {days.map((day) => (
             <CalendarDayCell
               day={day}
@@ -147,23 +147,23 @@ export function NoDatePlansTray({
   }
 
   return (
-    <section className="space-y-3">
+    <section className="space-y-2.5">
       <div>
         <p className="text-xs uppercase tracking-[0.24em] text-white/38">Still taking shape</p>
-        <h3 className="mt-1 text-xl font-semibold text-white">Flexible plans</h3>
+        <h3 className="mt-1 text-base font-semibold text-white sm:text-xl">Flexible plans</h3>
       </div>
-      <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 subtle-scrollbar">
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 subtle-scrollbar">
         {items.map((item) => {
           const tone = getPlanTone(item.state, item.tentative) ?? getPlanTone("saved", false)!;
 
           return (
             <button
-              className="group w-[220px] shrink-0 overflow-hidden rounded-[28px] bg-[linear-gradient(180deg,rgba(19,24,40,0.95),rgba(10,13,21,0.98))] text-left ring-1 ring-white/6 transition hover:ring-white/12"
+              className="group flex w-[164px] shrink-0 overflow-hidden rounded-[22px] bg-[linear-gradient(180deg,rgba(19,24,40,0.95),rgba(10,13,21,0.98))] text-left ring-1 ring-white/6 transition hover:ring-white/12 sm:w-[220px] sm:rounded-[28px] sm:block"
               key={item.id}
               onClick={() => onOpenItem(item)}
               type="button"
             >
-              <div className="relative h-[132px] overflow-hidden">
+              <div className="relative h-[86px] w-[72px] shrink-0 overflow-hidden sm:h-[132px] sm:w-auto">
                 <img
                   alt={item.title}
                   className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
@@ -177,9 +177,9 @@ export function NoDatePlansTray({
                   </span>
                 </div>
               </div>
-              <div className="space-y-1.5 p-3.5">
-                <p className="line-clamp-2 text-base font-semibold text-white">{item.title}</p>
-                <p className="line-clamp-1 text-sm text-white/58">{item.previewCaption}</p>
+              <div className="flex min-w-0 flex-1 flex-col justify-center space-y-1.5 p-3 sm:block sm:space-y-1.5 sm:p-3.5">
+                <p className="line-clamp-2 text-sm font-semibold text-white sm:text-base">{item.title}</p>
+                <p className="line-clamp-2 text-xs text-white/58 sm:line-clamp-1 sm:text-sm">{item.previewCaption}</p>
               </div>
             </button>
           );
@@ -203,7 +203,7 @@ function CalendarDayCell({
   return (
     <button
       className={cn(
-        "relative h-[86px] overflow-hidden rounded-[22px] text-left transition duration-300",
+        "relative aspect-square overflow-hidden rounded-[18px] text-left transition duration-300 sm:rounded-[22px]",
         selected ? "scale-[1.02]" : "hover:scale-[1.01]"
       )}
       onClick={(event) => {
@@ -223,7 +223,7 @@ function CalendarDayCell({
       ) : null}
       <div
         className={cn(
-          "relative flex h-full flex-col rounded-[22px] px-2.5 py-2",
+          "relative flex h-full flex-col rounded-[18px] px-2 py-1.5 sm:rounded-[22px] sm:px-2.5 sm:py-2",
           day.inMonth ? "bg-white/[0.04]" : "bg-white/[0.02]",
           selected
             ? "ring-1 ring-white/18"
@@ -232,7 +232,7 @@ function CalendarDayCell({
               : "ring-1 ring-white/4"
         )}
       >
-        <span className={cn("text-sm font-semibold", day.inMonth ? "text-white" : "text-white/24")}>
+        <span className={cn("text-[13px] font-semibold sm:text-sm", day.inMonth ? "text-white" : "text-white/24")}>
           {day.date.getDate()}
         </span>
         {day.count > 0 ? (
@@ -275,7 +275,7 @@ function SelectedDayOverlay({
     <div
       key={animationKey}
       className={cn(
-        "plans-overlay-enter pointer-events-auto group relative w-[min(86vw,360px)] overflow-hidden rounded-[26px] p-3 text-left shadow-[0_30px_70px_rgba(0,0,0,0.42)] ring-1 backdrop-blur-xl transition hover:scale-[1.01]",
+        "plans-overlay-enter pointer-events-auto group relative w-[min(82vw,336px)] overflow-hidden rounded-[24px] p-3 text-left shadow-[0_30px_70px_rgba(0,0,0,0.42)] ring-1 backdrop-blur-xl transition hover:scale-[1.01] sm:w-[min(86vw,360px)] sm:rounded-[26px]",
         tone.overlayShellClass
       )}
       onClick={onOpen}
@@ -309,7 +309,7 @@ function SelectedDayOverlay({
         </>
       ) : null}
 
-      <div className="relative h-[190px] overflow-hidden rounded-[22px]">
+      <div className="relative h-[176px] overflow-hidden rounded-[20px] sm:h-[190px] sm:rounded-[22px]">
         <img
           alt={item.title}
           className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
@@ -324,7 +324,7 @@ function SelectedDayOverlay({
         </div>
         <div className="absolute inset-x-0 bottom-0 space-y-1.5 p-3">
           <p className="text-[11px] uppercase tracking-[0.18em] text-white/48">{selectedDateLabel}</p>
-          <h4 className="line-clamp-2 text-lg font-semibold leading-tight text-white">{item.title}</h4>
+          <h4 className="line-clamp-2 text-[17px] font-semibold leading-tight text-white sm:text-lg">{item.title}</h4>
           <p className="line-clamp-1 text-sm text-white/70">{item.previewCaption}</p>
         </div>
       </div>
@@ -371,7 +371,7 @@ function OverlayArrow({
       aria-label={ariaLabel}
       className={cn(
         "absolute top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/24 text-white/82 backdrop-blur-md transition hover:bg-black/36 hover:text-white",
-        direction === "left" ? "left-4" : "right-4"
+        direction === "left" ? "left-3" : "right-3"
       )}
       onClick={(event) => {
         event.stopPropagation();
