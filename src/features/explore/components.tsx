@@ -189,36 +189,80 @@ export function HorizontalRail({
 export function HomeEventRailCard({
   event,
   metadataLine,
-  socialLine
+  socialLine,
+  hostName,
+  hostAvatarUrl,
+  eyebrow
 }: {
   event: DemoEvent;
   metadataLine: string;
   socialLine: string;
+  hostName?: string;
+  hostAvatarUrl?: string;
+  eyebrow?: string;
 }) {
   return (
     <Link
-      className="group block w-[240px] shrink-0 snap-start overflow-hidden rounded-[28px] border border-white/8 bg-[#101520] shadow-card transition hover:border-white/12"
+      className="group block w-[252px] shrink-0 snap-start overflow-hidden rounded-[30px] border border-white/8 bg-[#101520] shadow-card transition hover:border-white/12"
       href={`/events/${event.id}`}
     >
-      <div className="relative h-[210px] overflow-hidden">
+      <div className="relative h-[224px] overflow-hidden">
         <img
           alt={event.title}
           className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
           src={event.posterUrl}
           style={{ objectPosition: getMediaObjectPosition(event.posterPosition) }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#07090f] via-[#07090f]/16 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#07090f] via-[#07090f]/14 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent" />
         <div className="absolute left-3 top-3">
           <StatusChip status="confirmed" />
         </div>
+        <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-[#0a0d14]/68 px-2.5 py-1 text-[10px] font-medium text-white/82 backdrop-blur-sm">
+          {eyebrow ?? event.fandomTags[0] ?? "Happening"}
+        </div>
       </div>
 
-      <div className="space-y-1.5 p-3.5">
-        <h3 className="line-clamp-2 text-lg font-semibold leading-tight text-white">
-          {event.title}
-        </h3>
-        <p className="text-xs text-white/64">{metadataLine}</p>
-        <p className="line-clamp-1 text-xs text-app-muted">{socialLine}</p>
+      <div className="space-y-3 p-4">
+        <div className="space-y-1.5">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/45">
+            Happening
+          </p>
+          <h3 className="line-clamp-2 text-[1.1rem] font-semibold leading-tight text-white">
+            {event.title}
+          </h3>
+          <p className="text-xs text-white/64">{metadataLine}</p>
+        </div>
+
+        {hostName ? (
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <Avatar
+                className="h-9 w-9 border-[#101520]"
+                name={hostName}
+                size="sm"
+                src={hostAvatarUrl}
+              />
+              <div className="min-w-0">
+                <p className="truncate text-xs font-semibold text-white">{hostName}</p>
+                <p className="truncate text-[11px] text-app-muted">{socialLine}</p>
+              </div>
+            </div>
+
+            <div className="shrink-0 inline-flex items-center gap-1 text-[11px] font-medium text-white/76 transition group-hover:text-white">
+              View
+              <ArrowUpRightIcon />
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between gap-3">
+            <p className="line-clamp-1 text-[11px] text-app-muted">{socialLine}</p>
+            <div className="shrink-0 inline-flex items-center gap-1 text-[11px] font-medium text-white/76 transition group-hover:text-white">
+              View
+              <ArrowUpRightIcon />
+            </div>
+          </div>
+        )}
       </div>
     </Link>
   );
@@ -226,10 +270,16 @@ export function HomeEventRailCard({
 
 export function SoftLaunchRailCard({
   launch,
-  metadataLine
+  metadataLine,
+  hostName,
+  hostAvatarUrl,
+  eyebrow
 }: {
   launch: DemoLaunch;
   metadataLine: string;
+  hostName?: string;
+  hostAvatarUrl?: string;
+  eyebrow?: string;
 }) {
   const progress = getLaunchFundingProgress(launch);
   const progressPercent = Math.max(
@@ -239,10 +289,10 @@ export function SoftLaunchRailCard({
 
   return (
     <Link
-      className="group block w-[240px] shrink-0 snap-start overflow-hidden rounded-[28px] border border-[#93a6ff]/16 bg-[#101520] shadow-card transition hover:border-[#93a6ff]/24"
+      className="group block w-[252px] shrink-0 snap-start overflow-hidden rounded-[30px] border border-[#93a6ff]/16 bg-[#101520] shadow-card transition hover:border-[#93a6ff]/24"
       href={`/campaigns/${launch.id}`}
     >
-      <div className="relative h-[210px] overflow-hidden">
+      <div className="relative h-[224px] overflow-hidden">
         <img
           alt={launch.title}
           className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
@@ -250,26 +300,51 @@ export function SoftLaunchRailCard({
           style={{ objectPosition: getMediaObjectPosition(launch.coverImagePosition) }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#07090f] via-[#07090f]/16 to-transparent" />
-        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#1F1CB8]/20 to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-[#1F1CB8]/24 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-br from-app-purple/12 via-transparent to-transparent" />
         <div className="absolute left-3 top-3">
           <StatusChip status="live_soft_launch" />
         </div>
+        <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-[#0a0d14]/68 px-2.5 py-1 text-[10px] font-medium text-white/82 backdrop-blur-sm">
+          {eyebrow ?? launch.fandomTags[0] ?? "Soft launch"}
+        </div>
       </div>
 
-      <div className="space-y-2 p-3.5">
+      <div className="space-y-3 p-4">
         <div className="space-y-1.5">
-          <h3 className="line-clamp-2 text-lg font-semibold leading-tight text-white">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/45">
+            In progress
+          </p>
+          <h3 className="line-clamp-2 text-[1.1rem] font-semibold leading-tight text-white">
             {launch.title}
           </h3>
           <p className="text-xs text-white/64">{metadataLine}</p>
         </div>
+
+        {hostName ? (
+          <div className="flex items-center gap-2.5">
+            <Avatar
+              className="h-9 w-9 border-[#101520]"
+              name={hostName}
+              size="sm"
+              src={hostAvatarUrl}
+            />
+            <div className="min-w-0">
+              <p className="truncate text-xs font-semibold text-white">{hostName}</p>
+              <p className="truncate text-[11px] text-app-muted">Launching this with the community</p>
+            </div>
+          </div>
+        ) : null}
 
         <div className="space-y-1.5">
           <div className="flex items-center justify-between gap-3 text-[11px] text-app-muted">
             <span>
               {formatCompactNumber(progress.current)} / {formatCompactNumber(progress.target)} reserved
             </span>
-            <span className="text-white/72">View launch</span>
+            <span className="inline-flex items-center gap-1 text-white/76 transition group-hover:text-white">
+              Reserve
+              <ArrowUpRightIcon />
+            </span>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
             <div

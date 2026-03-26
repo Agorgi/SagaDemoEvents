@@ -163,6 +163,8 @@ export default function ExplorePage() {
     ? launches.find((launch) => launch.id === reserveLaunchId)
     : null;
   const unreadCount = inbox.filter((item) => item.unread).length;
+  const resolveRailUser = (userId?: string) =>
+    users.find((user) => user.id === userId);
 
   const visibleHappening =
     eventFilter === "nearby" ? eventsModeContent.nearby : eventsModeContent.happening;
@@ -196,18 +198,24 @@ export default function ExplorePage() {
                     title={`Because you like ${topInterest}`}
                   />
                   <HorizontalRail>
-                    {becauseYouLikeEvents.map((event) => (
-                      <HomeEventRailCard
-                        event={event}
-                        key={event.id}
-                        metadataLine={`${formatDateRange(event.startsAt, event.endsAt)} · ${event.city}`}
-                        socialLine={
-                          event.mutualsCount > 0
-                            ? `${event.mutualsCount} friends interested`
-                            : event.subtitle
-                        }
-                      />
-                    ))}
+                    {becauseYouLikeEvents.map((event) => {
+                      const host = resolveRailUser(event.hostId);
+
+                      return (
+                        <HomeEventRailCard
+                          event={event}
+                          hostAvatarUrl={host?.avatarUrl}
+                          hostName={host?.name}
+                          key={event.id}
+                          metadataLine={`${formatDateRange(event.startsAt, event.endsAt)} · ${event.city}`}
+                          socialLine={
+                            event.mutualsCount > 0
+                              ? `${event.mutualsCount} friends interested`
+                              : event.subtitle
+                          }
+                        />
+                      );
+                    })}
                   </HorizontalRail>
                 </section>
               ) : null}
@@ -244,13 +252,19 @@ export default function ExplorePage() {
                     title={rail.title}
                   />
                   <HorizontalRail>
-                    {rail.launches.map((launch) => (
-                      <SoftLaunchRailCard
-                        key={launch.id}
-                        launch={launch}
-                        metadataLine={`${launch.city} · ${launch.dateOptions.length} date options`}
-                      />
-                    ))}
+                    {rail.launches.map((launch) => {
+                      const host = resolveRailUser(launch.hostId);
+
+                      return (
+                        <SoftLaunchRailCard
+                          hostAvatarUrl={host?.avatarUrl}
+                          hostName={host?.name}
+                          key={launch.id}
+                          launch={launch}
+                          metadataLine={`${launch.city} · ${launch.dateOptions.length} date options`}
+                        />
+                      );
+                    })}
                   </HorizontalRail>
                 </section>
               ))}
@@ -309,14 +323,20 @@ export default function ExplorePage() {
                     title={eventFilter === "nearby" ? `Near ${homeCity}` : "Happening"}
                   />
                   <HorizontalRail>
-                    {visibleHappening.slice(0, 8).map((event) => (
-                      <HomeEventRailCard
-                        event={event}
-                        key={event.id}
-                        metadataLine={`${formatDateRange(event.startsAt, event.endsAt)} · ${event.city}`}
-                        socialLine={event.subtitle}
-                      />
-                    ))}
+                    {visibleHappening.slice(0, 8).map((event) => {
+                      const host = resolveRailUser(event.hostId);
+
+                      return (
+                        <HomeEventRailCard
+                          event={event}
+                          hostAvatarUrl={host?.avatarUrl}
+                          hostName={host?.name}
+                          key={event.id}
+                          metadataLine={`${formatDateRange(event.startsAt, event.endsAt)} · ${event.city}`}
+                          socialLine={event.subtitle}
+                        />
+                      );
+                    })}
                   </HorizontalRail>
                 </section>
               ) : null}
@@ -326,13 +346,19 @@ export default function ExplorePage() {
                 <section className="space-y-3">
                   <SectionHeader icon="launch" title="Soft launches" />
                   <HorizontalRail>
-                    {eventsModeContent.softLaunches.slice(0, 8).map((launch) => (
-                      <SoftLaunchRailCard
-                        key={launch.id}
-                        launch={launch}
-                        metadataLine={`${launch.city} · ${launch.dateOptions.length} date options`}
-                      />
-                    ))}
+                    {eventsModeContent.softLaunches.slice(0, 8).map((launch) => {
+                      const host = resolveRailUser(launch.hostId);
+
+                      return (
+                        <SoftLaunchRailCard
+                          hostAvatarUrl={host?.avatarUrl}
+                          hostName={host?.name}
+                          key={launch.id}
+                          launch={launch}
+                          metadataLine={`${launch.city} · ${launch.dateOptions.length} date options`}
+                        />
+                      );
+                    })}
                   </HorizontalRail>
                 </section>
               ) : null}
@@ -341,14 +367,20 @@ export default function ExplorePage() {
                 <section className="space-y-3">
                   <SectionHeader icon="genres" title={`${topInterest} picks`} />
                   <HorizontalRail>
-                    {becauseYouLikeEvents.slice(0, 8).map((event) => (
-                      <HomeEventRailCard
-                        event={event}
-                        key={event.id}
-                        metadataLine={`${formatDateRange(event.startsAt, event.endsAt)} · ${event.city}`}
-                        socialLine={event.subtitle}
-                      />
-                    ))}
+                    {becauseYouLikeEvents.slice(0, 8).map((event) => {
+                      const host = resolveRailUser(event.hostId);
+
+                      return (
+                        <HomeEventRailCard
+                          event={event}
+                          hostAvatarUrl={host?.avatarUrl}
+                          hostName={host?.name}
+                          key={event.id}
+                          metadataLine={`${formatDateRange(event.startsAt, event.endsAt)} · ${event.city}`}
+                          socialLine={event.subtitle}
+                        />
+                      );
+                    })}
                   </HorizontalRail>
                 </section>
               ) : null}
@@ -401,14 +433,20 @@ export default function ExplorePage() {
                         title={`${selectedGenre.label} happening`}
                       />
                       <HorizontalRail>
-                        {genreMatches.events.slice(0, 8).map((event) => (
-                          <HomeEventRailCard
-                            event={event}
-                            key={event.id}
-                            metadataLine={`${formatDateRange(event.startsAt, event.endsAt)} · ${event.city}`}
-                            socialLine={event.subtitle}
-                          />
-                        ))}
+                        {genreMatches.events.slice(0, 8).map((event) => {
+                          const host = resolveRailUser(event.hostId);
+
+                          return (
+                            <HomeEventRailCard
+                              event={event}
+                              hostAvatarUrl={host?.avatarUrl}
+                              hostName={host?.name}
+                              key={event.id}
+                              metadataLine={`${formatDateRange(event.startsAt, event.endsAt)} · ${event.city}`}
+                              socialLine={event.subtitle}
+                            />
+                          );
+                        })}
                       </HorizontalRail>
                     </section>
                   ) : null}
@@ -420,13 +458,19 @@ export default function ExplorePage() {
                         title={`${selectedGenre.label} soft launches`}
                       />
                       <HorizontalRail>
-                        {genreMatches.launches.slice(0, 8).map((launch) => (
-                          <SoftLaunchRailCard
-                            key={launch.id}
-                            launch={launch}
-                            metadataLine={`${launch.city} · ${launch.dateOptions.length} date options`}
-                          />
-                        ))}
+                        {genreMatches.launches.slice(0, 8).map((launch) => {
+                          const host = resolveRailUser(launch.hostId);
+
+                          return (
+                            <SoftLaunchRailCard
+                              hostAvatarUrl={host?.avatarUrl}
+                              hostName={host?.name}
+                              key={launch.id}
+                              launch={launch}
+                              metadataLine={`${launch.city} · ${launch.dateOptions.length} date options`}
+                            />
+                          );
+                        })}
                       </HorizontalRail>
                     </section>
                   ) : null}
