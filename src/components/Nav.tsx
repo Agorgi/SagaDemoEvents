@@ -120,18 +120,18 @@ export function Nav() {
 
       <div
         className="fixed inset-x-0 bottom-0 z-40 px-3 md:hidden"
-        style={{ paddingBottom: "max(env(safe-area-inset-bottom), 12px)" }}
+        style={{ paddingBottom: "max(env(safe-area-inset-bottom), 8px)" }}
       >
-        <div className="mx-auto max-w-[430px] space-y-2">
+        <div className="mx-auto max-w-[430px]">
           <div
-            className="grid gap-1.5 rounded-[20px] border border-white/8 bg-[#0f1320]/94 p-1.5 shadow-[0_18px_44px_rgba(0,0,0,0.38)] backdrop-blur-xl"
+            className="grid gap-1 rounded-[20px] border border-white/8 bg-[#0f1320]/94 p-1 shadow-[0_18px_44px_rgba(0,0,0,0.38)] backdrop-blur-xl"
             style={{ gridTemplateColumns: `repeat(${mobileLinks.length}, minmax(0, 1fr))` }}
           >
             {mobileLinks.map((link) => (
               <a
                 aria-label={`Open ${link.mobileLabel}`}
                 className={cn(
-                  "min-h-[40px] min-w-0 rounded-[16px] px-1.5 py-2.5 text-center text-[10px] font-semibold leading-none tracking-[-0.01em] whitespace-nowrap transition",
+                  "flex min-h-[36px] min-w-0 items-center justify-center rounded-[15px] px-1 py-2 text-center text-[10px] font-semibold leading-none tracking-[-0.01em] whitespace-nowrap transition",
                   isActive(pathname, link.href)
                     ? "bg-app-purple text-white"
                     : "text-app-muted hover:bg-white/[0.03] hover:text-white"
