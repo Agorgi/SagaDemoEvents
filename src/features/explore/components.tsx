@@ -1,0 +1,628 @@
+"use client";
+
+import Link from "next/link";
+
+import { Avatar, AvatarStack } from "@/src/components/Avatar";
+import { StatusChip } from "@/src/components/StatusChip";
+import {
+  type EventContentFilter,
+  type ExploreGenre,
+  type HomeMode,
+  EVENT_CONTENT_FILTERS,
+  HOME_MODES
+} from "@/src/features/explore/data";
+import { type CreatorSpotlight, type FriendEventSpotlight } from "@/src/features/explore/selectors";
+import { type DemoEvent } from "@/src/data/demo";
+import { getLaunchFundingProgress, type DemoLaunch } from "@/src/data/launches";
+import { getMediaObjectPosition } from "@/src/lib/media-position";
+import { APP_ROUTES } from "@/src/lib/routes";
+import { cn, formatCompactNumber } from "@/src/lib/utils";
+
+export function HomeHeader({
+  firstName,
+  fullName,
+  subline,
+  avatarUrl,
+  unreadCount
+}: {
+  firstName: string;
+  fullName: string;
+  subline: string;
+  avatarUrl?: string;
+  unreadCount: number;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <div className="space-y-1">
+        <p className="text-sm text-app-muted">Hey, {firstName}</p>
+        <h1 className="text-[2rem] font-semibold tracking-[-0.04em] text-white sm:text-[2.35rem]">
+          {subline}
+        </h1>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Link
+          aria-label="Open updates"
+          className="relative inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.05] text-white transition hover:bg-white/[0.08]"
+          href={APP_ROUTES.updates}
+        >
+          <BellIcon />
+          {unreadCount > 0 ? (
+            <span className="absolute right-1 top-1 inline-flex min-h-[15px] min-w-[15px] items-center justify-center rounded-full bg-app-purple px-1 text-[9px] font-bold text-white">
+              {Math.min(unreadCount, 9)}
+            </span>
+          ) : null}
+        </Link>
+        <Link
+          aria-label="Open profile"
+          className="rounded-full transition hover:scale-[1.02]"
+          href={APP_ROUTES.profile}
+        >
+          <Avatar className="h-11 w-11 text-xs" name={fullName} size="md" src={avatarUrl} />
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+export function HomeSearchBar({
+  value,
+  onChange
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="flex items-center gap-3 rounded-[26px] border border-white/8 bg-[#0d1119] px-4 py-4 text-app-muted shadow-[0_18px_40px_rgba(0,0,0,0.18)] transition focus-within:border-white/14">
+      <SearchIcon />
+      <input
+        className="w-full bg-transparent text-sm text-white outline-none placeholder:text-app-muted"
+        onChange={(event) => onChange(event.target.value)}
+        placeholder="Search events, people, fandoms..."
+        type="search"
+        value={value}
+      />
+    </label>
+  );
+}
+
+export function TopModeChips({
+  activeMode,
+  onChange
+}: {
+  activeMode: HomeMode;
+  onChange: (mode: HomeMode) => void;
+}) {
+  return (
+    <div className="flex gap-2 overflow-x-auto pb-1 subtle-scrollbar">
+      {HOME_MODES.map((mode) => (
+        <button
+          className={cn(
+            "shrink-0 rounded-full px-4 py-2.5 text-sm font-semibold transition",
+            activeMode === mode.id
+              ? "bg-white text-[#090b10]"
+              : "bg-white/[0.05] text-app-muted hover:bg-white/[0.08] hover:text-white"
+          )}
+          key={mode.id}
+          onClick={() => onChange(mode.id)}
+          type="button"
+        >
+          {mode.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function EventContentFilters({
+  activeFilter,
+  onChange
+}: {
+  activeFilter: EventContentFilter;
+  onChange: (filter: EventContentFilter) => void;
+}) {
+  return (
+    <div className="flex gap-2 overflow-x-auto pb-1 subtle-scrollbar">
+      {EVENT_CONTENT_FILTERS.map((filter) => (
+        <button
+          className={cn(
+            "shrink-0 rounded-full px-3 py-2 text-[11px] font-semibold tracking-[0.01em] transition",
+            activeFilter === filter.id
+              ? "bg-app-purple text-white"
+              : "bg-white/[0.04] text-app-muted hover:bg-white/[0.07] hover:text-white"
+          )}
+          key={filter.id}
+          onClick={() => onChange(filter.id)}
+          type="button"
+        >
+          {filter.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function SectionHeader({
+  icon,
+  title,
+  onSeeAll
+}: {
+  icon: "spark" | "social" | "launch" | "creator" | "genres";
+  title: string;
+  onSeeAll?: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <div className="flex min-w-0 items-center gap-3">
+        <SectionIcon icon={icon} />
+        <h2 className="truncate text-base font-semibold text-white">{title}</h2>
+      </div>
+      {onSeeAll ? (
+        <button
+          className="shrink-0 text-xs font-medium text-app-muted transition hover:text-white"
+          onClick={onSeeAll}
+          type="button"
+        >
+          See all
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+export function HorizontalRail({
+  children
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex gap-3 overflow-x-auto pb-1 pr-1 snap-x snap-mandatory subtle-scrollbar">
+      {children}
+    </div>
+  );
+}
+
+export function HomeEventRailCard({
+  event,
+  metadataLine,
+  socialLine
+}: {
+  event: DemoEvent;
+  metadataLine: string;
+  socialLine: string;
+}) {
+  return (
+    <Link
+      className="group block w-[240px] shrink-0 snap-start overflow-hidden rounded-[28px] border border-white/8 bg-[#101520] shadow-card transition hover:border-white/12"
+      href={`/events/${event.id}`}
+    >
+      <div className="relative h-[210px] overflow-hidden">
+        <img
+          alt={event.title}
+          className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+          src={event.posterUrl}
+          style={{ objectPosition: getMediaObjectPosition(event.posterPosition) }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#07090f] via-[#07090f]/16 to-transparent" />
+        <div className="absolute left-3 top-3">
+          <StatusChip status="confirmed" />
+        </div>
+      </div>
+
+      <div className="space-y-1.5 p-3.5">
+        <h3 className="line-clamp-2 text-lg font-semibold leading-tight text-white">
+          {event.title}
+        </h3>
+        <p className="text-xs text-white/64">{metadataLine}</p>
+        <p className="line-clamp-1 text-xs text-app-muted">{socialLine}</p>
+      </div>
+    </Link>
+  );
+}
+
+export function SoftLaunchRailCard({
+  launch,
+  metadataLine
+}: {
+  launch: DemoLaunch;
+  metadataLine: string;
+}) {
+  const progress = getLaunchFundingProgress(launch);
+  const progressPercent = Math.max(
+    0,
+    Math.min(100, (progress.current / Math.max(progress.target, 1)) * 100)
+  );
+
+  return (
+    <Link
+      className="group block w-[240px] shrink-0 snap-start overflow-hidden rounded-[28px] border border-[#93a6ff]/16 bg-[#101520] shadow-card transition hover:border-[#93a6ff]/24"
+      href={`/campaigns/${launch.id}`}
+    >
+      <div className="relative h-[210px] overflow-hidden">
+        <img
+          alt={launch.title}
+          className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+          src={launch.coverImageUrl}
+          style={{ objectPosition: getMediaObjectPosition(launch.coverImagePosition) }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#07090f] via-[#07090f]/16 to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#1F1CB8]/20 to-transparent" />
+        <div className="absolute left-3 top-3">
+          <StatusChip status="live_soft_launch" />
+        </div>
+      </div>
+
+      <div className="space-y-2 p-3.5">
+        <div className="space-y-1.5">
+          <h3 className="line-clamp-2 text-lg font-semibold leading-tight text-white">
+            {launch.title}
+          </h3>
+          <p className="text-xs text-white/64">{metadataLine}</p>
+        </div>
+
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between gap-3 text-[11px] text-app-muted">
+            <span>
+              {formatCompactNumber(progress.current)} / {formatCompactNumber(progress.target)} reserved
+            </span>
+            <span className="text-white/72">View launch</span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-app-purple to-[#5d7dff]"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+export function FriendInterestCard({
+  item,
+  metadataLine,
+  saved = false,
+  onToggleSaved
+}: {
+  item: FriendEventSpotlight;
+  metadataLine: string;
+  saved?: boolean;
+  onToggleSaved?: () => void;
+}) {
+  return (
+    <article className="overflow-hidden rounded-[30px] border border-white/8 bg-[#101520] shadow-card">
+      <Link className="block" href={`/events/${item.event.id}`}>
+        <div className="relative h-[190px] overflow-hidden">
+          <img
+            alt={item.event.title}
+            className="h-full w-full object-cover"
+            src={item.event.posterUrl}
+            style={{ objectPosition: getMediaObjectPosition(item.event.posterPosition) }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#07090f] via-[#07090f]/18 to-transparent" />
+          {onToggleSaved ? (
+            <div className="absolute right-3 top-3 z-[2]">
+              <OverlayIconButton
+                ariaLabel={saved ? "Unsave event" : "Save event"}
+                onClick={onToggleSaved}
+                selected={saved}
+              >
+                <BookmarkIcon />
+              </OverlayIconButton>
+            </div>
+          ) : null}
+        </div>
+      </Link>
+
+      <div className="space-y-3 p-4">
+        <div className="flex items-center gap-3">
+          <AvatarStack
+            people={item.actorUsers.map((user) => ({
+              id: user.id,
+              name: user.name,
+              avatarUrl: user.avatarUrl
+            }))}
+          />
+          <p className="line-clamp-1 text-xs text-app-muted">{item.socialLine}</p>
+        </div>
+
+        <div className="space-y-1.5">
+          <Link href={`/events/${item.event.id}`}>
+            <h3 className="text-xl font-semibold leading-tight text-white">
+              {item.event.title}
+            </h3>
+          </Link>
+          <p className="text-sm text-white/68">{metadataLine}</p>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+export function CreatorWeekCard({
+  creator
+}: {
+  creator: CreatorSpotlight;
+}) {
+  const isOpenToWork = creator.publicServices > 0;
+
+  return (
+    <Link
+      className="group block w-[166px] shrink-0 snap-start overflow-hidden rounded-[26px] border border-white/8 bg-[#101520] p-3.5 shadow-card transition hover:border-white/12"
+      href={`/profiles/${creator.user.id}`}
+    >
+      <div className="relative overflow-hidden rounded-[22px] bg-white/[0.04]">
+        <img
+          alt={creator.profile.displayName}
+          className="h-[112px] w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+          src={creator.profile.coverImage ?? creator.profile.avatarImage}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#07090f]/60 to-transparent" />
+        {isOpenToWork ? (
+          <div className="absolute right-2.5 top-2.5 inline-flex items-center gap-1 rounded-full bg-[#0a0d14]/72 px-2 py-1 text-[10px] font-medium text-white/82 backdrop-blur-sm">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            Open
+          </div>
+        ) : null}
+      </div>
+
+      <div className="-mt-7 flex justify-center">
+        <Avatar
+          className="h-14 w-14 border-2 border-[#101520]"
+          name={creator.profile.displayName}
+          size="md"
+          src={creator.profile.avatarImage || creator.user.avatarUrl}
+        />
+      </div>
+
+      <div className="mt-3 space-y-1 text-center">
+        <p className="line-clamp-1 text-sm font-semibold text-white">
+          {creator.profile.displayName}
+        </p>
+        <p className="line-clamp-1 text-xs text-app-muted">{creator.craft}</p>
+      </div>
+    </Link>
+  );
+}
+
+export function CreatorSectionRow({
+  creators
+}: {
+  creators: CreatorSpotlight[];
+}) {
+  return (
+    <HorizontalRail>
+      {creators.map((creator) => (
+        <CreatorWeekCard creator={creator} key={creator.user.id} />
+      ))}
+    </HorizontalRail>
+  );
+}
+
+export function GenreBrowseButton({
+  genre,
+  compact = false,
+  active = false,
+  onClick
+}: {
+  genre: ExploreGenre;
+  compact?: boolean;
+  active?: boolean;
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      className={cn(
+        "group relative shrink-0 overflow-hidden rounded-[28px] border text-left shadow-card transition",
+        compact ? "h-[116px] w-[212px] snap-start" : "h-[134px] w-full",
+        active ? "border-white/16" : "border-white/8 hover:border-white/12"
+      )}
+      onClick={onClick}
+      type="button"
+    >
+      <img
+        alt={genre.label}
+        className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+        src={genre.imageUrl}
+      />
+      <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(10,12,20,0.18),rgba(10,12,20,0.82))]" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#1F1CB8]/18 via-transparent to-transparent" />
+
+      <div className="relative flex h-full flex-col justify-end p-4">
+        <p className="text-xl font-semibold tracking-[-0.03em] text-white">
+          {genre.label}
+        </p>
+        {!compact ? (
+          <p className="mt-1 max-w-[80%] text-sm text-white/72">{genre.description}</p>
+        ) : null}
+      </div>
+    </button>
+  );
+}
+
+export function GenreBrowseStack({
+  genres,
+  activeGenreId,
+  onSelect
+}: {
+  genres: ExploreGenre[];
+  activeGenreId?: string | null;
+  onSelect: (genre: ExploreGenre) => void;
+}) {
+  return (
+    <div className="space-y-3">
+      {genres.map((genre) => (
+        <GenreBrowseButton
+          active={activeGenreId === genre.id}
+          genre={genre}
+          key={genre.id}
+          onClick={() => onSelect(genre)}
+        />
+      ))}
+    </div>
+  );
+}
+
+function SectionIcon({
+  icon
+}: {
+  icon: "spark" | "social" | "launch" | "creator" | "genres";
+}) {
+  return (
+    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.05] text-white/88">
+      {icon === "spark" ? <SparkIcon /> : null}
+      {icon === "social" ? <HeartGroupIcon /> : null}
+      {icon === "launch" ? <LaunchIcon /> : null}
+      {icon === "creator" ? <CreatorIcon /> : null}
+      {icon === "genres" ? <GridIcon /> : null}
+    </span>
+  );
+}
+
+function OverlayIconButton({
+  ariaLabel,
+  children,
+  onClick,
+  selected = false
+}: {
+  ariaLabel: string;
+  children: React.ReactNode;
+  onClick: () => void;
+  selected?: boolean;
+}) {
+  return (
+    <button
+      aria-label={ariaLabel}
+      className={cn(
+        "flex h-10 w-10 items-center justify-center rounded-full border shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-sm transition",
+        selected
+          ? "border-app-purple/60 bg-app-purple/20 text-white"
+          : "border-white/12 bg-[#0a0d14]/72 text-white/88 hover:border-white/24"
+      )}
+      onClick={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        onClick();
+      }}
+      type="button"
+    >
+      {children}
+    </button>
+  );
+}
+
+function SearchIcon() {
+  return (
+    <svg aria-hidden="true" className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24">
+      <path
+        d="M15.5 15.5 20 20M10.75 17a6.25 6.25 0 1 1 0-12.5 6.25 6.25 0 0 1 0 12.5Z"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.7"
+      />
+    </svg>
+  );
+}
+
+function BellIcon() {
+  return (
+    <svg aria-hidden="true" fill="none" height="18" viewBox="0 0 24 24" width="18">
+      <path
+        d="M12 4.75a4.25 4.25 0 0 0-4.25 4.25v2.06c0 .77-.2 1.53-.58 2.21l-1.07 1.92a1 1 0 0 0 .87 1.49h10.16a1 1 0 0 0 .87-1.49l-1.07-1.92a4.54 4.54 0 0 1-.58-2.21V9A4.25 4.25 0 0 0 12 4.75Z"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.7"
+      />
+      <path
+        d="M9.75 18.25a2.25 2.25 0 0 0 4.5 0"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.7"
+      />
+    </svg>
+  );
+}
+
+function BookmarkIcon() {
+  return (
+    <svg aria-hidden="true" className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24">
+      <path
+        d="M7 4.75C7 4.336 7.336 4 7.75 4h8.5c.414 0 .75.336.75.75v14.432c0 .617-.694.976-1.195.618L12 16.922 7.945 19.8c-.501.358-1.195-.001-1.195-.618V4.75Z"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.7"
+      />
+    </svg>
+  );
+}
+
+function SparkIcon() {
+  return (
+    <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 24 24">
+      <path
+        d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z"
+        stroke="currentColor"
+        strokeLinejoin="round"
+        strokeWidth="1.6"
+      />
+    </svg>
+  );
+}
+
+function HeartGroupIcon() {
+  return (
+    <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 24 24">
+      <path
+        d="M12 19.2 5.8 13A3.9 3.9 0 0 1 11.3 7.5L12 8.2l.7-.7A3.9 3.9 0 1 1 18.2 13L12 19.2Z"
+        stroke="currentColor"
+        strokeLinejoin="round"
+        strokeWidth="1.6"
+      />
+    </svg>
+  );
+}
+
+function LaunchIcon() {
+  return (
+    <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 24 24">
+      <path
+        d="M12 4v10m0 0 4-4m-4 4-4-4M6 18.5h12"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.6"
+      />
+    </svg>
+  );
+}
+
+function CreatorIcon() {
+  return (
+    <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 24 24">
+      <path
+        d="M12 12a3.25 3.25 0 1 0 0-6.5 3.25 3.25 0 0 0 0 6.5Zm-6 6.5A6 6 0 0 1 12 14a6 6 0 0 1 6 4.5"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.6"
+      />
+    </svg>
+  );
+}
+
+function GridIcon() {
+  return (
+    <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 24 24">
+      <path
+        d="M4.75 4.75h5.5v5.5h-5.5Zm9 0h5.5v5.5h-5.5Zm-9 9h5.5v5.5h-5.5Zm9 0h5.5v5.5h-5.5Z"
+        stroke="currentColor"
+        strokeLinejoin="round"
+        strokeWidth="1.6"
+      />
+    </svg>
+  );
+}

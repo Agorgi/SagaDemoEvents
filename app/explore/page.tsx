@@ -2,140 +2,160 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { CampaignCard } from "@/src/components/CampaignCard";
-import { EventCard } from "@/src/components/EventCard";
-import { FilterChip } from "@/src/components/Chips";
 import { Nav } from "@/src/components/Nav";
 import { PledgeModal } from "@/src/components/PledgeModal";
-import { getUserById } from "@/src/data/demo";
+import { EXPLORE_GENRES, type EventContentFilter, type HomeMode } from "@/src/features/explore/data";
+import {
+  CreatorSectionRow,
+  EventContentFilters,
+  FriendInterestCard,
+  GenreBrowseButton,
+  GenreBrowseStack,
+  HomeEventRailCard,
+  HomeHeader,
+  HomeSearchBar,
+  HorizontalRail,
+  SectionHeader,
+  SoftLaunchRailCard,
+  TopModeChips
+} from "@/src/features/explore/components";
+import {
+  buildBecauseYouLikeEvents,
+  buildCreatorsModeContent,
+  buildCreatorsOfWeek,
+  buildEventsModeContent,
+  buildFriendsGoingEvents,
+  buildGenreMatches,
+  buildSoftLaunchRails,
+  getTopInterest,
+  getUserFirstName
+} from "@/src/features/explore/selectors";
 import { useAppState } from "@/src/lib/app-state";
 import { useDemoState } from "@/src/lib/demo-state";
-import { formatDateRange, formatTimeLabel } from "@/src/lib/utils";
-
-type HomeFilter = "All" | "Happening" | "Soft launch";
-
-const filters: HomeFilter[] = ["All", "Happening", "Soft launch"];
+import { formatDateRange } from "@/src/lib/utils";
 
 export default function ExplorePage() {
   const {
-    currentUserId,
+    creatorProfiles,
+    currentUser,
+    followingIds,
     homeCity,
+    inbox,
     launches,
-    onboarding,
     pledgeLaunch,
     preferredFandoms,
-    resolveUser,
     savedEventIds,
     setMode,
+    socialActivity,
     toggleSavedEvent,
-    watchLaunch
+    watchLaunch,
+    users
   } = useAppState();
   const { events } = useDemoState();
-  const [activeFilter, setActiveFilter] = useState<HomeFilter>("All");
+  const [activeMode, setActiveMode] = useState<HomeMode>("for_you");
+  const [eventFilter, setEventFilter] = useState<EventContentFilter>("all");
   const [query, setQuery] = useState("");
+  const [activeGenreId, setActiveGenreId] = useState<string | null>(null);
   const [reserveLaunchId, setReserveLaunchId] = useState<string | null>(null);
 
   useEffect(() => {
     setMode("fan");
   }, [setMode]);
 
-  const confirmedEvents = useMemo(() => {
+  const topInterest = useMemo(() => getTopInterest(preferredFandoms), [preferredFandoms]);
+  const browseGenres = useMemo(() => {
     const search = query.trim().toLowerCase();
-    const preferredNightTypes = onboarding.eventTypePreferences;
 
-    return [...events]
-      .sort((left, right) => {
-        const leftHaystack =
-          `${left.title} ${left.subtitle} ${left.fandomTags.join(" ")}`.toLowerCase();
-        const rightHaystack =
-          `${right.title} ${right.subtitle} ${right.fandomTags.join(" ")}`.toLowerCase();
-        const leftScore =
-          (left.city === homeCity ? 3 : 0) +
-          left.fandomTags.filter((tag) => preferredFandoms.includes(tag)).length * 2 +
-          preferredNightTypes.filter((tag) => leftHaystack.includes(tag.toLowerCase())).length;
-        const rightScore =
-          (right.city === homeCity ? 3 : 0) +
-          right.fandomTags.filter((tag) => preferredFandoms.includes(tag)).length * 2 +
-          preferredNightTypes.filter((tag) => rightHaystack.includes(tag.toLowerCase())).length;
-
-        if (rightScore === leftScore) {
-          return right.attendeesCount - left.attendeesCount;
-        }
-
-        return rightScore - leftScore;
-      })
-      .filter((event) => {
-        const haystack =
-          `${event.title} ${event.subtitle} ${event.city} ${event.fandomTags.join(" ")}`.toLowerCase();
-        return search ? haystack.includes(search) : true;
-      });
-  }, [events, homeCity, onboarding.eventTypePreferences, preferredFandoms, query]);
-
-  const softLaunches = useMemo(() => {
-    const search = query.trim().toLowerCase();
-    const preferredNightTypes = onboarding.eventTypePreferences;
-
-    return launches
-      .filter((launch) => !launch.eventId)
-      .filter((launch) => {
-        const haystack =
-          `${launch.title} ${launch.description} ${launch.city} ${launch.fandomTags.join(" ")}`.toLowerCase();
-        return search ? haystack.includes(search) : true;
-      })
-      .sort((left, right) => {
-        const leftMomentum = left.ticketCount + left.reserveCount + left.pledges.length;
-        const rightMomentum = right.ticketCount + right.reserveCount + right.pledges.length;
-        const leftScore =
-          (left.city === homeCity ? 3 : 0) +
-          left.fandomTags.filter((tag) => preferredFandoms.includes(tag)).length * 2 +
-          preferredNightTypes.filter((tag) =>
-            `${left.title} ${left.description}`.toLowerCase().includes(tag.toLowerCase())
-          ).length;
-        const rightScore =
-          (right.city === homeCity ? 3 : 0) +
-          right.fandomTags.filter((tag) => preferredFandoms.includes(tag)).length * 2 +
-          preferredNightTypes.filter((tag) =>
-            `${right.title} ${right.description}`.toLowerCase().includes(tag.toLowerCase())
-          ).length;
-
-        if (rightScore === leftScore) {
-          return rightMomentum - leftMomentum;
-        }
-
-        return rightScore - leftScore;
-      });
-  }, [homeCity, launches, onboarding.eventTypePreferences, preferredFandoms, query]);
-
-  const visibleEvents =
-    activeFilter === "Soft launch" ? [] : confirmedEvents;
-  const visibleLaunches =
-    activeFilter === "Happening" ? [] : softLaunches;
+    return EXPLORE_GENRES.filter((genre) => {
+      const haystack = `${genre.label} ${genre.description} ${genre.matchTags.join(" ")}`.toLowerCase();
+      return search ? haystack.includes(search) : true;
+    });
+  }, [query]);
+  const selectedGenre =
+    browseGenres.find((genre) => genre.id === activeGenreId) ??
+    EXPLORE_GENRES.find((genre) => genre.id === activeGenreId) ??
+    null;
+  const becauseYouLikeEvents = useMemo(
+    () =>
+      buildBecauseYouLikeEvents({
+        events,
+        homeCity,
+        preferredFandoms,
+        topInterest,
+        query
+      }).slice(0, 8),
+    [events, homeCity, preferredFandoms, query, topInterest]
+  );
+  const friendEvents = useMemo(
+    () =>
+      buildFriendsGoingEvents({
+        events,
+        socialActivity,
+        users,
+        followingIds,
+        query
+      }),
+    [events, followingIds, query, socialActivity, users]
+  );
+  const softLaunchRails = useMemo(
+    () =>
+      buildSoftLaunchRails({
+        launches,
+        homeCity,
+        preferredFandoms,
+        topInterest,
+        query,
+        genres: EXPLORE_GENRES
+      }),
+    [homeCity, launches, preferredFandoms, query, topInterest]
+  );
+  const creatorSpotlights = useMemo(
+    () =>
+      buildCreatorsOfWeek({
+        creatorProfiles,
+        users,
+        homeCity,
+        preferredFandoms,
+        query
+      }),
+    [creatorProfiles, homeCity, preferredFandoms, query, users]
+  );
+  const creatorsModeContent = useMemo(
+    () =>
+      buildCreatorsModeContent({
+        creators: creatorSpotlights,
+        homeCity
+      }),
+    [creatorSpotlights, homeCity]
+  );
+  const eventsModeContent = useMemo(
+    () =>
+      buildEventsModeContent({
+        events,
+        launches,
+        homeCity,
+        preferredFandoms,
+        query
+      }),
+    [events, launches, homeCity, preferredFandoms, query]
+  );
+  const genreMatches = useMemo(
+    () =>
+      buildGenreMatches({
+        genre: selectedGenre,
+        events,
+        launches,
+        query
+      }),
+    [events, launches, query, selectedGenre]
+  );
   const reserveLaunch = reserveLaunchId
     ? launches.find((launch) => launch.id === reserveLaunchId)
     : null;
+  const unreadCount = inbox.filter((item) => item.unread).length;
 
-  async function handleShare(path: string, title: string, text: string) {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    const shareUrl = `${window.location.origin}${path}`;
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title,
-          text,
-          url: shareUrl
-        });
-        return;
-      } catch {
-        // fall through to clipboard copy
-      }
-    }
-
-    await navigator.clipboard?.writeText(shareUrl);
-  }
+  const visibleHappening =
+    eventFilter === "nearby" ? eventsModeContent.nearby : eventsModeContent.happening;
 
   return (
     <div className="min-h-screen">
@@ -143,134 +163,264 @@ export default function ExplorePage() {
 
       <main className="mx-auto w-full max-w-[720px] px-4 pb-28 pt-5 sm:px-6 sm:pb-14 sm:pt-8">
         <section className="space-y-4">
-          <div className="space-y-2">
-            <p className="text-sm uppercase tracking-[0.16em] text-app-muted">{homeCity}</p>
-            <h1 className="text-4xl font-semibold text-white sm:text-5xl">What happens next?</h1>
-          </div>
+          <HomeHeader
+            avatarUrl={currentUser.avatarUrl}
+            firstName={getUserFirstName(currentUser)}
+            fullName={currentUser.name}
+            subline="What are you feeling today?"
+            unreadCount={unreadCount}
+          />
 
-          <label className="flex items-center gap-3 rounded-[22px] border border-white/8 bg-[#0d1119] px-4 py-3 text-app-muted transition focus-within:border-app-purple/45">
-            <span aria-hidden="true">⌕</span>
-            <input
-              className="w-full bg-transparent text-sm text-white outline-none placeholder:text-app-muted"
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search nights, cities, fandoms"
-              type="search"
-              value={query}
-            />
-          </label>
-
-          <div className="flex gap-2 overflow-x-auto pb-1 subtle-scrollbar">
-            {filters.map((filter) => (
-              <FilterChip
-                active={activeFilter === filter}
-                className="text-xs"
-                key={filter}
-                label={filter}
-                onClick={() => setActiveFilter(filter)}
-              />
-            ))}
-          </div>
+          <HomeSearchBar onChange={setQuery} value={query} />
+          <TopModeChips activeMode={activeMode} onChange={setActiveMode} />
         </section>
 
-        <section className="mt-6 space-y-5">
-          {visibleEvents.length > 0 ? (
-            <div className="space-y-4">
-              {activeFilter === "All" ? (
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-app-muted">
-                  Happening
-                </p>
-              ) : null}
-              {visibleEvents.map((event) => (
-                (() => {
-                  const host = getUserById(event.hostId);
-
-                  return (
-                    <EventCard
-                      event={event}
-                      hostAvatarUrl={host?.avatarUrl}
-                      hostName={host?.name ?? "Host"}
-                      hostSubline={
-                        event.mutualsCount > 0 ? `${event.mutualsCount} friends interested` : "Hosted in your scene"
-                      }
-                      href={`/events/${event.id}`}
-                      key={event.id}
-                      metadataLine={`${formatDateRange(event.startsAt, event.endsAt)} · ${formatTimeLabel(event.startsAt)} · ${event.city}`}
-                      onPrimaryAction={() => {
-                        window.location.assign(`/events/${event.id}`);
-                      }}
-                      onShareAction={() =>
-                        handleShare(`/events/${event.id}`, event.title, event.subtitle)
-                      }
-                      onToggleSaved={() => toggleSavedEvent(event.id)}
-                      primaryLabel="View event"
-                      reasonLine={event.subtitle}
-                      saved={savedEventIds.includes(event.id)}
-                      socialLine={`${host?.name ?? "Host"} · ${
-                        event.mutualsCount > 0 ? `${event.mutualsCount} friends interested` : "Hosted in your scene"
-                      }`}
-                      status="confirmed"
-                      variant="feed"
-                    />
-                  );
-                })()
-              ))}
-            </div>
-          ) : null}
-
-          {visibleLaunches.length > 0 ? (
-            <div className="space-y-4">
-              {activeFilter === "All" ? (
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-app-muted">
-                  Soft launch
-                </p>
-              ) : null}
-              {visibleLaunches.map((launch) => (
-                (() => {
-                  const host = resolveUser(launch.hostId);
-                  const currentPledge = launch.pledges.find((pledge) => pledge.userId === currentUserId);
-
-                  return (
-                    <CampaignCard
-                      compact
-                      hostAvatarUrl={host?.avatarUrl}
-                      hostName={host?.name ?? "Host"}
-                      hostSubline={`${launch.pledges.length} backers`}
-                      href={`/campaigns/${launch.id}`}
-                      key={launch.id}
-                      launch={launch}
-                      metadataLine={`${launch.city} · ${launch.dateOptions.length} date options`}
-                      onPrimaryAction={() => {
-                        setReserveLaunchId(launch.id);
-                      }}
-                      onShareAction={() =>
-                        handleShare(`/campaigns/${launch.id}`, launch.title, launch.softLaunchSummary)
-                      }
-                      onToggleSaved={() => {
-                        if (!currentPledge) {
-                          const firstDate = launch.dateOptions[0]?.id;
-                          if (firstDate) {
-                            watchLaunch(launch.id, firstDate);
-                          }
+        <section className="mt-8 space-y-8">
+          {activeMode === "for_you" ? (
+            <>
+              {becauseYouLikeEvents.length > 0 ? (
+                <section className="space-y-3">
+                  <SectionHeader
+                    icon="spark"
+                    onSeeAll={() => setActiveMode("events")}
+                    title={`Because you like ${topInterest}`}
+                  />
+                  <HorizontalRail>
+                    {becauseYouLikeEvents.map((event) => (
+                      <HomeEventRailCard
+                        event={event}
+                        key={event.id}
+                        metadataLine={`${formatDateRange(event.startsAt, event.endsAt)} · ${event.city}`}
+                        socialLine={
+                          event.mutualsCount > 0
+                            ? `${event.mutualsCount} friends interested`
+                            : event.subtitle
                         }
-                      }}
-                      primaryLabel={currentPledge?.kind === "pledged" ? "Reserved" : "Reserve"}
-                      reasonLine={launch.softLaunchSummary}
-                      saved={Boolean(currentPledge)}
-                      socialLine={`${
-                        preferredFandoms.find((tag) => launch.fandomTags.includes(tag)) ?? launch.fandomTags[0]
-                      } · ${launch.pledges.length} backers`}
-                    />
-                  );
-                })()
+                      />
+                    ))}
+                  </HorizontalRail>
+                </section>
+              ) : null}
+
+              {friendEvents.length > 0 ? (
+                <section className="space-y-3">
+                  <SectionHeader
+                    icon="social"
+                    onSeeAll={() => setActiveMode("events")}
+                    title="Friends are going"
+                  />
+                  <div className="space-y-3">
+                    {friendEvents.map((item) => (
+                      <FriendInterestCard
+                        item={item}
+                        key={item.event.id}
+                        metadataLine={`${formatDateRange(item.event.startsAt, item.event.endsAt)} · ${item.event.city}`}
+                        onToggleSaved={() => toggleSavedEvent(item.event.id)}
+                        saved={savedEventIds.includes(item.event.id)}
+                      />
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+
+              {softLaunchRails.map((rail) => (
+                <section className="space-y-3" key={rail.title}>
+                  <SectionHeader
+                    icon="launch"
+                    onSeeAll={() => {
+                      setActiveMode("events");
+                      setEventFilter("soft_launch");
+                    }}
+                    title={rail.title}
+                  />
+                  <HorizontalRail>
+                    {rail.launches.map((launch) => (
+                      <SoftLaunchRailCard
+                        key={launch.id}
+                        launch={launch}
+                        metadataLine={`${launch.city} · ${launch.dateOptions.length} date options`}
+                      />
+                    ))}
+                  </HorizontalRail>
+                </section>
               ))}
-            </div>
+
+              {creatorSpotlights.length > 0 ? (
+                <section className="space-y-3">
+                  <SectionHeader
+                    icon="creator"
+                    onSeeAll={() => setActiveMode("creators")}
+                    title="Creators of the week"
+                  />
+                  <CreatorSectionRow creators={creatorSpotlights.slice(0, 8)} />
+                </section>
+              ) : null}
+
+              {browseGenres.length > 0 ? (
+                <section className="space-y-3">
+                  <SectionHeader
+                    icon="genres"
+                    onSeeAll={() => setActiveMode("genres")}
+                    title="Browse genres"
+                  />
+                  <HorizontalRail>
+                    {browseGenres.map((genre) => (
+                      <GenreBrowseButton
+                        compact
+                        genre={genre}
+                        key={genre.id}
+                        onClick={() => {
+                          setActiveGenreId(genre.id);
+                          setActiveMode("genres");
+                        }}
+                      />
+                    ))}
+                  </HorizontalRail>
+                </section>
+              ) : null}
+            </>
           ) : null}
 
-          {visibleEvents.length === 0 && visibleLaunches.length === 0 ? (
-            <div className="surface-card p-5">
-              <p className="text-sm font-semibold text-white">No nights match that filter.</p>
-              <p className="mt-2 text-sm text-app-muted">Try a broader search or switch launch state.</p>
-            </div>
+          {activeMode === "events" ? (
+            <>
+              <EventContentFilters
+                activeFilter={eventFilter}
+                onChange={setEventFilter}
+              />
+
+              {(eventFilter === "all" ||
+                eventFilter === "happening" ||
+                eventFilter === "nearby") &&
+              visibleHappening.length > 0 ? (
+                <section className="space-y-3">
+                  <SectionHeader
+                    icon="spark"
+                    title={eventFilter === "nearby" ? `Near ${homeCity}` : "Happening"}
+                  />
+                  <HorizontalRail>
+                    {visibleHappening.slice(0, 8).map((event) => (
+                      <HomeEventRailCard
+                        event={event}
+                        key={event.id}
+                        metadataLine={`${formatDateRange(event.startsAt, event.endsAt)} · ${event.city}`}
+                        socialLine={event.subtitle}
+                      />
+                    ))}
+                  </HorizontalRail>
+                </section>
+              ) : null}
+
+              {(eventFilter === "all" || eventFilter === "soft_launch") &&
+              eventsModeContent.softLaunches.length > 0 ? (
+                <section className="space-y-3">
+                  <SectionHeader icon="launch" title="Soft launches" />
+                  <HorizontalRail>
+                    {eventsModeContent.softLaunches.slice(0, 8).map((launch) => (
+                      <SoftLaunchRailCard
+                        key={launch.id}
+                        launch={launch}
+                        metadataLine={`${launch.city} · ${launch.dateOptions.length} date options`}
+                      />
+                    ))}
+                  </HorizontalRail>
+                </section>
+              ) : null}
+
+              {becauseYouLikeEvents.length > 0 && eventFilter === "all" ? (
+                <section className="space-y-3">
+                  <SectionHeader icon="genres" title={`${topInterest} picks`} />
+                  <HorizontalRail>
+                    {becauseYouLikeEvents.slice(0, 8).map((event) => (
+                      <HomeEventRailCard
+                        event={event}
+                        key={event.id}
+                        metadataLine={`${formatDateRange(event.startsAt, event.endsAt)} · ${event.city}`}
+                        socialLine={event.subtitle}
+                      />
+                    ))}
+                  </HorizontalRail>
+                </section>
+              ) : null}
+            </>
+          ) : null}
+
+          {activeMode === "creators" ? (
+            <>
+              {creatorsModeContent.creatorsOfWeek.length > 0 ? (
+                <section className="space-y-3">
+                  <SectionHeader icon="creator" title="Creators of the week" />
+                  <CreatorSectionRow creators={creatorsModeContent.creatorsOfWeek} />
+                </section>
+              ) : null}
+
+              {creatorsModeContent.openToWork.length > 0 ? (
+                <section className="space-y-3">
+                  <SectionHeader icon="spark" title="Open to work" />
+                  <CreatorSectionRow creators={creatorsModeContent.openToWork} />
+                </section>
+              ) : null}
+
+              {creatorsModeContent.inYourScene.length > 0 ? (
+                <section className="space-y-3">
+                  <SectionHeader icon="social" title="Creators in your scene" />
+                  <CreatorSectionRow creators={creatorsModeContent.inYourScene} />
+                </section>
+              ) : null}
+            </>
+          ) : null}
+
+          {activeMode === "genres" ? (
+            <>
+              <section className="space-y-3">
+                <SectionHeader icon="genres" title="Browse genres" />
+                <GenreBrowseStack
+                  activeGenreId={activeGenreId}
+                  genres={browseGenres}
+                  onSelect={(genre) => setActiveGenreId(genre.id)}
+                />
+              </section>
+
+              {selectedGenre ? (
+                <>
+                  {genreMatches.events.length > 0 ? (
+                    <section className="space-y-3">
+                      <SectionHeader
+                        icon="spark"
+                        title={`${selectedGenre.label} happening`}
+                      />
+                      <HorizontalRail>
+                        {genreMatches.events.slice(0, 8).map((event) => (
+                          <HomeEventRailCard
+                            event={event}
+                            key={event.id}
+                            metadataLine={`${formatDateRange(event.startsAt, event.endsAt)} · ${event.city}`}
+                            socialLine={event.subtitle}
+                          />
+                        ))}
+                      </HorizontalRail>
+                    </section>
+                  ) : null}
+
+                  {genreMatches.launches.length > 0 ? (
+                    <section className="space-y-3">
+                      <SectionHeader
+                        icon="launch"
+                        title={`${selectedGenre.label} soft launches`}
+                      />
+                      <HorizontalRail>
+                        {genreMatches.launches.slice(0, 8).map((launch) => (
+                          <SoftLaunchRailCard
+                            key={launch.id}
+                            launch={launch}
+                            metadataLine={`${launch.city} · ${launch.dateOptions.length} date options`}
+                          />
+                        ))}
+                      </HorizontalRail>
+                    </section>
+                  ) : null}
+                </>
+              ) : null}
+            </>
           ) : null}
         </section>
 
