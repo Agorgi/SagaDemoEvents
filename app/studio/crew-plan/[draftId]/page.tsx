@@ -21,8 +21,10 @@ import { useAppState } from "@/src/lib/app-state";
 import {
   CrewBudgetSummary,
   CrewCandidateModal,
+  CrewOutreachModal,
   CrewRoleSection,
-  CrewSummaryTable
+  CrewSummaryTable,
+  type OutreachDraftPreview
 } from "@/src/features/crew-plan/components";
 
 export default function CrewPlanPage() {
@@ -38,6 +40,7 @@ export default function CrewPlanPage() {
     users
   } = useAppState();
   const [activeCandidate, setActiveCandidate] = useState<CrewPlanCandidate | null>(null);
+  const [outreachPreviewOpen, setOutreachPreviewOpen] = useState(false);
   const [reviewIndexByRole, setReviewIndexByRole] = useState<Record<string, number>>({});
   const [localShortlistByRole, setLocalShortlistByRole] = useState<Record<string, string>>({});
   const [banner, setBanner] = useState<string | null>(null);
@@ -123,6 +126,43 @@ export default function CrewPlanPage() {
   const estimatedCrewCost = estimateCrewCost(roles, shortlistByRole);
   const totalBudget = resolveBudgetCeiling(source?.crewBudgetRange);
   const remainingBudget = Math.max(0, totalBudget - estimatedCrewCost);
+  const outreachRecipients = useMemo<OutreachDraftPreview[]>(() => {
+    const eventTitle = draft?.generatedDraft.title ?? launch?.title ?? "your production";
+    const dateLabel =
+      draft?.generatedDraft.dateSummary ??
+      (source?.briefStartDate ? formatShortDate(source.briefStartDate) : "your event date");
+
+    return roles.reduce<OutreachDraftPreview[]>((recipients, role) => {
+        const shortlistedId = shortlistByRole[role.key];
+        const chosen =
+          (shortlistedId ? role.matches.find((match) => match.userId === shortlistedId) : undefined) ??
+          role.matches[reviewIndexByRole[role.key] ?? 0] ??
+          role.matches[0];
+
+        if (!chosen) {
+          return recipients;
+        }
+
+        const firstName = chosen.name.split(" ")[0] ?? chosen.name;
+
+        recipients.push({
+          id: `${role.id}-${chosen.id}`,
+          candidateName: chosen.name,
+          candidateAvatarUrl: chosen.avatarUrl,
+          craft: chosen.craft,
+          roleTitle: role.title,
+          rateLabel: chosen.rateLabel,
+          city: chosen.city,
+          matchLabel: chosen.matchLabel,
+          messageLines: [
+            `Hey ${firstName} — I’m producing ${eventTitle} and your ${chosen.craft.toLowerCase()} work feels like a strong fit.`,
+            `We’re looking for a ${role.title.toLowerCase()} for ${dateLabel}. Budget is ${chosen.rateLabel}. Up for a quick chat?`
+          ]
+        });
+
+        return recipients;
+      }, []);
+  }, [draft, launch, reviewIndexByRole, roles, shortlistByRole, source?.briefStartDate]);
 
   function getActiveCandidateForRole(role: CrewPlanRole) {
     const shortlistedId = shortlistByRole[role.key];
@@ -283,7 +323,8 @@ export default function CrewPlanPage() {
                   if (draft) {
                     updateLaunchDraft(draft.id, { outreachSentAt: new Date().toISOString() });
                   }
-                  setBanner(`Outreach sent to ${roles.length} creators. We'll notify you when they respond.`);
+                  setBanner(`Outreach drafted for ${outreachRecipients.length} creators. We'll notify you when they respond.`);
+                  setOutreachPreviewOpen(true);
                 }}
                 type="button"
               >
@@ -310,6 +351,12 @@ export default function CrewPlanPage() {
         candidate={activeCandidate}
         href={activeCandidate ? `/profiles/${activeCandidate.userId}` : undefined}
         onClose={() => setActiveCandidate(null)}
+      />
+      <CrewOutreachModal
+        eventTitle={draft?.generatedDraft.title ?? launch?.title ?? "your production"}
+        onClose={() => setOutreachPreviewOpen(false)}
+        open={outreachPreviewOpen}
+        recipients={outreachRecipients}
       />
     </div>
   );
@@ -350,4 +397,11 @@ function formatInspiredEvents(names: string[]) {
   }
 
   return `${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]}`;
+}
+
+function formatShortDate(value: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric"
+  }).format(new Date(`${value}T12:00:00`));
 }

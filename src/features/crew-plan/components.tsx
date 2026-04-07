@@ -7,6 +7,18 @@ import { Modal } from "@/src/components/Modal";
 import { type CrewPlanCandidate, type CrewPlanRole } from "@/src/data/crew-plan";
 import { cn } from "@/src/lib/utils";
 
+export type OutreachDraftPreview = {
+  id: string;
+  candidateName: string;
+  candidateAvatarUrl?: string;
+  craft: string;
+  roleTitle: string;
+  rateLabel: string;
+  city: string;
+  matchLabel: CrewPlanCandidate["matchLabel"];
+  messageLines: string[];
+};
+
 export function CrewBudgetSummary({
   totalBudget,
   totalBudgetCeiling,
@@ -262,6 +274,53 @@ export function CrewCandidateModal({
   );
 }
 
+export function CrewOutreachModal({
+  eventTitle,
+  open,
+  onClose,
+  recipients
+}: {
+  open: boolean;
+  onClose: () => void;
+  eventTitle: string;
+  recipients: OutreachDraftPreview[];
+}) {
+  return (
+    <Modal
+      description={`Saga drafted outreach for ${recipients.length} creator${recipients.length === 1 ? "" : "s"} based on your brief and shortlist.`}
+      onClose={onClose}
+      open={open}
+      panelClassName="max-w-5xl"
+      title="Outreach drafts ready"
+    >
+      <div className="space-y-5">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm text-app-muted">
+            Texts for <span className="font-semibold text-white">{eventTitle}</span>
+          </p>
+          <span className="rounded-full bg-app-success/10 px-3 py-1 text-xs font-semibold text-app-success">
+            Messages queued
+          </span>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {recipients.map((recipient, index) => (
+            <IMessageDraftCard index={index} key={recipient.id} recipient={recipient} />
+          ))}
+        </div>
+
+        <button
+          className="min-h-[48px] w-full rounded-[18px] bg-app-purple px-4 py-3 text-sm font-semibold text-white transition hover:bg-app-purple-hover"
+          onClick={onClose}
+          type="button"
+        >
+          Looks good
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
 function VisualMatchCard({
   candidate,
   onClick
@@ -403,6 +462,68 @@ function TextMatchCard({
         </div>
       </div>
     </button>
+  );
+}
+
+function IMessageDraftCard({
+  index,
+  recipient
+}: {
+  recipient: OutreachDraftPreview;
+  index: number;
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-[34px] border border-white/10 bg-[#04060a] p-[10px] shadow-[0_28px_70px_rgba(0,0,0,0.42)]",
+        index % 3 === 1 ? "md:translate-y-5 md:-rotate-[1.8deg]" : "",
+        index % 3 === 2 ? "md:-translate-y-2 md:rotate-[1.4deg]" : "",
+        index % 3 === 0 ? "md:rotate-[-1.2deg]" : ""
+      )}
+    >
+      <div className="overflow-hidden rounded-[26px] bg-[radial-gradient(circle_at_top,rgba(106,123,255,0.18),transparent_34%),linear-gradient(180deg,#0f1420,#08101b)]">
+        <div className="flex justify-center pt-2">
+          <span className="h-1.5 w-24 rounded-full bg-white/12" />
+        </div>
+
+        <div className="flex items-center justify-between px-4 pb-3 pt-2 text-[11px] font-semibold text-white/58">
+          <span>9:41</span>
+          <span>iMessage</span>
+          <span>5G</span>
+        </div>
+
+        <div className="flex items-center gap-3 border-b border-white/[0.06] px-4 py-3">
+          <Avatar name={recipient.candidateName} size="sm" src={recipient.candidateAvatarUrl} />
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-white">{recipient.candidateName}</p>
+            <p className="truncate text-xs text-app-muted">
+              {recipient.roleTitle} · {recipient.city}
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-3 px-4 pb-4 pt-4">
+          <div className="flex">
+            <div className="max-w-[84%] rounded-[20px] rounded-bl-[8px] bg-white/[0.06] px-3 py-2.5 text-xs leading-5 text-white/74">
+              Matched from your crew plan as a <span className="font-semibold text-white">{recipient.matchLabel.toLowerCase()}</span>.
+            </div>
+          </div>
+
+          {recipient.messageLines.map((line, lineIndex) => (
+            <div className="flex justify-end" key={`${recipient.id}-${lineIndex}`}>
+              <div className="max-w-[88%] rounded-[20px] rounded-br-[8px] bg-[#1877F2] px-3 py-2.5 text-xs leading-5 text-white shadow-[0_12px_24px_rgba(24,119,242,0.22)]">
+                {line}
+              </div>
+            </div>
+          ))}
+
+          <div className="flex items-center justify-between pt-1 text-[11px] text-app-muted">
+            <span>{recipient.craft}</span>
+            <span>{recipient.rateLabel}</span>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
