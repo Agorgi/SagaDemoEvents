@@ -262,7 +262,7 @@ function NewStudioLaunchPageContent() {
   return (
     <div className="min-h-screen">
       <Nav />
-      <main className="mx-auto flex h-[calc(100vh-88px)] w-full max-w-[760px] flex-col overflow-hidden px-4 pb-24 pt-4 sm:px-6 sm:pb-10 sm:pt-6">
+      <main className="mx-auto flex h-[calc(100dvh-88px)] w-full max-w-[760px] flex-col overflow-hidden px-4 pt-4 sm:px-6 sm:pt-6">
         <header className="space-y-4">
           <div className="flex items-center justify-between gap-3">
             <button
@@ -290,9 +290,9 @@ function NewStudioLaunchPageContent() {
             title="Building your crew plan..."
           />
         ) : (
-          <>
-            <section className="flex flex-1 flex-col justify-center py-3">
-              <div className="space-y-3">
+          <div className="flex min-h-0 flex-1 flex-col">
+            <section className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-6 pt-4">
+              <div className="space-y-3 pb-5">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-app-muted">
                   {getLaunchModeLabel(activeDraft.launchMode)}
                 </p>
@@ -303,7 +303,7 @@ function NewStudioLaunchPageContent() {
                 <p className="text-sm text-white/58">{getLaunchModeSubtitle(activeDraft.launchMode)}</p>
               </div>
 
-              <div className="mt-5">
+              <div className="pb-6">
                 {activeStep === "foundation" ? (
                   <BriefFoundationStep draft={activeDraft} updateDraft={patchDraft} />
                 ) : null}
@@ -329,33 +329,31 @@ function NewStudioLaunchPageContent() {
               </div>
             </section>
 
-            <div className="sticky bottom-[calc(5.25rem+env(safe-area-inset-bottom))] mt-6">
-              <div className="rounded-[28px] border border-white/8 bg-[#0d1119]/94 p-3 backdrop-blur-xl">
-                <div className="flex items-center gap-3">
-                  <button
-                    className="min-h-[48px] flex-1 rounded-[18px] bg-app-purple px-4 py-3 text-sm font-semibold text-white transition hover:bg-app-purple-hover disabled:cursor-not-allowed disabled:opacity-45"
-                    disabled={!canContinue}
-                    onClick={goNext}
-                    type="button"
-                  >
-                    {currentStep === BRIEF_STEPS.length - 1 ? "Build crew plan" : "Continue"}
-                  </button>
-                  <button
-                    className="rounded-[18px] border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
-                    onClick={() => {
-                      updateLaunchDraft(activeDraft.id, {
-                        draftStatus: "saved" satisfies LaunchDraftStatus
-                      });
-                      router.push(APP_ROUTES.launch);
-                    }}
-                    type="button"
-                  >
-                    Save
-                  </button>
-                </div>
+            <div className="shrink-0 border-t border-white/6 bg-[linear-gradient(180deg,rgba(9,11,16,0),rgba(9,11,16,0.9)_28%,rgba(9,11,16,1))] pb-[calc(5.5rem+env(safe-area-inset-bottom))] pt-4">
+              <div className="space-y-3">
+                <button
+                  className="min-h-[52px] w-full rounded-[18px] bg-app-purple px-4 py-3 text-sm font-semibold text-white transition hover:bg-app-purple-hover disabled:cursor-not-allowed disabled:opacity-45"
+                  disabled={!canContinue}
+                  onClick={goNext}
+                  type="button"
+                >
+                  {currentStep === BRIEF_STEPS.length - 1 ? "Build crew plan" : "Continue"}
+                </button>
+                <button
+                  className="w-full text-center text-sm font-semibold text-app-muted transition hover:text-white"
+                  onClick={() => {
+                    updateLaunchDraft(activeDraft.id, {
+                      draftStatus: "saved" satisfies LaunchDraftStatus
+                    });
+                    router.push(APP_ROUTES.launch);
+                  }}
+                  type="button"
+                >
+                  Save draft
+                </button>
               </div>
             </div>
-          </>
+          </div>
         )}
       </main>
     </div>
