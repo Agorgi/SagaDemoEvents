@@ -9,6 +9,7 @@ import { Nav } from "@/src/components/Nav";
 import {
   buildCrewPlanRoles,
   estimateCrewCost,
+  getLikedInspirationNames,
   inferDeliverablesFromBrief,
   inferVisualDirectionSelections,
   resolveBudgetCeiling,
@@ -61,6 +62,7 @@ export default function CrewPlanPage() {
         neighborhood: draft.neighborhood,
         fandomTags: draft.fandomTags,
         conceptVision: draft.conceptVision || draft.generatedDraft.summary,
+        likedInspirationIds: draft.likedInspirationIds,
         visualDirectionSelections:
           draft.visualDirectionSelections.length > 0
             ? draft.visualDirectionSelections
@@ -69,7 +71,8 @@ export default function CrewPlanPage() {
                 sizeBucket: draft.sizeBucket,
                 city: draft.city,
                 fandomTags: draft.fandomTags,
-                conceptVision: draft.conceptVision || draft.generatedDraft.summary
+                conceptVision: draft.conceptVision || draft.generatedDraft.summary,
+                likedInspirationIds: draft.likedInspirationIds
               }),
         crewBudgetRange: draft.crewBudgetRange,
         deliverableSelections:
@@ -80,7 +83,8 @@ export default function CrewPlanPage() {
                 sizeBucket: draft.sizeBucket,
                 city: draft.city,
                 fandomTags: draft.fandomTags,
-                conceptVision: draft.conceptVision || draft.generatedDraft.summary
+                conceptVision: draft.conceptVision || draft.generatedDraft.summary,
+                likedInspirationIds: draft.likedInspirationIds
               }),
         briefStartDate: draft.briefStartDate,
         briefEndDate: draft.briefEndDate
@@ -114,6 +118,7 @@ export default function CrewPlanPage() {
     () => (source ? buildCrewPlanRoles(source, creatorProfiles, users, shortlistByRole) : []),
     [creatorProfiles, shortlistByRole, source, users]
   );
+  const likedInspirationNames = draft ? getLikedInspirationNames(draft.likedInspirationIds, 3) : [];
 
   const estimatedCrewCost = estimateCrewCost(roles, shortlistByRole);
   const totalBudget = resolveBudgetCeiling(source?.crewBudgetRange);
@@ -217,6 +222,11 @@ export default function CrewPlanPage() {
             <p className="max-w-[60ch] text-sm leading-6 text-app-muted">
               {draft?.generatedDraft.summary ?? launch?.description}
             </p>
+            {likedInspirationNames.length > 0 ? (
+              <p className="text-sm text-white/68">
+                Inspired by {formatInspiredEvents(likedInspirationNames)}
+              </p>
+            ) : null}
             <div className="flex flex-wrap gap-2">
               {source.city ? <TagChip label={source.city} subdued /> : null}
               {draft?.generatedDraft.dateSummary ? <TagChip label={draft.generatedDraft.dateSummary} subdued /> : null}
@@ -326,4 +336,18 @@ function mapLaunchFormatToBriefFormat(format: string) {
     default:
       return "Themed experience / ball";
   }
+}
+
+function formatInspiredEvents(names: string[]) {
+  if (names.length === 0) {
+    return "";
+  }
+  if (names.length === 1) {
+    return names[0];
+  }
+  if (names.length === 2) {
+    return `${names[0]} and ${names[1]}`;
+  }
+
+  return `${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]}`;
 }

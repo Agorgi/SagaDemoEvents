@@ -150,6 +150,9 @@ export type LaunchWizardDraft = {
   conceptVision: string;
   moodBoardImages: BriefMoodBoardImage[];
   briefAttachments: BriefAttachment[];
+  likedInspirationIds: string[];
+  passedInspirationIds: string[];
+  inspirationStepSkipped: boolean;
   visualDirectionSelections: string[];
   briefStartDate: string;
   briefEndDate: string;
@@ -663,6 +666,9 @@ export function createEmptyLaunchDraft(mode: LaunchModeType, hostId: string): La
     conceptVision: "",
     moodBoardImages: [],
     briefAttachments: [],
+    likedInspirationIds: [],
+    passedInspirationIds: [],
+    inspirationStepSkipped: false,
     visualDirectionSelections: [],
     briefStartDate: "",
     briefEndDate: "",
@@ -735,6 +741,9 @@ export function getLaunchQuestions(draft: LaunchWizardDraft) {
 export function syncLaunchDraft(draft: LaunchWizardDraft): LaunchWizardDraft {
   const nextDraft = {
     ...draft,
+    likedInspirationIds: draft.likedInspirationIds ?? [],
+    passedInspirationIds: draft.passedInspirationIds ?? [],
+    inspirationStepSkipped: draft.inspirationStepSkipped ?? false,
     briefEndDate: deriveBriefEndDate(draft.briefStartDate, draft.briefDurationDays, draft.briefEndDate),
     derivedJourney: deriveJourney(draft)
   };

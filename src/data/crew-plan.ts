@@ -59,6 +59,7 @@ export type CrewBriefInput = {
   neighborhood?: string;
   fandomTags?: string[];
   conceptVision?: string;
+  likedInspirationIds?: string[];
   visualDirectionSelections?: string[];
   crewBudgetRange?: string;
   deliverableSelections?: string[];
@@ -72,6 +73,20 @@ export type VisualStyleOption = {
   value: BriefVisualStyle;
   description: string;
   background: string;
+};
+
+export type InspirationEvent = {
+  id: string;
+  name: string;
+  description: string;
+  heroImage: string;
+  city: string;
+  size: number;
+  sizeLabel: string;
+  vibe: string;
+  tags: string[];
+  suggestsStyles: BriefVisualStyle[];
+  suggestsDeliverables: CrewDeliverable[];
 };
 
 export type CrewRoleSuggestion = {
@@ -198,6 +213,169 @@ export const CREW_PROCESSING_MESSAGES = [
   "Matching portfolios...",
   "Estimating rates..."
 ] as const;
+
+export const INSPIRATION_EVENTS: InspirationEvent[] = [
+  {
+    id: "midnight-masquerade",
+    name: "Midnight Masquerade — Anime Edition",
+    description:
+      "A 200-person formal cosplay gala in a converted warehouse. Black tie meets anime. Photo corridors, live string quartet playing Ghibli, champagne bar.",
+    heroImage: createPosterDataUri({
+      title: "Midnight Masquerade",
+      subtitle: "Anime edition · formal cosplay gala",
+      eyebrow: "dark glamour",
+      accent: "#6D5EF3",
+      accent2: "#E14585"
+    }),
+    city: "Los Angeles",
+    size: 200,
+    sizeLabel: "200 people",
+    vibe: "Dark Glamour",
+    tags: ["anime", "cosplay", "formal", "gala"],
+    suggestsStyles: ["Dark Editorial"],
+    suggestsDeliverables: ["Photography", "DJ / Music", "Live Art / Drawing", "Decor / Set Design"]
+  },
+  {
+    id: "shibuya-nights",
+    name: "Shibuya Nights Pop-Up",
+    description:
+      "A 150-person night market with anime vendor booths, ramen pop-ups, neon photo ops, and a DJ spinning city pop and lo-fi beats.",
+    heroImage: createPosterDataUri({
+      title: "Shibuya Nights",
+      subtitle: "Anime market after dark",
+      eyebrow: "neon cyberpunk",
+      accent: "#1F6CFF",
+      accent2: "#00C5FF"
+    }),
+    city: "San Francisco",
+    size: 150,
+    sizeLabel: "150 people",
+    vibe: "Neon Cyberpunk",
+    tags: ["anime", "night market", "vendors", "city pop"],
+    suggestsStyles: ["Neon Cyberpunk", "Street Raw"],
+    suggestsDeliverables: ["DJ / Music", "Decor / Set Design", "Photo Booth", "Social Media Capture"]
+  },
+  {
+    id: "cosplay-garden-party",
+    name: "Cosplay Garden Party",
+    description:
+      "An 80-person daytime cosplay picnic in a botanical garden. Flower crown stations, sketch artists, boba bar, acoustic sets.",
+    heroImage: createPosterDataUri({
+      title: "Cosplay Garden Party",
+      subtitle: "Daytime botanical meetup",
+      eyebrow: "pastel soft",
+      accent: "#FF8ED1",
+      accent2: "#8AC6FF"
+    }),
+    city: "Portland",
+    size: 80,
+    sizeLabel: "80 people",
+    vibe: "Pastel Soft",
+    tags: ["cosplay", "outdoor", "casual", "daytime"],
+    suggestsStyles: ["Pastel Soft", "Warm Vintage"],
+    suggestsDeliverables: ["Photography", "Live Art / Drawing", "Host / MC", "Catering Coordination"]
+  },
+  {
+    id: "phantom-ballroom",
+    name: "Phantom Ballroom",
+    description:
+      "A 180-person gothic anime ball in a historic theater. Ballroom dance lessons, live portrait sketching, dramatic lighting, orchestral DJ remixes.",
+    heroImage: createPosterDataUri({
+      title: "Phantom Ballroom",
+      subtitle: "Gothic anime ball",
+      eyebrow: "dark editorial",
+      accent: "#744BFF",
+      accent2: "#F0C453"
+    }),
+    city: "Chicago",
+    size: 180,
+    sizeLabel: "180 people",
+    vibe: "Dark Editorial",
+    tags: ["anime", "gothic", "ballroom", "dramatic"],
+    suggestsStyles: ["Dark Editorial", "Fantasy Ethereal"],
+    suggestsDeliverables: ["Photography", "DJ / Music", "Live Art / Drawing", "Styling / Wardrobe", "Decor / Set Design"]
+  },
+  {
+    id: "anime-rave-final-form",
+    name: "Anime Rave: Final Form",
+    description:
+      "A 300-person anime rave in an industrial warehouse. UV body paint stations, LED cosplay runway, bass-heavy DJ sets, immersive laser tunnels.",
+    heroImage: createPosterDataUri({
+      title: "Anime Rave",
+      subtitle: "Final Form · warehouse night",
+      eyebrow: "neon cyberpunk",
+      accent: "#00C2FF",
+      accent2: "#9B5EFF"
+    }),
+    city: "Los Angeles",
+    size: 300,
+    sizeLabel: "300 people",
+    vibe: "Neon Cyberpunk",
+    tags: ["anime", "rave", "EDM", "UV", "warehouse"],
+    suggestsStyles: ["Neon Cyberpunk", "Dark Editorial"],
+    suggestsDeliverables: ["DJ / Music", "Photography", "Videography", "Decor / Set Design", "Styling / Wardrobe", "Security"]
+  },
+  {
+    id: "ghibli-tea-room",
+    name: "Studio Ghibli Tea Room",
+    description:
+      "A 40-person intimate Ghibli-themed tea gathering. Handmade decor, watercolor painting stations, matcha service, ambient Hisaishi piano.",
+    heroImage: createPosterDataUri({
+      title: "Ghibli Tea Room",
+      subtitle: "Intimate fandom gathering",
+      eyebrow: "warm vintage",
+      accent: "#C48B46",
+      accent2: "#7AD0A9"
+    }),
+    city: "Seattle",
+    size: 40,
+    sizeLabel: "40 people",
+    vibe: "Warm Vintage",
+    tags: ["ghibli", "intimate", "tea", "wholesome"],
+    suggestsStyles: ["Warm Vintage", "Pastel Soft"],
+    suggestsDeliverables: ["Decor / Set Design", "Live Art / Drawing", "Catering Coordination", "Photography"]
+  },
+  {
+    id: "villain-era-ball",
+    name: "Villain Era Ball",
+    description:
+      "A 150-person anime villain-themed costume ball. Red carpet arrival, makeup transformation stations, runway competition, dark cinematic DJ set.",
+    heroImage: createPosterDataUri({
+      title: "Villain Era Ball",
+      subtitle: "Dark cinematic costume night",
+      eyebrow: "dark editorial",
+      accent: "#E14585",
+      accent2: "#6D5EF3"
+    }),
+    city: "New York",
+    size: 150,
+    sizeLabel: "150 people",
+    vibe: "Dark Editorial",
+    tags: ["anime", "villain", "runway", "competition"],
+    suggestsStyles: ["Dark Editorial", "Neon Cyberpunk"],
+    suggestsDeliverables: ["Styling / Wardrobe", "DJ / Music", "Photography", "Host / MC", "Decor / Set Design"]
+  },
+  {
+    id: "sakura-festival-block-party",
+    name: "Sakura Festival Block Party",
+    description:
+      "A 500-person outdoor anime block party with food trucks, cosplay contests, vendor rows, and a main stage with J-pop cover bands.",
+    heroImage: createPosterDataUri({
+      title: "Sakura Festival",
+      subtitle: "Outdoor anime block party",
+      eyebrow: "bright pop",
+      accent: "#FF8F82",
+      accent2: "#FFD166"
+    }),
+    city: "Austin",
+    size: 500,
+    sizeLabel: "500 people",
+    vibe: "Bright Pop",
+    tags: ["anime", "festival", "outdoor", "family"],
+    suggestsStyles: ["Bright Pop", "Pastel Soft"],
+    suggestsDeliverables: ["Host / MC", "DJ / Music", "Check-in / Ops", "Security", "Catering Coordination"]
+  }
+];
 
 export const ALL_CREW_DELIVERABLES: CrewDeliverable[] = [
   "Photography",
@@ -489,6 +667,50 @@ function buildBriefHaystack(input: CrewBriefInput) {
     .toLowerCase();
 }
 
+function getInspirationEventMap() {
+  return new Map(INSPIRATION_EVENTS.map((event) => [event.id, event]));
+}
+
+function getLikedInspirationEvents(likedIds?: string[]) {
+  if (!likedIds?.length) {
+    return [];
+  }
+
+  const eventMap = getInspirationEventMap();
+  return likedIds.map((id) => eventMap.get(id)).filter(Boolean) as InspirationEvent[];
+}
+
+function rankSignals<T extends string>(signals: T[]) {
+  const counts = new Map<T, number>();
+  signals.forEach((signal) => {
+    counts.set(signal, (counts.get(signal) ?? 0) + 1);
+  });
+
+  return [...counts.entries()]
+    .sort((a, b) => {
+      if (b[1] !== a[1]) {
+        return b[1] - a[1];
+      }
+
+      return a[0].localeCompare(b[0]);
+    })
+    .map(([signal]) => signal);
+}
+
+function joinEventNames(names: string[]) {
+  if (names.length === 0) {
+    return "";
+  }
+  if (names.length === 1) {
+    return names[0];
+  }
+  if (names.length === 2) {
+    return `${names[0]} and ${names[1]}`;
+  }
+
+  return `${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]}`;
+}
+
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -570,7 +792,60 @@ function inferRateLabel(template: CrewRoleTemplate, profile?: CreatorProfile, us
   return `${formatCurrency(template.rateRange[0])}-${formatCurrency(template.rateRange[1])}`;
 }
 
+function getRelevantInspiredEvents(input: CrewBriefInput, template: CrewRoleTemplate) {
+  const likedEvents = getLikedInspirationEvents(input.likedInspirationIds);
+  if (!likedEvents.length) {
+    return [];
+  }
+
+  const deliverableMatches = likedEvents.filter((event) =>
+    event.suggestsDeliverables.some((deliverable) => template.deliverables.includes(deliverable))
+  );
+
+  return (deliverableMatches.length > 0 ? deliverableMatches : likedEvents).slice(0, 2);
+}
+
+function buildInspiredMatchReason(template: CrewRoleTemplate, events: InspirationEvent[]) {
+  if (!events.length) {
+    return "";
+  }
+
+  const names = joinEventNames(events.map((event) => event.name));
+
+  switch (template.key) {
+    case "photographer":
+    case "photo_booth":
+      return `Specializes in dark editorial cosplay photography — similar to events you loved like ${names}.`;
+    case "videographer":
+    case "social_capture":
+      return `Cuts cinematic fandom recap coverage — aligned with the visual energy of ${names}.`;
+    case "dj":
+      return `Blends anime OSTs with house and bass — matches the energy of ${names}.`;
+    case "stylist":
+      return `Builds dramatic styling systems and touch-up flows that fit productions like ${names}.`;
+    case "decor_lead":
+      return `Designs immersive rooms and photo moments with the same atmosphere as ${names}.`;
+    case "live_artist":
+      return `Has run live drawing and portrait activations at nights similar to ${names}.`;
+    case "host_mc":
+      return `Knows how to hold the room and guide programming for crowd experiences like ${names}.`;
+    case "checkin_ops":
+      return `Has handled guest flow, lists, and front-of-house pacing for productions like ${names}.`;
+    case "security":
+      return `Supports large-format guest flow and room safety for events in the lane of ${names}.`;
+    case "catering":
+      return `Keeps hospitality timing and service calm for fan-led nights like ${names}.`;
+    default:
+      return "";
+  }
+}
+
 function inferMatchReason(input: CrewBriefInput, template: CrewRoleTemplate, user?: DemoUser, profile?: CreatorProfile) {
+  const inspiredReason = buildInspiredMatchReason(template, getRelevantInspiredEvents(input, template));
+  if (inspiredReason) {
+    return inspiredReason;
+  }
+
   const scene = input.visualDirectionSelections?.[0] ?? profile?.tags[0] ?? user?.fandomTags[0] ?? "Scene fit";
   const city = input.city || user?.city || "local";
   const eventCount = user?.pastEventsWorked ?? 4;
@@ -673,11 +948,7 @@ function shouldAutoIncludeTemplate(template: CrewRoleTemplate, input: CrewBriefI
   return false;
 }
 
-function resolveSelectedDeliverables(input: CrewBriefInput) {
-  if (input.deliverableSelections?.length) {
-    return input.deliverableSelections as CrewDeliverable[];
-  }
-
+function inferDeliverablesFromContext(input: CrewBriefInput) {
   const haystack = buildBriefHaystack(input);
   const keywordMatches = DELIVERABLE_KEYWORDS.flatMap((entry) =>
     entry.keywords.some((keyword) => haystack.includes(keyword)) ? entry.deliverables : []
@@ -692,8 +963,54 @@ export function getDeliverableOptionsForFormat(format?: string) {
   return [...prioritized, ...remainder];
 }
 
+export function getInspirationEventsForBrief(_input?: CrewBriefInput) {
+  return INSPIRATION_EVENTS;
+}
+
+export function deriveSwipeVisualDirectionSelections(
+  likedIds: string[] = [],
+  input?: CrewBriefInput
+): BriefVisualStyle[] {
+  const likedEvents = getLikedInspirationEvents(likedIds);
+  if (!likedEvents.length) {
+    return inferVisualDirectionFromContext(input ?? {});
+  }
+
+  const ranked = rankSignals(likedEvents.flatMap((event) => event.suggestsStyles));
+  const fallback = inferVisualDirectionFromContext(input ?? {});
+  return [...new Set([...(ranked as BriefVisualStyle[]), ...fallback])].slice(0, 3) as BriefVisualStyle[];
+}
+
+export function deriveSwipeDeliverables(
+  likedIds: string[] = [],
+  input?: CrewBriefInput
+): CrewDeliverable[] {
+  const likedEvents = getLikedInspirationEvents(likedIds);
+  if (!likedEvents.length) {
+    return inferDeliverablesFromContext(input ?? {});
+  }
+
+  const ranked = rankSignals(likedEvents.flatMap((event) => event.suggestsDeliverables));
+  const fallback = inferDeliverablesFromContext(input ?? {});
+  return [...new Set([...(ranked as CrewDeliverable[]), ...fallback])].slice(0, 6) as CrewDeliverable[];
+}
+
+export function getLikedInspirationNames(likedIds: string[] = [], limit = 3) {
+  return getLikedInspirationEvents(likedIds)
+    .slice(0, limit)
+    .map((event) => event.name);
+}
+
 export function inferDeliverablesFromBrief(input: CrewBriefInput) {
-  return resolveSelectedDeliverables(input);
+  if (input.deliverableSelections?.length) {
+    return input.deliverableSelections as CrewDeliverable[];
+  }
+
+  if (input.likedInspirationIds?.length) {
+    return deriveSwipeDeliverables(input.likedInspirationIds, input);
+  }
+
+  return inferDeliverablesFromContext(input);
 }
 
 export function inferFandomTagsFromBrief(input: CrewBriefInput) {
@@ -717,11 +1034,7 @@ export function inferFandomTagsFromBrief(input: CrewBriefInput) {
   return input.format === "Tournament / competition" ? ["Gaming"] : ["Anime"];
 }
 
-export function inferVisualDirectionSelections(input: CrewBriefInput): BriefVisualStyle[] {
-  if (input.visualDirectionSelections?.length) {
-    return input.visualDirectionSelections.slice(0, 3) as BriefVisualStyle[];
-  }
-
+function inferVisualDirectionFromContext(input: CrewBriefInput): BriefVisualStyle[] {
   const haystack = buildBriefHaystack(input);
   const matched = VISUAL_STYLE_KEYWORDS.flatMap((entry) =>
     entry.keywords.some((keyword) => haystack.includes(keyword)) ? entry.styles : []
@@ -741,8 +1054,20 @@ export function inferVisualDirectionSelections(input: CrewBriefInput): BriefVisu
   return [...new Set([...(matched as BriefVisualStyle[]), ...fallback])].slice(0, 3) as BriefVisualStyle[];
 }
 
+export function inferVisualDirectionSelections(input: CrewBriefInput): BriefVisualStyle[] {
+  if (input.visualDirectionSelections?.length) {
+    return input.visualDirectionSelections.slice(0, 3) as BriefVisualStyle[];
+  }
+
+  if (input.likedInspirationIds?.length) {
+    return deriveSwipeVisualDirectionSelections(input.likedInspirationIds, input);
+  }
+
+  return inferVisualDirectionFromContext(input);
+}
+
 export function buildCrewRoleSuggestions(input: CrewBriefInput): CrewRoleSuggestion[] {
-  const selectedDeliverables = resolveSelectedDeliverables(input);
+  const selectedDeliverables = inferDeliverablesFromBrief(input);
   const matched = CREW_ROLE_TEMPLATES.filter((template) =>
     template.deliverables.some((deliverable) => selectedDeliverables.includes(deliverable))
   );

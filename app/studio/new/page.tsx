@@ -7,18 +7,20 @@ import { Nav } from "@/src/components/Nav";
 import { type LaunchDraftStatus, type LaunchWizardDraft } from "@/src/data/launch-builder";
 import {
   BRIEF_STEPS,
-  BriefBudgetStep,
-  BriefCityStep,
-  BriefEventTypeStep,
+  BriefBudgetTimelineStep,
+  BriefDeliverablesStep,
+  BriefFoundationStep,
+  BriefInspirationSwipeStep,
   BriefStepKey,
-  BriefTimelineStep,
-  BriefVisionStep,
+  BriefVisualDirectionStep,
   BriefWizardProgress,
   getLaunchModeLabel,
   getLaunchModeSubtitle,
   ProcessingStage
 } from "@/src/features/studio-brief/components";
 import {
+  deriveSwipeDeliverables,
+  deriveSwipeVisualDirectionSelections,
   inferDeliverablesFromBrief,
   inferFandomTagsFromBrief,
   inferVisualDirectionSelections
@@ -130,8 +132,44 @@ function NewStudioLaunchPageContent() {
   const activeStep = BRIEF_STEPS[currentStep];
   const canContinue = validateStep(activeStep, activeDraft);
 
+  function getBriefInferenceSource(draft: LaunchWizardDraft) {
+    return {
+      format: draft.format,
+      sizeBucket: draft.sizeBucket,
+      city: draft.city,
+      fandomTags: draft.fandomTags,
+      conceptVision: draft.conceptVision,
+      likedInspirationIds: draft.likedInspirationIds
+    };
+  }
+
   function patchDraft(payload: Parameters<typeof updateLaunchDraft>[1]) {
     updateLaunchDraft(activeDraft.id, payload);
+  }
+
+  function seedSwipeDrivenSelections(
+    draft: LaunchWizardDraft,
+    options?: {
+      forceSkip?: boolean;
+    }
+  ) {
+    const inferenceSource = getBriefInferenceSource(draft);
+    const preselectedStyles =
+      draft.likedInspirationIds.length > 0
+        ? deriveSwipeVisualDirectionSelections(draft.likedInspirationIds, inferenceSource).slice(0, 2)
+        : inferVisualDirectionSelections(inferenceSource).slice(0, 2);
+    const preselectedDeliverables =
+      draft.likedInspirationIds.length > 0
+        ? deriveSwipeDeliverables(draft.likedInspirationIds, inferenceSource).slice(0, 5)
+        : inferDeliverablesFromBrief(inferenceSource).slice(0, 5);
+
+    patchDraft({
+      inspirationStepSkipped: options?.forceSkip ? true : draft.inspirationStepSkipped,
+      visualDirectionSelections:
+        draft.visualDirectionSelections.length >= 2 ? draft.visualDirectionSelections : preselectedStyles,
+      deliverableSelections:
+        draft.deliverableSelections.length > 0 ? draft.deliverableSelections : preselectedDeliverables
+    });
   }
 
   function goBack() {
@@ -152,37 +190,26 @@ function NewStudioLaunchPageContent() {
       return;
     }
 
+    if (activeStep === "inspiration") {
+      seedSwipeDrivenSelections(activeDraft);
+      setCurrentStep((step) => Math.min(BRIEF_STEPS.length - 1, step + 1));
+      return;
+    }
+
     if (currentStep === BRIEF_STEPS.length - 1) {
+      const inferenceSource = getBriefInferenceSource(activeDraft);
       const visualDirectionSelections =
         activeDraft.visualDirectionSelections.length > 0
           ? activeDraft.visualDirectionSelections
-          : inferVisualDirectionSelections({
-              format: activeDraft.format,
-              sizeBucket: activeDraft.sizeBucket,
-              city: activeDraft.city,
-              fandomTags: activeDraft.fandomTags,
-              conceptVision: activeDraft.conceptVision
-            });
+          : inferVisualDirectionSelections(inferenceSource);
       const deliverableSelections =
         activeDraft.deliverableSelections.length > 0
           ? activeDraft.deliverableSelections
-          : inferDeliverablesFromBrief({
-              format: activeDraft.format,
-              sizeBucket: activeDraft.sizeBucket,
-              city: activeDraft.city,
-              fandomTags: activeDraft.fandomTags,
-              conceptVision: activeDraft.conceptVision
-            });
+          : inferDeliverablesFromBrief(inferenceSource);
       const fandomTags =
         activeDraft.fandomTags.length > 0
           ? activeDraft.fandomTags
-          : inferFandomTagsFromBrief({
-              format: activeDraft.format,
-              sizeBucket: activeDraft.sizeBucket,
-              city: activeDraft.city,
-              fandomTags: activeDraft.fandomTags,
-              conceptVision: activeDraft.conceptVision
-            });
+          : inferFandomTagsFromBrief(inferenceSource);
 
       patchDraft({
         fandomTags,
@@ -200,16 +227,16 @@ function NewStudioLaunchPageContent() {
 
   const title = (() => {
     switch (activeStep) {
-      case "vision":
+      case "foundation":
         return "Describe your event";
-      case "event_type":
-        return "Pick the event type";
-      case "city":
-        return "Where is this happening?";
-      case "timeline":
-        return "What's the timeline?";
-      case "budget":
-        return "What's the crew budget?";
+      case "inspiration":
+        return "Events like yours";
+      case "visual_direction":
+        return "What's the vibe?";
+      case "budget_timeline":
+        return "Budget and dates";
+      case "deliverables":
+        return "What do you need covered?";
       default:
         return "Build your brief";
     }
@@ -217,16 +244,16 @@ function NewStudioLaunchPageContent() {
 
   const helperText = (() => {
     switch (activeStep) {
-      case "vision":
-        return "Start with the concept. We’ll use it to infer the crew and creative direction.";
-      case "event_type":
-        return "Choose the closest event format and expected crowd size.";
-      case "city":
-        return "A city is enough to start building the right local team.";
-      case "timeline":
-        return "Give us the date, duration, and whether the timing is still flexible.";
-      case "budget":
-        return "We’ll balance role coverage and starting rates against this number.";
+      case "foundation":
+        return "Pick the format, expected crowd, and the core idea. We’ll use it to shape the crew plan.";
+      case "inspiration":
+        return "Swipe right on the examples that feel closest to what you want to make.";
+      case "visual_direction":
+        return "Pick 2–3 styles that match the taste you’re aiming for.";
+      case "budget_timeline":
+        return "Tell us where it’s happening, when it’s happening, and the budget we’re balancing against.";
+      case "deliverables":
+        return "We’ll use this to identify the right roles and creator fits.";
       default:
         return undefined;
     }
@@ -277,20 +304,27 @@ function NewStudioLaunchPageContent() {
               </div>
 
               <div className="mt-5">
-                {activeStep === "vision" ? (
-                  <BriefVisionStep draft={activeDraft} updateDraft={patchDraft} />
+                {activeStep === "foundation" ? (
+                  <BriefFoundationStep draft={activeDraft} updateDraft={patchDraft} />
                 ) : null}
-                {activeStep === "event_type" ? (
-                  <BriefEventTypeStep draft={activeDraft} updateDraft={patchDraft} />
+                {activeStep === "inspiration" ? (
+                  <BriefInspirationSwipeStep
+                    draft={activeDraft}
+                    onSkip={() => {
+                      seedSwipeDrivenSelections(activeDraft, { forceSkip: true });
+                      setCurrentStep((step) => Math.min(BRIEF_STEPS.length - 1, step + 1));
+                    }}
+                    updateDraft={patchDraft}
+                  />
                 ) : null}
-                {activeStep === "city" ? (
-                  <BriefCityStep draft={activeDraft} updateDraft={patchDraft} />
+                {activeStep === "visual_direction" ? (
+                  <BriefVisualDirectionStep draft={activeDraft} updateDraft={patchDraft} />
                 ) : null}
-                {activeStep === "timeline" ? (
-                  <BriefTimelineStep draft={activeDraft} updateDraft={patchDraft} />
+                {activeStep === "budget_timeline" ? (
+                  <BriefBudgetTimelineStep draft={activeDraft} updateDraft={patchDraft} />
                 ) : null}
-                {activeStep === "budget" ? (
-                  <BriefBudgetStep draft={activeDraft} updateDraft={patchDraft} />
+                {activeStep === "deliverables" ? (
+                  <BriefDeliverablesStep draft={activeDraft} updateDraft={patchDraft} />
                 ) : null}
               </div>
             </section>
@@ -329,19 +363,24 @@ function NewStudioLaunchPageContent() {
 }
 
 function resolveCurrentStep(draft: LaunchWizardDraft) {
-  if (!draft.conceptVision.trim()) {
+  if (!draft.conceptVision.trim() || !draft.format || !draft.sizeBucket) {
     return 0;
   }
-  if (!draft.format || !draft.sizeBucket) {
+
+  const swipeCount = draft.likedInspirationIds.length + draft.passedInspirationIds.length;
+  if (!draft.inspirationStepSkipped && swipeCount < 4) {
     return 1;
   }
-  if (!draft.city.trim()) {
+
+  if (draft.visualDirectionSelections.length < 2) {
     return 2;
   }
-  if ((!draft.briefStartDate && !draft.briefDateFlexible) || !draft.briefDurationDays) {
+
+  if (!draft.city.trim() || (!draft.briefStartDate && !draft.briefDateFlexible) || !draft.briefDurationDays || !draft.crewBudgetRange) {
     return 3;
   }
-  if (!draft.crewBudgetRange) {
+
+  if (!draft.deliverableSelections.length) {
     return 4;
   }
 
@@ -350,16 +389,16 @@ function resolveCurrentStep(draft: LaunchWizardDraft) {
 
 function validateStep(step: BriefStepKey, draft: LaunchWizardDraft) {
   switch (step) {
-    case "vision":
-      return draft.conceptVision.trim().length > 24;
-    case "event_type":
-      return Boolean(draft.format && draft.sizeBucket);
-    case "city":
-      return draft.city.trim().length > 1;
-    case "timeline":
-      return Boolean((draft.briefStartDate || draft.briefDateFlexible) && draft.briefDurationDays);
-    case "budget":
-      return Boolean(draft.crewBudgetRange);
+    case "foundation":
+      return Boolean(draft.format && draft.sizeBucket && draft.conceptVision.trim().length > 24);
+    case "inspiration":
+      return draft.inspirationStepSkipped || draft.likedInspirationIds.length + draft.passedInspirationIds.length >= 4;
+    case "visual_direction":
+      return draft.visualDirectionSelections.length >= 2;
+    case "budget_timeline":
+      return Boolean(draft.city.trim() && (draft.briefStartDate || draft.briefDateFlexible) && draft.briefDurationDays && draft.crewBudgetRange);
+    case "deliverables":
+      return draft.deliverableSelections.length > 0;
     default:
       return false;
   }
