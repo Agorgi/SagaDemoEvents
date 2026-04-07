@@ -15,7 +15,6 @@ import {
   BriefVisualDirectionStep,
   BriefWizardProgress,
   getLaunchModeLabel,
-  getLaunchModeSubtitle,
   ProcessingStage
 } from "@/src/features/studio-brief/components";
 import {
@@ -262,99 +261,102 @@ function NewStudioLaunchPageContent() {
   return (
     <div className="min-h-screen">
       <Nav />
-      <main className="mx-auto flex h-[calc(100dvh-88px)] w-full max-w-[760px] flex-col overflow-hidden px-4 pt-4 sm:px-6 sm:pt-6">
-        <header className="space-y-4">
-          <div className="flex items-center justify-between gap-3">
-            <button
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.02] text-white transition hover:border-white/20"
-              onClick={goBack}
-              type="button"
-            >
-              ←
-            </button>
-            <button
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.02] text-white transition hover:border-white/20"
-              onClick={() => router.push(APP_ROUTES.launch)}
-              type="button"
-            >
-              ✕
-            </button>
-          </div>
+      <main className="onboarding-shell mx-auto h-[calc(100dvh-88px)] overflow-hidden px-4 pt-4 sm:px-6 sm:pt-6">
+        <div className="onboarding-stage mx-auto flex h-full w-full max-w-[640px] flex-col">
+          <header className="space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <button
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.04] text-white transition hover:bg-white/[0.07]"
+                onClick={goBack}
+                type="button"
+              >
+                ←
+              </button>
+              <button
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.04] text-white transition hover:bg-white/[0.07]"
+                onClick={() => router.push(APP_ROUTES.launch)}
+                type="button"
+              >
+                ✕
+              </button>
+            </div>
 
-          <BriefWizardProgress current={currentStep} />
-        </header>
+            <BriefWizardProgress current={currentStep} />
+          </header>
 
-        {processing ? (
-          <ProcessingStage
-            messageIndex={processingMessageIndex}
-            title="Building your crew plan..."
-          />
-        ) : (
-          <div className="flex min-h-0 flex-1 flex-col">
-            <section className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-6 pt-4">
-              <div className="space-y-3 pb-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-app-muted">
-                  {getLaunchModeLabel(activeDraft.launchMode)}
-                </p>
-                <h1 className="max-w-[12ch] text-[30px] font-semibold leading-tight text-white sm:text-[40px]">
-                  {title}
-                </h1>
-                <p className="max-w-[34ch] text-sm leading-6 text-app-muted">{helperText}</p>
-                <p className="text-sm text-white/58">{getLaunchModeSubtitle(activeDraft.launchMode)}</p>
-              </div>
+          {processing ? (
+            <ProcessingStage
+              messageIndex={processingMessageIndex}
+              title="Building your crew plan..."
+            />
+          ) : (
+            <div className="flex min-h-0 flex-1 flex-col">
+              <section className="subtle-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain pb-8 pt-5">
+                <div className="space-y-3 pb-7">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-app-muted">
+                    {getLaunchModeLabel(activeDraft.launchMode)}
+                  </p>
+                  <h1 className="max-w-[12ch] text-[34px] font-semibold leading-[1.02] tracking-[-0.05em] text-white sm:text-[44px]">
+                    {title}
+                  </h1>
+                  <p className="max-w-[36ch] text-[15px] leading-7 text-app-muted sm:text-base">
+                    {helperText}
+                  </p>
+                </div>
 
-              <div className="pb-6">
-                {activeStep === "foundation" ? (
-                  <BriefFoundationStep draft={activeDraft} updateDraft={patchDraft} />
-                ) : null}
-                {activeStep === "inspiration" ? (
-                  <BriefInspirationSwipeStep
-                    draft={activeDraft}
-                    onSkip={() => {
-                      seedSwipeDrivenSelections(activeDraft, { forceSkip: true });
-                      setCurrentStep((step) => Math.min(BRIEF_STEPS.length - 1, step + 1));
+                <div className="pb-8">
+                  {activeStep === "foundation" ? (
+                    <BriefFoundationStep draft={activeDraft} updateDraft={patchDraft} />
+                  ) : null}
+                  {activeStep === "inspiration" ? (
+                    <BriefInspirationSwipeStep
+                      draft={activeDraft}
+                      onSkip={() => {
+                        seedSwipeDrivenSelections(activeDraft, { forceSkip: true });
+                        setCurrentStep((step) => Math.min(BRIEF_STEPS.length - 1, step + 1));
+                      }}
+                      updateDraft={patchDraft}
+                    />
+                  ) : null}
+                  {activeStep === "visual_direction" ? (
+                    <BriefVisualDirectionStep draft={activeDraft} updateDraft={patchDraft} />
+                  ) : null}
+                  {activeStep === "budget_timeline" ? (
+                    <BriefBudgetTimelineStep draft={activeDraft} updateDraft={patchDraft} />
+                  ) : null}
+                  {activeStep === "deliverables" ? (
+                    <BriefDeliverablesStep draft={activeDraft} updateDraft={patchDraft} />
+                  ) : null}
+                </div>
+              </section>
+
+              <div className="shrink-0 bg-[linear-gradient(180deg,rgba(9,11,16,0),rgba(9,11,16,0.82)_26%,rgba(9,11,16,0.98))] pb-[calc(5.5rem+env(safe-area-inset-bottom))] pt-4">
+                <div className="space-y-2">
+                  <button
+                    className="min-h-[52px] w-full rounded-[18px] bg-app-purple px-4 py-3 text-sm font-semibold text-white shadow-[0_18px_42px_rgba(31,28,184,0.26)] transition hover:bg-app-purple-hover disabled:cursor-not-allowed disabled:opacity-45"
+                    disabled={!canContinue}
+                    onClick={goNext}
+                    type="button"
+                  >
+                    {currentStep === BRIEF_STEPS.length - 1 ? "Build crew plan" : "Continue"}
+                  </button>
+                  <button
+                    className="w-full text-center text-sm font-medium text-app-muted transition hover:text-white"
+                    onClick={() => {
+                      updateLaunchDraft(activeDraft.id, {
+                        draftStatus: "saved" satisfies LaunchDraftStatus
+                      });
+                      router.push(APP_ROUTES.launch);
                     }}
-                    updateDraft={patchDraft}
-                  />
-                ) : null}
-                {activeStep === "visual_direction" ? (
-                  <BriefVisualDirectionStep draft={activeDraft} updateDraft={patchDraft} />
-                ) : null}
-                {activeStep === "budget_timeline" ? (
-                  <BriefBudgetTimelineStep draft={activeDraft} updateDraft={patchDraft} />
-                ) : null}
-                {activeStep === "deliverables" ? (
-                  <BriefDeliverablesStep draft={activeDraft} updateDraft={patchDraft} />
-                ) : null}
-              </div>
-            </section>
-
-            <div className="shrink-0 border-t border-white/6 bg-[linear-gradient(180deg,rgba(9,11,16,0),rgba(9,11,16,0.9)_28%,rgba(9,11,16,1))] pb-[calc(5.5rem+env(safe-area-inset-bottom))] pt-4">
-              <div className="space-y-3">
-                <button
-                  className="min-h-[52px] w-full rounded-[18px] bg-app-purple px-4 py-3 text-sm font-semibold text-white transition hover:bg-app-purple-hover disabled:cursor-not-allowed disabled:opacity-45"
-                  disabled={!canContinue}
-                  onClick={goNext}
-                  type="button"
-                >
-                  {currentStep === BRIEF_STEPS.length - 1 ? "Build crew plan" : "Continue"}
-                </button>
-                <button
-                  className="w-full text-center text-sm font-semibold text-app-muted transition hover:text-white"
-                  onClick={() => {
-                    updateLaunchDraft(activeDraft.id, {
-                      draftStatus: "saved" satisfies LaunchDraftStatus
-                    });
-                    router.push(APP_ROUTES.launch);
-                  }}
-                  type="button"
-                >
-                  Save draft
-                </button>
+                    type="button"
+                  >
+                    Save draft
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </main>
     </div>
   );

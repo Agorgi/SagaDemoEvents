@@ -9,7 +9,6 @@ import {
   CREW_BUDGET_OPTIONS,
   CREW_PROCESSING_MESSAGES,
   deriveSwipeDeliverables,
-  deriveSwipeVisualDirectionSelections,
   getDeliverableOptionsForFormat,
   getInspirationEventsForBrief,
   type BriefVisualStyle,
@@ -40,27 +39,21 @@ export function getLaunchModeLabel(mode: LaunchWizardDraft["launchMode"]) {
   return mode === "soft" ? "Test demand first" : "Publish now";
 }
 
-export function getLaunchModeSubtitle(mode: LaunchWizardDraft["launchMode"]) {
-  return mode === "soft"
-    ? "See if people want this before you commit."
-    : "You've got a date. Let's go live.";
-}
-
 export function BriefWizardProgress({ current }: { current: number }) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-2.5">
       <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${BRIEF_STEPS.length}, minmax(0, 1fr))` }}>
         {BRIEF_STEPS.map((step, index) => (
           <div
             className={cn(
-              "h-2 rounded-full transition",
+              "h-1.5 rounded-full transition",
               index <= current ? "bg-app-purple" : "bg-white/[0.08]"
             )}
             key={step}
           />
         ))}
       </div>
-      <p className="text-xs uppercase tracking-[0.16em] text-app-muted">
+      <p className="text-[11px] uppercase tracking-[0.16em] text-app-muted">
         Step {current + 1} of {BRIEF_STEPS.length}
       </p>
     </div>
@@ -75,12 +68,12 @@ export function BriefFoundationStep({
   updateDraft: (payload: Partial<LaunchWizardDraft>) => void;
 }) {
   return (
-    <div className="space-y-4">
-      <label className="block rounded-[24px] border border-white/8 bg-[#0d1119] px-4 py-4">
-        <span className="text-xs font-semibold uppercase tracking-[0.14em] text-app-muted">Event type</span>
-        <div className="mt-3 rounded-[18px] bg-white/[0.03] px-3">
+    <div className="space-y-6">
+      <div className="space-y-2.5">
+        <FieldLabel label="Event type" />
+        <div className="rounded-[24px] bg-white/[0.04] px-4 py-1.5">
           <select
-            className="h-11 w-full bg-transparent text-sm text-white outline-none"
+            className="h-12 w-full bg-transparent text-[15px] text-white outline-none"
             onChange={(event) =>
               updateDraft({
                 format: event.target.value as LaunchWizardDraft["format"]
@@ -99,15 +92,15 @@ export function BriefFoundationStep({
             <option value="Other">Other</option>
           </select>
         </div>
-      </label>
+      </div>
 
-      <div className="space-y-2">
-        <p className="text-sm font-semibold text-white">Expected crowd</p>
+      <div className="space-y-3">
+        <FieldLabel label="Expected crowd" />
         <div className="flex flex-wrap gap-2">
           {sizeBucketOptions.map((option) => (
             <FilterChip
               active={draft.sizeBucket === option}
-              className="text-[12px]"
+              className="border-white/6 bg-white/[0.03] px-3.5 py-2 text-[12px]"
               key={option}
               label={option}
               onClick={() => updateDraft({ sizeBucket: option })}
@@ -116,10 +109,10 @@ export function BriefFoundationStep({
         </div>
       </div>
 
-      <label className="block rounded-[24px] border border-white/8 bg-[#0d1119] px-4 py-4">
-        <span className="text-xs font-semibold uppercase tracking-[0.14em] text-app-muted">Concept</span>
+      <label className="block space-y-2.5">
+        <FieldLabel label="Concept" />
         <textarea
-          className="mt-3 min-h-[132px] w-full bg-transparent text-sm leading-6 text-white outline-none placeholder:text-app-muted"
+          className="min-h-[172px] w-full rounded-[28px] bg-white/[0.04] px-5 py-5 text-[15px] leading-7 text-white outline-none placeholder:text-app-muted"
           onChange={(event) => updateDraft({ conceptVision: event.target.value })}
           placeholder="An anime cosplay ball in downtown LA — think dark glamour, live art stations, a photo garden with cosplay-ready backdrops, and DJ sets blending anime OSTs with house music."
           value={draft.conceptVision}
@@ -226,14 +219,14 @@ export function BriefInspirationSwipeStep({
   const overlayOpacity = Math.min(1, Math.abs(dragOffset) / swipeThreshold);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="relative h-[430px]">
         {nextCard ? <InspirationPeekCard card={nextCard} /> : null}
 
         {currentCard ? (
           <div
             className={cn(
-              "absolute inset-0 overflow-hidden rounded-[32px] border border-white/10 bg-[#0d1119] shadow-[0_30px_80px_rgba(0,0,0,0.34)] transition-transform duration-200 ease-out",
+              "absolute inset-0 overflow-hidden rounded-[32px] bg-[#0d1119] shadow-[0_30px_80px_rgba(0,0,0,0.34)] transition-transform duration-200 ease-out",
               exitDirection ? "pointer-events-none" : "cursor-grab active:cursor-grabbing"
             )}
             onPointerDown={handlePointerDown}
@@ -253,7 +246,7 @@ export function BriefInspirationSwipeStep({
             />
           </div>
         ) : (
-          <div className="absolute inset-0 rounded-[32px] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(123,132,255,0.18),transparent_40%),linear-gradient(180deg,rgba(21,25,40,0.98),rgba(11,14,24,1))] p-6">
+          <div className="absolute inset-0 rounded-[32px] bg-[radial-gradient(circle_at_top,rgba(123,132,255,0.18),transparent_40%),linear-gradient(180deg,rgba(21,25,40,0.98),rgba(11,14,24,1))] p-6">
             <div className="flex h-full flex-col justify-between">
               <div className="space-y-3">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-app-muted">Swipe complete</p>
@@ -279,14 +272,14 @@ export function BriefInspirationSwipeStep({
         )}
       </div>
 
-      <div className="flex items-center justify-center gap-6">
+      <div className="flex items-center justify-center gap-4">
         <SwipeActionButton label="Pass" onClick={() => commitSwipe("left")} tone="pass" />
         <SwipeActionButton label="Love it" onClick={() => commitSwipe("right")} tone="love" />
       </div>
 
       <div className="space-y-3 text-center">
         <div className="flex items-center justify-center gap-2">
-          {cards.map((card, index) => {
+          {cards.map((card) => {
             const isDone = swipedIds.has(card.id);
             const isCurrent = currentCard?.id === card.id;
             return (
@@ -351,7 +344,7 @@ export function BriefVisualDirectionStep({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm text-app-muted">Pick 2–3 styles that match your vision.</p>
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-app-muted">
@@ -371,10 +364,10 @@ export function BriefVisualDirectionStep({
           return (
             <button
               className={cn(
-                "relative min-h-[108px] overflow-hidden rounded-[24px] border px-4 py-4 text-left transition",
+                "relative min-h-[108px] overflow-hidden rounded-[24px] px-4 py-4 text-left transition",
                 isActive
-                  ? "border-app-purple/30 shadow-[0_20px_60px_rgba(109,94,243,0.18)]"
-                  : "border-white/8"
+                  ? "ring-1 ring-app-purple/28 shadow-[0_20px_60px_rgba(109,94,243,0.18)]"
+                  : "opacity-90 hover:opacity-100"
               )}
               key={option.value}
               onClick={() => toggleStyle(option.value)}
@@ -404,11 +397,11 @@ export function BriefBudgetTimelineStep({
   updateDraft: (payload: Partial<LaunchWizardDraft>) => void;
 }) {
   return (
-    <div className="space-y-4">
-      <label className="block rounded-[24px] border border-white/8 bg-[#0d1119] px-4 py-4">
-        <span className="text-xs font-semibold uppercase tracking-[0.14em] text-app-muted">City</span>
+    <div className="space-y-5">
+      <label className="block space-y-2.5">
+        <FieldLabel label="City" />
         <input
-          className="mt-3 w-full bg-transparent text-sm text-white outline-none placeholder:text-app-muted"
+          className="w-full rounded-[24px] bg-white/[0.04] px-4 py-4 text-[15px] text-white outline-none placeholder:text-app-muted"
           onChange={(event) => updateDraft({ city: event.target.value })}
           placeholder="Los Angeles, CA"
           value={draft.city}
@@ -416,21 +409,21 @@ export function BriefBudgetTimelineStep({
       </label>
 
       <div className="grid grid-cols-2 gap-3">
-        <label className="block rounded-[24px] border border-white/8 bg-[#0d1119] px-4 py-4">
-          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-app-muted">Event date</span>
+        <label className="block space-y-2.5">
+          <FieldLabel label="Event date" />
           <input
-            className="mt-3 w-full bg-transparent text-sm text-white outline-none"
+            className="w-full rounded-[24px] bg-white/[0.04] px-4 py-4 text-[15px] text-white outline-none"
             onChange={(event) => updateDraft({ briefStartDate: event.target.value })}
             type="date"
             value={draft.briefStartDate}
           />
         </label>
 
-        <label className="block rounded-[24px] border border-white/8 bg-[#0d1119] px-4 py-4">
-          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-app-muted">How many days?</span>
-          <div className="mt-3 rounded-[18px] bg-white/[0.03] px-3">
+        <label className="block space-y-2.5">
+          <FieldLabel label="How many days?" />
+          <div className="rounded-[24px] bg-white/[0.04] px-4 py-1.5">
             <select
-              className="h-11 w-full bg-transparent text-sm text-white outline-none"
+              className="h-12 w-full bg-transparent text-[15px] text-white outline-none"
               onChange={(event) => updateDraft({ briefDurationDays: event.target.value })}
               value={draft.briefDurationDays}
             >
@@ -449,7 +442,7 @@ export function BriefBudgetTimelineStep({
 
       <button
         className={cn(
-          "flex min-h-[52px] w-full items-center gap-3 rounded-[24px] px-4 py-4 text-left transition",
+          "flex min-h-[56px] w-full items-center gap-3 rounded-[24px] px-4 py-4 text-left transition",
           draft.briefDateFlexible
             ? "bg-app-purple/12 text-white ring-1 ring-app-purple/26"
             : "bg-white/[0.04] text-app-muted hover:bg-white/[0.06]"
@@ -477,11 +470,11 @@ export function BriefBudgetTimelineStep({
         </div>
       </button>
 
-      <label className="block rounded-[24px] border border-white/8 bg-[#0d1119] px-4 py-4">
-        <span className="text-xs font-semibold uppercase tracking-[0.14em] text-app-muted">Total crew budget</span>
-        <div className="mt-3 rounded-[18px] bg-white/[0.03] px-3">
+      <label className="block space-y-2.5">
+        <FieldLabel label="Total crew budget" />
+        <div className="rounded-[24px] bg-white/[0.04] px-4 py-1.5">
           <select
-            className="h-11 w-full bg-transparent text-sm text-white outline-none"
+            className="h-12 w-full bg-transparent text-[15px] text-white outline-none"
             onChange={(event) => updateDraft({ crewBudgetRange: event.target.value })}
             value={draft.crewBudgetRange}
           >
@@ -533,7 +526,7 @@ export function BriefDeliverablesStep({
       : [];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="space-y-2">
         <p className="text-sm text-app-muted">Select everything you want Saga to cover.</p>
         {previewSelection.length > 0 ? (
@@ -547,7 +540,7 @@ export function BriefDeliverablesStep({
         {(options.length > 0 ? options : ALL_CREW_DELIVERABLES).map((option) => (
           <FilterChip
             active={selected.includes(option)}
-            className="text-[12px]"
+            className="border-white/6 bg-white/[0.03] px-3.5 py-2 text-[12px]"
             key={option}
             label={option}
             onClick={() => toggleDeliverable(option)}
@@ -592,7 +585,7 @@ export function ProcessingStage({
 
 function InspirationPeekCard({ card }: { card: InspirationEvent }) {
   return (
-    <div className="absolute inset-x-4 bottom-0 top-4 scale-[0.96] overflow-hidden rounded-[30px] border border-white/8 bg-[#0d1119]/70">
+    <div className="absolute inset-x-4 bottom-0 top-4 scale-[0.96] overflow-hidden rounded-[30px] bg-[#0d1119]/70">
       <div
         className="h-full w-full bg-cover bg-center opacity-75"
         style={{
@@ -675,10 +668,10 @@ function SwipeActionButton({
   return (
     <button
       className={cn(
-        "flex min-h-[56px] min-w-[132px] items-center justify-center rounded-full px-5 text-sm font-semibold transition",
+        "flex min-h-[52px] min-w-[128px] items-center justify-center rounded-full px-5 text-sm font-semibold transition",
         tone === "love"
-          ? "bg-app-purple text-white hover:bg-app-purple-hover"
-          : "border border-white/10 bg-white/[0.03] text-white hover:border-white/18"
+          ? "bg-app-purple text-white shadow-[0_14px_34px_rgba(31,28,184,0.22)] hover:bg-app-purple-hover"
+          : "bg-white/[0.05] text-white hover:bg-white/[0.08]"
       )}
       onClick={onClick}
       type="button"
@@ -690,4 +683,8 @@ function SwipeActionButton({
 
 function uniqueIds(ids: string[]) {
   return [...new Set(ids)];
+}
+
+function FieldLabel({ label }: { label: string }) {
+  return <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-app-muted">{label}</p>;
 }
