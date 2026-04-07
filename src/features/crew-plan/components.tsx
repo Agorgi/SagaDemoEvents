@@ -55,31 +55,31 @@ export function CrewRoleSection({
   const totalMatches = role.matches.length;
 
   return (
-    <section className="surface-card-strong space-y-5 p-5 sm:p-6">
+    <section className="surface-card-strong space-y-4 p-4 sm:space-y-5 sm:p-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-2">
+        <div className="space-y-1.5 sm:space-y-2">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-xl font-semibold text-white">{role.title}</p>
-            <span className="rounded-full bg-white/[0.06] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/62">
+            <p className="text-lg font-semibold text-white sm:text-xl">{role.title}</p>
+            <span className="rounded-full bg-white/[0.06] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/62">
               {role.reviewMode === "visual" ? "Visual review" : "Fit review"}
             </span>
           </div>
-          <div className="flex flex-wrap gap-2 text-sm text-app-muted">
+          <div className="flex flex-wrap gap-2 text-[13px] text-app-muted sm:text-sm">
             <span>{role.suggestedRateLabel}</span>
             <span>·</span>
             <span>{role.scopeSummary}</span>
             <span>·</span>
             <span>{role.budgetFitLabel}</span>
           </div>
-          <p className="text-sm leading-6 text-app-muted">{role.whyThisRole}</p>
+          <p className="text-[13px] leading-5 text-app-muted sm:text-sm sm:leading-6">{role.whyThisRole}</p>
         </div>
-        <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-semibold text-white/74">
+        <span className="w-fit rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-semibold text-white/74">
           {role.statusLabel}
         </span>
       </div>
 
-      <div className="space-y-3">
-        <div className="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-[0.12em] text-app-muted">
+      <div className="space-y-2.5 sm:space-y-3">
+        <div className="flex items-center justify-between gap-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-app-muted sm:text-xs sm:tracking-[0.12em]">
           <span>{role.matchCountLabel}</span>
           <span>
             {activeIndex + 1} of {totalMatches}
@@ -104,25 +104,29 @@ export function CrewRoleSection({
             />
           ))}
         </div>
-        <p className="text-xs text-app-muted">
+        <p className="text-[11px] text-app-muted sm:text-xs">
           {role.reviewMode === "visual" ? "Swipe-style review for creative fit." : "Review past work and trust signals."}
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="flex items-center justify-end gap-2.5 pt-1">
         <button
-          className="min-h-[48px] rounded-[18px] border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/18"
+          aria-label={`Show another ${role.title} match`}
+          className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white transition hover:border-white/18 hover:bg-white/[0.07]"
           onClick={onPass}
           type="button"
         >
-          Pass
+          <RedoIcon className="h-5 w-5" />
         </button>
         <button
-          className="min-h-[48px] rounded-[18px] bg-app-purple px-4 py-3 text-sm font-semibold text-white transition hover:bg-app-purple-hover"
+          aria-label={`Keep ${activeCandidate.name} for ${role.title}`}
+          className="flex h-12 min-w-[52px] items-center justify-center rounded-full bg-app-purple px-4 text-xl text-white transition hover:bg-app-purple-hover"
           onClick={onKeep}
           type="button"
         >
-          Keep
+          <span aria-hidden="true" className="leading-none">
+            ❤️
+          </span>
         </button>
       </div>
     </section>
@@ -267,18 +271,18 @@ function VisualMatchCard({
 }) {
   return (
     <button
-      className="group w-full overflow-hidden rounded-[28px] border border-white/8 bg-[#0d1119] text-left transition hover:border-white/16"
+      className="group w-full overflow-hidden rounded-[24px] border border-white/8 bg-[#0d1119] text-left transition hover:border-white/16 sm:rounded-[28px]"
       onClick={onClick}
       type="button"
     >
-      <div className="relative grid h-[220px] grid-cols-2 gap-[1px] overflow-hidden bg-black/20">
+      <div className="relative grid h-[154px] grid-cols-2 gap-[1px] overflow-hidden bg-black/20 sm:h-[220px]">
         <img alt={`${candidate.name} portfolio 1`} className="h-full w-full object-cover" src={candidate.portfolioImages[0]} />
         <div className="grid gap-[1px]">
           <img alt={`${candidate.name} portfolio 2`} className="h-full w-full object-cover" src={candidate.portfolioImages[1]} />
           <img alt={`${candidate.name} portfolio 3`} className="h-full w-full object-cover" src={candidate.portfolioImages[2]} />
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-[#05070c]/78 via-transparent to-transparent" />
-        <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+        <div className="absolute left-2.5 top-2.5 flex flex-wrap gap-2 sm:left-3 sm:top-3">
           <MatchBadge label={candidate.matchLabel} />
           {candidate.isTopPick ? (
             <span className="rounded-full border border-[#F0C453]/30 bg-[#F0C453]/12 px-2.5 py-1 text-[11px] font-semibold text-[#F8DB7B]">
@@ -288,32 +292,41 @@ function VisualMatchCard({
         </div>
       </div>
 
-      <div className="space-y-4 p-4">
-        <div className="space-y-2">
+      <div className="space-y-3 p-3.5 sm:space-y-4 sm:p-4">
+        <div className="space-y-1.5 sm:space-y-2">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-base font-semibold text-white">{candidate.name}</p>
-              <p className="text-sm text-app-muted">{candidate.craft}</p>
+              <p className="text-[15px] font-semibold text-white sm:text-base">{candidate.name}</p>
+              <p className="text-[13px] text-app-muted sm:text-sm">{candidate.craft}</p>
             </div>
-            <p className="text-sm font-medium text-white/82">{candidate.rating.toFixed(1)}</p>
+            <p className="text-[13px] font-medium text-white/82 sm:text-sm">{candidate.rating.toFixed(1)}</p>
           </div>
-          <p className="text-sm leading-6 text-app-muted">{candidate.matchReason}</p>
+          <p
+            className="overflow-hidden text-[13px] leading-5 text-app-muted sm:text-sm sm:leading-6"
+            style={{
+              display: "-webkit-box",
+              WebkitBoxOrient: "vertical",
+              WebkitLineClamp: 2
+            }}
+          >
+            {candidate.matchReason}
+          </p>
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {candidate.styleTags.map((tag) => (
-            <span className="rounded-full bg-white/[0.05] px-3 py-1.5 text-xs font-semibold text-white/74" key={tag}>
+          {candidate.styleTags.slice(0, 3).map((tag) => (
+            <span className="rounded-full bg-white/[0.05] px-2.5 py-1 text-[11px] font-semibold text-white/74 sm:px-3 sm:py-1.5 sm:text-xs" key={tag}>
               {tag}
             </span>
           ))}
         </div>
 
-        <div className="flex items-center justify-between gap-3 text-sm">
+        <div className="flex items-center justify-between gap-3 text-[13px] sm:text-sm">
           <p className="font-semibold text-white">{candidate.rateLabel}</p>
           <div className="flex items-center gap-2 text-app-muted">
             <span
               className={cn(
-                "h-2.5 w-2.5 rounded-full",
+                "h-2 w-2 rounded-full sm:h-2.5 sm:w-2.5",
                 candidate.availabilityLabel === "Available" ? "bg-app-success" : "bg-[#FFD166]"
               )}
             />
@@ -334,16 +347,16 @@ function TextMatchCard({
 }) {
   return (
     <button
-      className="w-full rounded-[28px] border border-white/8 bg-[#0d1119] p-5 text-left transition hover:border-white/16"
+      className="w-full rounded-[24px] border border-white/8 bg-[#0d1119] p-4 text-left transition hover:border-white/16 sm:rounded-[28px] sm:p-5"
       onClick={onClick}
       type="button"
     >
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           <Avatar name={candidate.name} size="md" src={candidate.avatarUrl} />
           <div>
-            <p className="text-base font-semibold text-white">{candidate.name}</p>
-            <p className="text-sm text-app-muted">
+            <p className="text-[15px] font-semibold text-white sm:text-base">{candidate.name}</p>
+            <p className="text-[13px] text-app-muted sm:text-sm">
               {candidate.craft} · {candidate.city}
             </p>
           </div>
@@ -351,25 +364,38 @@ function TextMatchCard({
         <MatchBadge label={candidate.matchLabel} />
       </div>
 
-      <div className="mt-5 rounded-[22px] bg-white/[0.04] p-4">
-        <p className="text-sm leading-6 text-white/86">{candidate.pastWorkSummary}</p>
+      <div className="mt-4 rounded-[20px] bg-white/[0.04] p-3.5 sm:mt-5 sm:rounded-[22px] sm:p-4">
+        <p
+          className="overflow-hidden text-[13px] leading-5 text-white/86 sm:text-sm sm:leading-6"
+          style={{
+            display: "-webkit-box",
+            WebkitBoxOrient: "vertical",
+            WebkitLineClamp: 3
+          }}
+        >
+          {candidate.pastWorkSummary}
+        </p>
       </div>
 
-      <div className="mt-4 space-y-2">
-        {candidate.pastWorkHighlights.map((highlight) => (
+      <div className="mt-3 space-y-2 sm:mt-4">
+        {candidate.pastWorkHighlights.map((highlight, index) => (
           <div className="flex gap-3 text-sm text-app-muted" key={highlight}>
-            <span className="mt-[9px] h-1.5 w-1.5 rounded-full bg-app-purple" />
-            <span>{highlight}</span>
+            <span
+              className={cn("mt-[8px] h-1.5 w-1.5 rounded-full bg-app-purple", index > 1 ? "hidden sm:block" : "")}
+            />
+            <span className={cn("text-[13px] leading-5 sm:text-sm sm:leading-6", index > 1 ? "hidden sm:block" : "")}>
+              {highlight}
+            </span>
           </div>
         ))}
       </div>
 
-      <div className="mt-5 flex items-center justify-between gap-3 text-sm">
+      <div className="mt-4 flex items-center justify-between gap-3 text-[13px] sm:mt-5 sm:text-sm">
         <p className="font-semibold text-white">{candidate.rateLabel}</p>
         <div className="flex items-center gap-2 text-app-muted">
           <span
             className={cn(
-              "h-2.5 w-2.5 rounded-full",
+              "h-2 w-2 rounded-full sm:h-2.5 sm:w-2.5",
               candidate.availabilityLabel === "Available" ? "bg-app-success" : "bg-[#FFD166]"
             )}
           />
@@ -412,6 +438,33 @@ function DetailMetric({ label, value }: { label: string; value: string }) {
       <p className="text-xs uppercase tracking-[0.14em] text-app-muted">{label}</p>
       <p className="mt-2 text-sm font-semibold text-white">{value}</p>
     </div>
+  );
+}
+
+function RedoIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M20 5v5h-5"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
+      <path
+        d="M20 10a8 8 0 1 1-2.34-5.66L20 5"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
+    </svg>
   );
 }
 

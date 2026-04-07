@@ -291,7 +291,7 @@ function NewStudioLaunchPageContent() {
             />
           ) : (
             <div className="flex min-h-0 flex-1 flex-col">
-              <section className="subtle-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain pb-8 pt-5">
+              <section className="subtle-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain pb-28 pt-5 md:pb-8">
                 <div className="space-y-3 pb-7">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-app-muted">
                     {getLaunchModeLabel(activeDraft.launchMode)}
@@ -330,8 +330,8 @@ function NewStudioLaunchPageContent() {
                 </div>
               </section>
 
-              <div className="shrink-0 bg-[linear-gradient(180deg,rgba(9,11,16,0),rgba(9,11,16,0.82)_26%,rgba(9,11,16,0.98))] pb-[calc(5.5rem+env(safe-area-inset-bottom))] pt-4">
-                <div className="space-y-2">
+              <div className="hidden shrink-0 bg-[linear-gradient(180deg,rgba(9,11,16,0),rgba(9,11,16,0.82)_26%,rgba(9,11,16,0.98))] pb-6 pt-4 md:block">
+                <div>
                   <button
                     className="min-h-[52px] w-full rounded-[18px] bg-app-purple px-4 py-3 text-sm font-semibold text-white shadow-[0_18px_42px_rgba(31,28,184,0.26)] transition hover:bg-app-purple-hover disabled:cursor-not-allowed disabled:opacity-45"
                     disabled={!canContinue}
@@ -340,23 +340,22 @@ function NewStudioLaunchPageContent() {
                   >
                     {currentStep === BRIEF_STEPS.length - 1 ? "Build crew plan" : "Continue"}
                   </button>
-                  <button
-                    className="w-full text-center text-sm font-medium text-app-muted transition hover:text-white"
-                    onClick={() => {
-                      updateLaunchDraft(activeDraft.id, {
-                        draftStatus: "saved" satisfies LaunchDraftStatus
-                      });
-                      router.push(APP_ROUTES.launch);
-                    }}
-                    type="button"
-                  >
-                    Save draft
-                  </button>
                 </div>
               </div>
             </div>
           )}
         </div>
+        {!processing ? (
+          <button
+            aria-label={currentStep === BRIEF_STEPS.length - 1 ? "Build crew plan" : "Continue"}
+            className="fixed bottom-[calc(4.9rem+env(safe-area-inset-bottom))] right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-app-purple text-xl text-white shadow-[0_18px_42px_rgba(31,28,184,0.32)] transition hover:bg-app-purple-hover disabled:cursor-not-allowed disabled:opacity-45 md:hidden"
+            disabled={!canContinue}
+            onClick={goNext}
+            type="button"
+          >
+            →
+          </button>
+        ) : null}
       </main>
     </div>
   );
