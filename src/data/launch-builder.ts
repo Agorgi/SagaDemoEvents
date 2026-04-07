@@ -1,5 +1,9 @@
 import { type CreateLaunchPayload, type LaunchFormat } from "@/src/data/launches";
 import { type ServiceCoverStyle } from "@/src/data/creator-profiles";
+import {
+  buildCrewRoleSuggestions,
+  formatBriefDateRange
+} from "@/src/data/crew-plan";
 import { type MediaVerticalPosition } from "@/src/lib/media-position";
 import { createPosterDataUri } from "@/src/lib/demo-media";
 import { formatDateLabel, formatTimeLabel, slugify } from "@/src/lib/utils";
@@ -86,6 +90,19 @@ export type SuggestedNeed = {
   id: string;
   label: string;
   why: string;
+  rateRangeLabel?: string;
+};
+
+export type BriefMoodBoardImage = {
+  id: string;
+  src: string;
+  name: string;
+};
+
+export type BriefAttachment = {
+  id: string;
+  name: string;
+  kind: "image" | "document";
 };
 
 export type LaunchWizardDraft = {
@@ -129,6 +146,17 @@ export type LaunchWizardDraft = {
   posterImage?: string;
   posterImageSourceTitle?: string;
   posterImagePosition: MediaVerticalPosition;
+  briefSource: "guided" | "upload";
+  conceptVision: string;
+  moodBoardImages: BriefMoodBoardImage[];
+  briefAttachments: BriefAttachment[];
+  visualDirectionSelections: string[];
+  briefStartDate: string;
+  briefEndDate: string;
+  crewBudgetRange: string;
+  deliverableSelections: string[];
+  crewShortlistByRole: Record<string, string>;
+  outreachSentAt?: string;
   derivedJourney?: LaunchJourney;
   generatedDraft: LaunchDraftPresentation;
   suggestedNeeds: SuggestedNeed[];
@@ -195,13 +223,13 @@ export type LaunchQuestionConfig = {
 export const launchModeCards = [
   {
     id: "soft" as const,
-    title: "Soft launch",
-    subtitle: "Gauge interest before it’s locked in"
+    title: "Test demand first",
+    subtitle: "See if people want this before you commit."
   },
   {
     id: "happening" as const,
-    title: "Happening",
-    subtitle: "Publish something that’s already on"
+    title: "Publish now",
+    subtitle: "You've got a date. Let's go live."
   }
 ];
 
@@ -629,6 +657,16 @@ export function createEmptyLaunchDraft(mode: LaunchModeType, hostId: string): La
     posterImagePosition: "center",
     venueTypes: [],
     venueName: "",
+    briefSource: "guided",
+    conceptVision: "",
+    moodBoardImages: [],
+    briefAttachments: [],
+    visualDirectionSelections: [],
+    briefStartDate: "",
+    briefEndDate: "",
+    crewBudgetRange: "",
+    deliverableSelections: [],
+    crewShortlistByRole: {},
     guestExperienceSelections: [],
     coordinationSelections: [],
     alreadySetSelections: [],
@@ -707,20 +745,21 @@ export function syncLaunchDraft(draft: LaunchWizardDraft): LaunchWizardDraft {
 export function buildDraftPresentation(draft: LaunchWizardDraft): LaunchDraftPresentation {
   const fandom = draft.fandomTags[0] ?? "Fandom";
   const formatLabel = normalizeFormatLabel(draft);
-  const title =
-    draft.customTitle ||
-    (draft.launchMode === "soft"
-      ? `${fandom} ${formatLabel} Soft Launch`
-      : `${fandom} ${formatLabel}`);
+  const title = draft.customTitle || buildDraftTitle(draft, fandom, formatLabel);
   const summary = draft.customSummary || buildSummary(draft, fandom, formatLabel);
   const dateSummary = buildDateSummary(draft);
   const locationSummary = buildLocationSummary(draft);
   const entrySummary = buildEntrySummary(draft);
   const metadataLine = [dateSummary, locationSummary].filter(Boolean).join(" · ");
-  const highlightChips = [
-    ...draft.fandomTags.slice(0, 2),
-    ...draft.guestExperienceSelections.slice(0, 3)
-  ].slice(0, 5);
+  const highlightChips = hasCreativeBriefData(draft)
+    ? [
+        ...draft.visualDirectionSelections.slice(0, 2),
+        ...draft.deliverableSelections.slice(0, 3)
+      ].slice(0, 5)
+    : [
+        ...draft.fandomTags.slice(0, 2),
+        ...draft.guestExperienceSelections.slice(0, 3)
+      ].slice(0, 5);
   const posterUrl = buildLaunchPosterUrl(draft, title, metadataLine || `${fandom} · ${draft.city || "Draft"}`);
 
   return {
@@ -739,14 +778,18 @@ export function buildDraftPresentation(draft: LaunchWizardDraft): LaunchDraftPre
 export function mapDraftToCreateLaunchPayload(draft: LaunchWizardDraft): CreateLaunchPayload {
   const generated = buildDraftPresentation(draft);
   const format = mapDraftFormatToLaunchFormat(draft);
-  const startsAt = draft.launchMode === "soft"
-    ? draft.dateOptions.find((option) => option.iso)?.iso || nextMonthFallbackIso()
-    : combineDateAndTime(draft.confirmedDate, draft.startTime);
+  const startsAt = hasCreativeBriefData(draft)
+    ? combineDateAndTime(draft.briefStartDate, "19:00")
+    : draft.launchMode === "soft"
+      ? draft.dateOptions.find((option) => option.iso)?.iso || nextMonthFallbackIso()
+      : combineDateAndTime(draft.confirmedDate, draft.startTime);
 
   const thresholdTarget =
     draft.launchMode === "soft"
       ? draft.minimumPeopleNeeded ?? mapSizeBucketToAttendance(draft.sizeBucket)
       : Math.max(12, Math.round(mapSizeBucketToAttendance(draft.sizeBucket) * 0.55));
+
+  const crewRoleSuggestions = buildCrewRoleSuggestions(draft);
 
   return {
     title: generated.title,
@@ -759,15 +802,24 @@ export function mapDraftToCreateLaunchPayload(draft: LaunchWizardDraft): CreateL
     budgetRange: inferBudgetRange(draft),
     attendanceGoal: mapSizeBucketToAttendance(draft.sizeBucket),
     thresholdTarget,
-    teamRoleNames: buildSuggestedNeeds(draft).map((item) => item.label),
+    teamRoleNames: crewRoleSuggestions.map((item) => item.title),
     coverImageUrl: draft.generatedDraft.posterUrl,
     vibeNote: generated.summary,
-    inspiration: draft.guestExperienceSelections.slice(0, 4),
+    inspiration: hasCreativeBriefData(draft)
+      ? draft.visualDirectionSelections.slice(0, 4)
+      : draft.guestExperienceSelections.slice(0, 4),
     guestLine: buildGuestLine(draft),
     ticketPrice: mapPriceRangeToTicketPrice(draft.priceRange),
     coverImagePosition: draft.posterImagePosition,
     dateOptions:
-      draft.launchMode === "soft"
+      hasCreativeBriefData(draft)
+        ? [
+            {
+              label: generated.dateSummary,
+              iso: startsAt
+            }
+          ]
+        : draft.launchMode === "soft"
         ? draft.dateOptions.filter((option) => option.iso && option.label)
         : [
             {
@@ -847,6 +899,19 @@ export function needsCoordinationScreen(draft: LaunchWizardDraft) {
 }
 
 function buildSummary(draft: LaunchWizardDraft, fandom: string, formatLabel: string) {
+  if (hasCreativeBriefData(draft)) {
+    const brief = draft.conceptVision.trim();
+    if (brief) {
+      return brief.length > 180 ? `${brief.slice(0, 177).trim()}...` : brief;
+    }
+
+    if (draft.launchMode === "soft") {
+      return `A ${formatLabel.toLowerCase()} for ${fandom} fans in ${draft.city || "your city"} that tests demand before the team and venue lock.`;
+    }
+
+    return `A ${formatLabel.toLowerCase()} for ${fandom} fans in ${draft.city || "your city"} with a production-ready crew plan built from the brief.`;
+  }
+
   if (draft.launchMode === "soft") {
     return `A ${formatLabel.toLowerCase()} for ${fandom} fans in ${draft.city || "your city"}. Early supporters can pick the best date and help turn it into a confirmed night.`;
   }
@@ -855,6 +920,10 @@ function buildSummary(draft: LaunchWizardDraft, fandom: string, formatLabel: str
 }
 
 function buildDateSummary(draft: LaunchWizardDraft) {
+  if (hasCreativeBriefData(draft)) {
+    return formatBriefDateRange(draft.briefStartDate, draft.briefEndDate);
+  }
+
   if (draft.launchMode === "soft") {
     const labels = draft.dateOptions.filter((option) => option.iso).map((option) => formatDateLabel(option.iso));
     if (!labels.length) {
@@ -873,6 +942,10 @@ function buildDateSummary(draft: LaunchWizardDraft) {
 }
 
 function buildLocationSummary(draft: LaunchWizardDraft) {
+  if (hasCreativeBriefData(draft)) {
+    return [draft.neighborhood, draft.city].filter(Boolean).join(" · ");
+  }
+
   const pieces = [draft.venueName, draft.neighborhood, draft.city].filter(Boolean);
   if (pieces.length) {
     return pieces.join(" · ");
@@ -884,6 +957,12 @@ function buildLocationSummary(draft: LaunchWizardDraft) {
 }
 
 function buildEntrySummary(draft: LaunchWizardDraft) {
+  if (hasCreativeBriefData(draft)) {
+    const modeLabel = draft.launchMode === "soft" ? "Test demand first" : "Publish now";
+    const budget = draft.crewBudgetRange || "Budget taking shape";
+    return `${modeLabel} · ${budget}`;
+  }
+
   const entry = draft.entryStyle ? toTitleCase(draft.entryStyle) : "Details coming soon";
   const price = draft.priceRange ? ` · ${draft.priceRange}` : "";
   const age = draft.ageGate ? ` · ${draft.ageGate}` : "";
@@ -891,6 +970,22 @@ function buildEntrySummary(draft: LaunchWizardDraft) {
 }
 
 function buildExpectationLines(draft: LaunchWizardDraft) {
+  if (hasCreativeBriefData(draft)) {
+    const lines: string[] = [];
+
+    if (draft.visualDirectionSelections.length) {
+      lines.push(`Visual direction: ${draft.visualDirectionSelections.slice(0, 3).join(", ")}.`);
+    }
+    if (draft.deliverableSelections.length) {
+      lines.push(`Crew coverage needed: ${draft.deliverableSelections.slice(0, 5).join(", ")}.`);
+    }
+    if (draft.conceptVision.trim()) {
+      lines.push(draft.conceptVision.trim());
+    }
+
+    return lines.slice(0, 3);
+  }
+
   const lines: string[] = [];
 
   if (draft.guestExperienceSelections.length) {
@@ -907,6 +1002,15 @@ function buildExpectationLines(draft: LaunchWizardDraft) {
 }
 
 function buildSuggestedNeeds(draft: LaunchWizardDraft): SuggestedNeed[] {
+  if (hasCreativeBriefData(draft)) {
+    return buildCrewRoleSuggestions(draft).map((item) => ({
+      id: item.id,
+      label: item.title,
+      why: item.why,
+      rateRangeLabel: item.rateRangeLabel
+    }));
+  }
+
   const buckets: Record<string, string[]> = {
     "Cupsleeve / café meetup": ["host", "photographer", "artwork", "giveaways"],
     "Meetup / hangout": ["host", "check-in", "photo moment"],
@@ -925,10 +1029,9 @@ function buildSuggestedNeeds(draft: LaunchWizardDraft): SuggestedNeed[] {
   return base.map((label, index) => ({
     id: `${slugify(label)}-${index + 1}`,
     label,
+    rateRangeLabel: legacySuggestedNeedRate(label),
     why:
-      draft.launchMode === "soft"
-        ? `${label} will matter once the launch clears and the night starts locking in.`
-        : `${label} is one of the main moving parts for this format.`
+      legacySuggestedNeedWhy(label)
   }));
 }
 
@@ -995,6 +1098,10 @@ function mapPriceRangeToTicketPrice(priceRange?: string) {
 }
 
 function inferBudgetRange(draft: LaunchWizardDraft) {
+  if (draft.crewBudgetRange) {
+    return draft.crewBudgetRange;
+  }
+
   if (draft.sizeBucket === "250+") {
     return "$8k - $15k";
   }
@@ -1008,6 +1115,10 @@ function inferBudgetRange(draft: LaunchWizardDraft) {
 }
 
 function buildGuestLine(draft: LaunchWizardDraft) {
+  if (hasCreativeBriefData(draft)) {
+    return "Crew plan built from your brief, city, timeline, and budget.";
+  }
+
   if (draft.alreadySetSelections.includes("host")) {
     return "Host already in place.";
   }
@@ -1018,6 +1129,15 @@ function buildGuestLine(draft: LaunchWizardDraft) {
 }
 
 function buildVenueLabel(draft: LaunchWizardDraft) {
+  if (hasCreativeBriefData(draft)) {
+    const area = draft.neighborhood || draft.city || "Location TBD";
+    if (draft.city && draft.neighborhood) {
+      return `${draft.neighborhood}, ${draft.city}`;
+    }
+
+    return area;
+  }
+
   if (draft.venueName) {
     return [draft.venueName, draft.neighborhood || draft.city].filter(Boolean).join(", ");
   }
@@ -1049,4 +1169,82 @@ function toTitleCase(value: string) {
     .split(/[\s/-]+/)
     .map((part) => (part ? part[0].toUpperCase() + part.slice(1) : part))
     .join(" ");
+}
+
+function hasCreativeBriefData(draft: LaunchWizardDraft) {
+  return Boolean(
+    draft.conceptVision.trim() ||
+    draft.visualDirectionSelections.length ||
+    draft.deliverableSelections.length ||
+    draft.briefStartDate ||
+    draft.crewBudgetRange
+  );
+}
+
+function buildDraftTitle(draft: LaunchWizardDraft, fandom: string, formatLabel: string) {
+  if (!hasCreativeBriefData(draft)) {
+    return draft.launchMode === "soft"
+      ? `${fandom} ${formatLabel} Soft Launch`
+      : `${fandom} ${formatLabel}`;
+  }
+
+  const location = draft.neighborhood || draft.city.split(",")[0] || "Saga";
+  const sceneLead = [draft.fandomTags[0], draft.fandomTags[1]]
+    .filter(Boolean)
+    .join(" ")
+    .trim() || fandom;
+  const baseTitle =
+    draft.format === "Themed experience / ball"
+      ? `${sceneLead} Ball`
+      : draft.format === "Party / rave"
+        ? `${sceneLead} Night`
+        : `${sceneLead} ${formatLabel}`;
+
+  return draft.launchMode === "soft"
+    ? `${baseTitle} - ${location}`
+    : `${baseTitle} - ${location}`;
+}
+
+function legacySuggestedNeedWhy(label: string) {
+  const normalized = label.toLowerCase();
+
+  if (normalized.includes("host")) {
+    return "Runs the room, manages the crowd energy, and keeps the night on schedule.";
+  }
+  if (normalized.includes("check-in")) {
+    return "Handles guest list, wristbands, and front-of-house flow.";
+  }
+  if (normalized.includes("photo")) {
+    return "Captures the best shots for social content and post-event recaps.";
+  }
+  if (normalized.includes("dj") || normalized.includes("lineup")) {
+    return "Shapes the energy of the room and keeps the programming moving.";
+  }
+  if (normalized.includes("decor")) {
+    return "Builds the visible world of the project and anchors the photo moments.";
+  }
+
+  return "Supports one of the visible moving parts that will make the project feel production-ready.";
+}
+
+function legacySuggestedNeedRate(label: string) {
+  const normalized = label.toLowerCase();
+
+  if (normalized.includes("host")) {
+    return "$150-$300";
+  }
+  if (normalized.includes("check-in")) {
+    return "$100-$200";
+  }
+  if (normalized.includes("photo")) {
+    return "$200-$400";
+  }
+  if (normalized.includes("dj") || normalized.includes("lineup")) {
+    return "$250-$600";
+  }
+  if (normalized.includes("decor")) {
+    return "$250-$550";
+  }
+
+  return "$180-$320";
 }

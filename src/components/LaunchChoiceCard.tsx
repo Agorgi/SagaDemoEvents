@@ -6,11 +6,13 @@ export function LaunchChoiceCard({
   title,
   subtitle,
   accentClassName,
+  badge,
   onClick
 }: {
   title: string;
   subtitle: string;
   accentClassName: string;
+  badge?: string;
   onClick: () => void;
 }) {
   return (
@@ -23,6 +25,11 @@ export function LaunchChoiceCard({
       type="button"
     >
       <div className="space-y-2">
+        {badge ? (
+          <span className="inline-flex rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/72">
+            {badge}
+          </span>
+        ) : null}
         <p className="text-[28px] font-semibold text-white sm:text-[32px]">{title}</p>
         <p className="max-w-[24ch] text-sm leading-6 text-white/72">{subtitle}</p>
       </div>

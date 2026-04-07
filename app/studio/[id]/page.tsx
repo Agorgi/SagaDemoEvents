@@ -4,36 +4,18 @@ import Link from "next/link";
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { Avatar } from "@/src/components/Avatar";
 import { Nav } from "@/src/components/Nav";
 import { NextActionPanel } from "@/src/components/NextActionPanel";
 import { PayoutWaterfallCard } from "@/src/components/PayoutWaterfallCard";
 import { StatusChip } from "@/src/components/StatusChip";
 import { TagChip } from "@/src/components/Chips";
-import { TeamMatchCard } from "@/src/components/TeamMatchCard";
-import { ThresholdProgress } from "@/src/components/ThresholdProgress";
-import { type DemoEvent } from "@/src/data/demo";
+import { buildCrewPlanRoles } from "@/src/data/crew-plan";
 import { getLaunchFundingProgress } from "@/src/data/launches";
 import { useAppState } from "@/src/lib/app-state";
-import { buildShortlist } from "@/src/lib/matching";
-import { useDemoState } from "@/src/lib/demo-state";
 import { formatCurrency, formatDateRange } from "@/src/lib/utils";
 
 const tabs = ["overview", "demand", "venue", "team", "run-of-show", "payouts"] as const;
 type WorkspaceTab = (typeof tabs)[number];
-
-const roleSkillMap: Record<string, string[]> = {
-  photographer: ["photography", "editing", "portrait lighting"],
-  "social promo": ["social promo", "copywriting", "creator outreach"],
-  "guest experience": ["hospitality", "community moderation", "guest lists"],
-  "merch table": ["merch ops", "guest lists", "check-in"],
-  "check-in": ["check-in", "front of house", "guest lists"],
-  "host support": ["run of show", "ops", "hospitality"],
-  "creator marketing": ["social promo", "content strategy", "copywriting"],
-  "event ops": ["ops", "runner", "load-in"],
-  moderator: ["community moderation", "guest lists", "front of house"],
-  "guest cosplayer": ["guest hosting", "cosplay", "stage comfort"]
-};
 
 export default function StudioLaunchPage() {
   const params = useParams<{ id: string }>();
@@ -44,16 +26,13 @@ export default function StudioLaunchPage() {
   const {
     launches,
     users,
-    resolveUser,
+    creatorProfiles,
     publishLaunch,
     completeLaunch,
     addLaunchUpdate,
-    acceptLaunchMatch,
-    removeLaunchMatch,
     acceptVenuePairing,
     setMode
   } = useAppState();
-  const { events, roles, inviteCandidate, confirmRole, passApplicant } = useDemoState();
   const [updateTitle, setUpdateTitle] = useState("");
   const [updateBody, setUpdateBody] = useState("");
 
@@ -74,31 +53,29 @@ export default function StudioLaunchPage() {
     );
   }
 
-  const linkedEvent = launch.eventId ? events.find((event) => event.id === launch.eventId) : null;
-  const eventRoles = launch.eventId ? roles.filter((role) => role.eventId === launch.eventId) : [];
-  const openRoles = eventRoles.filter((role) => role.status !== "filled");
   const funding = getLaunchFundingProgress(launch);
   const selectedVenue =
     launch.selectedVenueId
       ? launch.venueCandidates.find((candidate) => candidate.id === launch.selectedVenueId)
       : null;
-
-  const shortlistSource: DemoEvent = linkedEvent ?? {
-    id: launch.id,
-    title: launch.title,
-    subtitle: launch.description,
-    description: launch.description,
-    fandomTags: launch.fandomTags,
-    city: launch.city,
-    venue: launch.venue,
-    startsAt: launch.startsAt,
-    posterUrl: launch.coverImageUrl,
-    hostId: launch.hostId,
-    attendeesCount: launch.ticketCount,
-    mutualsCount: 0,
-    communityCount: 0,
-    priceLabel: `$${launch.ticketPrice}`
-  };
+  const crewPlanRoles = buildCrewPlanRoles(
+      {
+        id: launch.id,
+        launchMode: launch.status === "live_soft_launch" ? "soft" : "happening",
+        format: mapLaunchFormatToBriefFormat(launch.format),
+        sizeBucket: launch.attendanceGoal >= 180 ? "101–250" : launch.attendanceGoal >= 100 ? "51–100" : "21–50",
+      city: launch.city,
+      fandomTags: launch.fandomTags,
+      conceptVision: launch.description,
+      visualDirectionSelections: launch.inspiration,
+      crewBudgetRange: launch.budgetRange,
+      deliverableSelections: [],
+      briefStartDate: launch.startsAt.slice(0, 10),
+      briefEndDate: launch.startsAt.slice(0, 10)
+    },
+    creatorProfiles,
+    users
+  );
 
   const nextAction =
     launch.status === "draft"
@@ -236,34 +213,49 @@ export default function StudioLaunchPage() {
           {tab === "demand" ? (
             <>
               <section className="surface-card p-5 sm:p-6">
-                <p className="text-sm font-semibold text-white">Progress</p>
-                <div className="mt-4">
-                  <ThresholdProgress
-                    current={funding.current}
-                    label="Reserves to unlock"
-                    target={funding.target}
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-white">Demand curve</p>
+                    <p className="mt-1 text-sm text-app-muted">Signal against the threshold line.</p>
+                  </div>
+                  <StatusChip status={launch.status} />
+                </div>
+                <div className="mt-5 rounded-[26px] bg-[#0d1119] p-4">
+                  <DemandCurve
+                    points={[
+                      Math.max(6, Math.round(funding.current * 0.18)),
+                      Math.max(12, Math.round(funding.current * 0.32)),
+                      Math.max(16, Math.round(funding.current * 0.52)),
+                      Math.max(24, Math.round(funding.current * 0.76)),
+                      funding.current
+                    ]}
+                    threshold={funding.target}
                   />
                 </div>
                 <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                  <MetricCard label="Watching" value={String(funding.watchers)} />
-                  <MetricCard label="Reserved" value={String(funding.pledges)} />
-                  <MetricCard label="Status" value={funding.statusLine} />
+                  <MetricCard label="Total reservations" value={String(funding.current)} />
+                  <MetricCard label="Conversion rate" value={`${Math.max(14, Math.min(48, Math.round((funding.pledges / Math.max(funding.watchers, 1)) * 100)))}%`} />
+                  <MetricCard label="Top referral source" value="Instagram Stories" />
                 </div>
               </section>
 
               <section className="surface-card p-5 sm:p-6">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-white">Post an update</p>
-                    <p className="mt-1 text-sm text-app-muted">Give people a reason to keep sharing.</p>
-                  </div>
-                  <Link
-                    className="text-sm font-semibold text-app-muted transition hover:text-white"
-                    href={`/campaigns/${launch.id}`}
-                  >
-                    Open public page
-                  </Link>
+                <p className="text-sm font-semibold text-white">Recent activity</p>
+                <div className="mt-4 space-y-3">
+                  {[
+                    `${Math.max(8, Math.round(funding.current * 0.18))} new reserves this week`,
+                    `Shared ${Math.max(22, funding.watchers * 3)} times on Instagram`,
+                    `${launch.fandomTags[0] ?? "Community"} is driving the strongest click-through`
+                  ].map((item) => (
+                    <div className="rounded-[22px] bg-white/[0.04] px-4 py-4" key={item}>
+                      <p className="text-sm text-white/86">{item}</p>
+                    </div>
+                  ))}
                 </div>
+              </section>
+
+              <section className="surface-card p-5 sm:p-6">
+                <p className="text-sm font-semibold text-white">Post an update</p>
                 <div className="mt-4 space-y-3">
                   <input
                     className="w-full rounded-[20px] border border-white/10 bg-white/[0.02] px-4 py-3 text-sm text-white outline-none placeholder:text-app-muted"
@@ -274,7 +266,7 @@ export default function StudioLaunchPage() {
                   <textarea
                     className="min-h-[120px] w-full rounded-[20px] border border-white/10 bg-white/[0.02] px-4 py-3 text-sm text-white outline-none placeholder:text-app-muted"
                     onChange={(event) => setUpdateBody(event.target.value)}
-                    placeholder="What changed, what is new, or why this launch is getting closer..."
+                    placeholder="What changed, what is new, or why this project is moving..."
                     value={updateBody}
                   />
                   <div className="flex flex-wrap gap-3">
@@ -295,50 +287,13 @@ export default function StudioLaunchPage() {
                     >
                       Post update
                     </button>
-                    <button
+                    <Link
                       className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
-                      onClick={() => {
-                        if (typeof navigator !== "undefined") {
-                          navigator.clipboard?.writeText(`${window.location.origin}/campaigns/${launch.id}`);
-                        }
-                      }}
-                      type="button"
+                      href={`/campaigns/${launch.id}`}
                     >
-                      Copy link
-                    </button>
+                      Open public page
+                    </Link>
                   </div>
-                </div>
-              </section>
-
-              <section className="surface-card p-5 sm:p-6">
-                <p className="text-sm font-semibold text-white">Date preference</p>
-                <div className="mt-4 space-y-3">
-                  {launch.dateOptions.map((option) => (
-                    <div className="rounded-[22px] border border-white/8 bg-[#0d1119] p-4" key={option.id}>
-                      <div className="flex items-center justify-between gap-4">
-                        <p className="font-semibold text-white">{option.label}</p>
-                        <p className="text-sm text-app-muted">{option.votes} picks</p>
-                      </div>
-                      <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/[0.05]">
-                        <div
-                          className="h-full rounded-full bg-gradient-to-r from-app-purple to-[#5d7dff]"
-                          style={{ width: `${Math.min(100, (option.votes / Math.max(funding.current, 1)) * 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-              <section className="surface-card p-5 sm:p-6">
-                <p className="text-sm font-semibold text-white">Updates</p>
-                <div className="mt-4 space-y-3">
-                  {launch.updates.slice(0, 5).map((update) => (
-                    <div className="rounded-[22px] border border-white/8 bg-[#0d1119] p-4" key={update.id}>
-                      <p className="font-semibold text-white">{update.title}</p>
-                      <p className="mt-2 text-sm leading-6 text-app-muted">{update.body}</p>
-                    </div>
-                  ))}
                 </div>
               </section>
             </>
@@ -347,11 +302,9 @@ export default function StudioLaunchPage() {
           {tab === "venue" ? (
             <section className="space-y-4">
               <div className="surface-card p-5 sm:p-6">
-                <p className="text-sm font-semibold text-white">Venue pairing</p>
+                <p className="text-sm font-semibold text-white">Venue suggestions</p>
                 <p className="mt-3 text-sm leading-6 text-app-muted">
-                  {funding.current >= funding.target
-                    ? "This launch cleared threshold. Pick the room that best fits the first run."
-                    : "Venue suggestions unlock once the soft launch clears threshold."}
+                  Suggestions based on your event size, city, and visual direction.
                 </p>
               </div>
 
@@ -364,13 +317,21 @@ export default function StudioLaunchPage() {
                         {venue.area} · {venue.capacity} capacity
                       </p>
                     </div>
-                    {launch.selectedVenueId === venue.id ? (
-                      <StatusChip status={launch.eventId ? "confirmed" : "paired"} />
-                    ) : null}
+                    <TagChip
+                      label={
+                        launch.selectedVenueId === venue.id
+                          ? launch.eventId
+                            ? "Held"
+                            : "Requested"
+                          : `Fits ${launch.attendanceGoal} / ${formatDateRange(launch.startsAt)}`
+                      }
+                      subdued
+                    />
                   </div>
                   <div className="mt-4 flex flex-wrap gap-2">
                     <TagChip label={venue.vibe} subdued />
                     <TagChip label={launch.fandomTags[0] ?? launch.format} subdued />
+                    <TagChip label={launch.budgetRange} subdued />
                   </div>
                   <p className="mt-4 text-sm leading-6 text-app-muted">{venue.note}</p>
                   <div className="mt-5 flex flex-wrap gap-3">
@@ -380,7 +341,7 @@ export default function StudioLaunchPage() {
                       onClick={() => acceptVenuePairing(launch.id, venue.id)}
                       type="button"
                     >
-                      {launch.selectedVenueId === venue.id || launch.eventId ? "Selected" : "Accept pairing"}
+                      {launch.selectedVenueId === venue.id || launch.eventId ? "Request hold" : "Contact"}
                     </button>
                     {launch.selectedVenueId === venue.id && launch.eventId ? (
                       <Link
@@ -398,169 +359,88 @@ export default function StudioLaunchPage() {
 
           {tab === "team" ? (
             <section className="space-y-5">
-              {launch.teamRoleNames.map((roleName) => {
-                const matchedRole = openRoles.find((role) => role.roleName.toLowerCase() === roleName.toLowerCase());
-                const shortlist = buildShortlist(
-                  shortlistSource,
-                  matchedRole ?? {
-                    id: `${launch.id}-${roleName}`,
-                    eventId: launch.id,
-                    roleName,
-                    status: "open",
-                    payoutRange: [180, 340],
-                    requiredSkills: roleSkillMap[roleName.toLowerCase()] ?? ["community", "ops"],
-                    applicants: []
-                  },
-                  users,
-                  roles
-                );
-
-                return (
-                  <section className="surface-card p-5 sm:p-6" key={roleName}>
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <p className="text-sm font-semibold text-white">{roleName}</p>
-                        <p className="mt-1 text-sm text-app-muted">
-                          {matchedRole ? "Open on the confirmed event page." : "Shortlist before the room locks."}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="mt-5 space-y-4">
-                      {shortlist.slice(0, 3).map((match) => (
-                        <TeamMatchCard
-                          key={`${roleName}-${match.user.id}`}
-                          match={match}
-                          onPrimary={() => {
-                            if (matchedRole && launch.eventId) {
-                              inviteCandidate({
-                                eventId: launch.eventId,
-                                roleId: matchedRole.id,
-                                candidateUserId: match.user.id
-                              });
-                              return;
-                            }
-                            acceptLaunchMatch(launch.id, roleName, match.user.id);
-                          }}
-                          onSecondary={() => router.push(`/creators/${match.user.id}`)}
-                          primaryLabel={matchedRole ? "Shortlist" : "Add to team"}
-                          roleName={roleName}
-                          secondaryLabel="View profile"
-                        />
-                      ))}
-                    </div>
-
-                    {matchedRole?.applicants.length ? (
-                      <div className="mt-5 space-y-3 border-t border-white/8 pt-5">
-                        <p className="text-sm font-semibold text-white">Applicants</p>
-                        {matchedRole.applicants.map((applicant) => {
-                          const applicantUser = resolveUser(applicant.applicantUserId);
-                          return (
-                            <div className="rounded-[22px] border border-white/8 bg-[#0d1119] p-4" key={`${roleName}-${applicant.applicantUserId}`}>
-                              <div className="flex items-start justify-between gap-4">
-                                <div className="flex items-center gap-3">
-                                  <Avatar
-                                    name={applicantUser?.name ?? "Applicant"}
-                                    size="sm"
-                                    src={applicantUser?.avatarUrl}
-                                  />
-                                  <div>
-                                    <p className="font-semibold text-white">{applicantUser?.name ?? "Applicant"}</p>
-                                    <p className="text-sm text-app-muted">
-                                      {applicantUser?.city ?? "Local"} · {formatCurrency(applicant.quote)}
-                                    </p>
-                                  </div>
-                                </div>
-                                <button
-                                  className="text-sm font-semibold text-app-muted transition hover:text-white"
-                                  onClick={() => applicantUser && router.push(`/creators/${applicantUser.id}`)}
-                                  type="button"
-                                >
-                                  View profile
-                                </button>
-                              </div>
-                              <p className="mt-3 text-sm leading-6 text-app-muted">{applicant.note}</p>
-                              <div className="mt-4 flex flex-wrap gap-3">
-                                <button
-                                  className="rounded-2xl bg-app-purple px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-app-purple-hover"
-                                  onClick={() => {
-                                    if (launch.eventId) {
-                                      confirmRole({
-                                        eventId: launch.eventId,
-                                        roleId: matchedRole.id,
-                                        candidateUserId: applicant.applicantUserId
-                                      });
-                                    }
-                                  }}
-                                  type="button"
-                                >
-                                  Accept
-                                </button>
-                                <button
-                                  className="rounded-2xl border border-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:border-white/20"
-                                  onClick={() => {
-                                    if (launch.eventId) {
-                                      passApplicant({
-                                        eventId: launch.eventId,
-                                        roleId: matchedRole.id,
-                                        applicantUserId: applicant.applicantUserId
-                                      });
-                                    }
-                                  }}
-                                  type="button"
-                                >
-                                  Pass
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : null}
-                  </section>
-                );
-              })}
-
               <section className="surface-card p-5 sm:p-6">
-                <p className="text-sm font-semibold text-white">Accepted team</p>
-                {launch.acceptedTeam.length > 0 ? (
-                  <div className="mt-4 space-y-3">
-                    {launch.acceptedTeam.map((entry) => {
-                      const teammate = resolveUser(entry.userId);
-                      return (
-                        <div className="flex items-center justify-between gap-4 rounded-[22px] border border-white/8 bg-[#0d1119] p-4" key={`${entry.roleName}-${entry.userId}`}>
-                          <div className="flex items-center gap-3">
-                            <Avatar name={teammate?.name ?? "Teammate"} size="sm" src={teammate?.avatarUrl} />
-                            <div>
-                              <p className="font-semibold text-white">{teammate?.name ?? "Teammate"}</p>
-                              <p className="text-sm text-app-muted">{entry.roleName}</p>
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-white">Crew plan</p>
+                    <p className="mt-1 text-sm text-app-muted">Recommended collaborators, rates, and status.</p>
+                  </div>
+                  <Link
+                    className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
+                    href={`/studio/crew-plan/${launch.id}`}
+                  >
+                    Open full crew plan
+                  </Link>
+                </div>
+
+                <div className="mt-5 space-y-3">
+                  {crewPlanRoles.map((role) => {
+                    const lead = role.matches[0];
+                    return (
+                      <div className="rounded-[24px] bg-white/[0.04] p-4" key={role.id}>
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex min-w-0 items-center gap-3">
+                            <img
+                              alt={lead?.name ?? role.title}
+                              className="h-14 w-14 rounded-[16px] object-cover"
+                              src={lead?.portfolioImages[0] ?? launch.coverImageUrl}
+                            />
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-semibold text-white">{role.title}</p>
+                              <p className="truncate text-sm text-app-muted">
+                                {lead?.name ?? "Suggested creator"} · {lead?.rateLabel ?? role.suggestedRateLabel}
+                              </p>
                             </div>
                           </div>
-                          <button
-                            className="text-sm font-semibold text-app-muted transition hover:text-white"
-                            onClick={() => removeLaunchMatch(launch.id, entry.roleName, entry.userId)}
-                            type="button"
-                          >
-                            Remove
-                          </button>
+                          <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-semibold text-white/72">
+                            {launch.acceptedTeam.some((entry) => entry.roleName === role.title)
+                              ? "Confirmed"
+                              : launch.status === "confirmed"
+                                ? "Pending review"
+                                : "Outreach sent"}
+                          </span>
                         </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="mt-3 text-sm text-app-muted">No accepted collaborators yet.</p>
-                )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <Link
+                    className="rounded-2xl bg-app-purple px-4 py-3 text-sm font-semibold text-white transition hover:bg-app-purple-hover"
+                    href={`/studio/crew-plan/${launch.id}`}
+                  >
+                    Open full crew plan
+                  </Link>
+                  <button
+                    className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
+                    type="button"
+                  >
+                    Add role
+                  </button>
+                </div>
               </section>
             </section>
           ) : null}
 
           {tab === "run-of-show" ? (
             <section className="surface-card p-5 sm:p-6">
-              <p className="text-sm font-semibold text-white">Run of show</p>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-white">Run of show</p>
+                  <p className="mt-1 text-sm text-app-muted">Event-day timing and assigned coverage.</p>
+                </div>
+                <button
+                  className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
+                  type="button"
+                >
+                  Edit schedule
+                </button>
+              </div>
               {launch.eventId ? (
                 <div className="mt-4 space-y-3">
                   {launch.runOfShow.map((step) => (
-                    <div className="flex items-center justify-between gap-4 rounded-[22px] border border-white/8 bg-[#0d1119] p-4" key={`${step.time}-${step.label}`}>
+                    <div className="flex items-center justify-between gap-4 rounded-[22px] bg-white/[0.04] p-4" key={`${step.time}-${step.label}`}>
                       <div>
                         <p className="font-semibold text-white">{step.label}</p>
                         <p className="text-sm text-app-muted">{step.owner}</p>
@@ -596,6 +476,41 @@ export default function StudioLaunchPage() {
                   ) : null}
                 </div>
               ) : null}
+              <div className="surface-card p-5 sm:p-6">
+                <p className="text-sm font-semibold text-white">Crew payout breakdown</p>
+                <div className="mt-4 space-y-3">
+                  {launch.payouts.contributorPayouts.map((payout) => {
+                    const teammate = users.find((user) => user.id === payout.userId) ?? crewPlanRoles.find((role) => role.title === payout.roleName)?.matches[0];
+                    return (
+                      <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 rounded-[22px] bg-white/[0.04] p-4" key={`${payout.roleName}-${payout.amount}`}>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-white">{payout.roleName}</p>
+                          <p className="truncate text-sm text-app-muted">
+                            {"name" in (teammate ?? {}) ? teammate?.name : "Pending assignment"}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-semibold text-white">{formatCurrency(payout.amount)}</p>
+                          <p className="mt-1 text-xs text-app-muted">
+                            {launch.status === "completed" ? "Scheduled" : "Pending"}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  <MetricCard label="Total crew cost" value={formatCurrency(launch.payouts.contributorPayouts.reduce((sum, item) => sum + item.amount, 0))} />
+                  <MetricCard label="Saga fee (15%)" value={formatCurrency(Math.round(launch.payouts.ticketSales * 0.15))} />
+                  <MetricCard label="Net to host" value={formatCurrency(launch.payouts.hostNet)} />
+                </div>
+                <button
+                  className="mt-4 rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20"
+                  type="button"
+                >
+                  Review payouts
+                </button>
+              </div>
               <PayoutWaterfallCard payouts={launch.payouts} />
             </section>
           ) : null}
@@ -612,4 +527,58 @@ function MetricCard({ label, value }: { label: string; value: string }) {
       <p className="mt-2 text-lg font-semibold text-white">{value}</p>
     </div>
   );
+}
+
+function DemandCurve({ points, threshold }: { points: number[]; threshold: number }) {
+  const width = 320;
+  const height = 140;
+  const maxValue = Math.max(threshold, ...points, 1);
+  const linePoints = points
+    .map((point, index) => {
+      const x = (index / Math.max(points.length - 1, 1)) * width;
+      const y = height - (point / maxValue) * (height - 12);
+      return `${x},${y}`;
+    })
+    .join(" ");
+  const thresholdY = height - (threshold / maxValue) * (height - 12);
+
+  return (
+    <svg className="h-[150px] w-full" viewBox={`0 0 ${width} ${height}`}>
+      <defs>
+        <linearGradient id="demandLine" x1="0%" x2="100%" y1="0%" y2="0%">
+          <stop offset="0%" stopColor="#6D5EF3" />
+          <stop offset="100%" stopColor="#7B84FF" />
+        </linearGradient>
+      </defs>
+      <line stroke="rgba(255,255,255,0.18)" strokeDasharray="6 6" strokeWidth="2" x1="0" x2={width} y1={thresholdY} y2={thresholdY} />
+      <polyline
+        fill="none"
+        points={linePoints}
+        stroke="url(#demandLine)"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="4"
+      />
+      {points.map((point, index) => {
+        const x = (index / Math.max(points.length - 1, 1)) * width;
+        const y = height - (point / maxValue) * (height - 12);
+        return <circle cx={x} cy={y} fill="#FFFFFF" key={`${point}-${index}`} r="3.5" />;
+      })}
+    </svg>
+  );
+}
+
+function mapLaunchFormatToBriefFormat(format: string) {
+  switch (format) {
+    case "social":
+      return "Meetup / hangout";
+    case "showcase":
+      return "Live show / performance";
+    case "pop-up":
+      return "Market / vendor night";
+    case "workshop":
+      return "Tournament / competition";
+    default:
+      return "Themed experience / ball";
+  }
 }

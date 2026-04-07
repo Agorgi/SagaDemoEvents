@@ -64,7 +64,7 @@ export default function LaunchDraftReviewPage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-[#05070c]/68 via-transparent to-transparent" />
                 <div className="absolute left-4 top-4">
                   <span className="inline-flex rounded-full border border-app-purple/40 bg-app-purple/12 px-3 py-1 text-xs font-semibold text-[#E0DEFF]">
-                    {draft.launchMode === "soft" ? "Soft launch" : "Happening"}
+                    {draft.launchMode === "soft" ? "Test demand first" : "Publish now"}
                   </span>
                 </div>
               </div>
@@ -96,18 +96,24 @@ export default function LaunchDraftReviewPage() {
 
           <div className="space-y-4">
             <div className="space-y-3">
-              <input
-                className="w-full bg-transparent text-[32px] font-semibold leading-tight text-white outline-none placeholder:text-white/50 sm:text-[42px]"
-                onChange={(event) => updateLaunchDraft(draft.id, { customTitle: event.target.value })}
-                placeholder="Draft title"
-                value={draft.customTitle ?? draft.generatedDraft.title}
-              />
-              <textarea
-                className="min-h-[84px] w-full bg-transparent text-sm leading-6 text-white/78 outline-none placeholder:text-app-muted"
-                onChange={(event) => updateLaunchDraft(draft.id, { customSummary: event.target.value })}
-                placeholder="Short summary"
-                value={draft.customSummary ?? draft.generatedDraft.summary}
-              />
+              <div className="space-y-2">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-app-muted">Title</p>
+                <input
+                  className="w-full bg-transparent text-[32px] font-semibold leading-tight text-white outline-none placeholder:text-white/50 sm:text-[42px]"
+                  onChange={(event) => updateLaunchDraft(draft.id, { customTitle: event.target.value })}
+                  placeholder="Draft title"
+                  value={draft.customTitle ?? draft.generatedDraft.title}
+                />
+              </div>
+              <div className="space-y-2">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-app-muted">Description</p>
+                <textarea
+                  className="min-h-[84px] w-full bg-transparent text-sm leading-6 text-white/78 outline-none placeholder:text-app-muted"
+                  onChange={(event) => updateLaunchDraft(draft.id, { customSummary: event.target.value })}
+                  placeholder="Short summary"
+                  value={draft.customSummary ?? draft.generatedDraft.summary}
+                />
+              </div>
             </div>
 
             <div className="flex items-center gap-3">
@@ -227,20 +233,20 @@ export default function LaunchDraftReviewPage() {
           )}
 
           {draft.suggestedNeeds.length > 0 ? (
-            <ReviewSection title="Suggested needs">
-              <details className="rounded-[24px] border border-white/8 bg-[#0d1119] p-4">
-                <summary className="cursor-pointer text-sm font-semibold text-white">
-                  Open suggested needs
-                </summary>
-                <div className="mt-4 space-y-3">
-                  {draft.suggestedNeeds.map((need) => (
-                    <div key={need.id}>
-                      <p className="text-sm font-semibold text-white">{need.label}</p>
-                      <p className="mt-1 text-sm text-app-muted">{need.why}</p>
-                    </div>
-                  ))}
-                </div>
-              </details>
+            <ReviewSection title="Open roles & needs">
+              <div className="space-y-3">
+                {draft.suggestedNeeds.map((need) => (
+                  <div className="rounded-[22px] bg-white/[0.04] p-4" key={need.id}>
+                    <p className="text-sm font-semibold text-white">
+                      {need.label}
+                      {need.rateRangeLabel ? (
+                        <span className="ml-2 text-app-muted">/ {need.rateRangeLabel}</span>
+                      ) : null}
+                    </p>
+                    <p className="mt-1 text-sm text-app-muted">{need.why}</p>
+                  </div>
+                ))}
+              </div>
             </ReviewSection>
           ) : null}
         </div>
