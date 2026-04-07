@@ -64,6 +64,8 @@ export type CrewBriefInput = {
   deliverableSelections?: string[];
   briefStartDate?: string;
   briefEndDate?: string;
+  briefDurationDays?: string;
+  briefDateFlexible?: boolean;
 };
 
 export type VisualStyleOption = {
@@ -909,6 +911,8 @@ export function buildUploadSeed({
     visualDirectionSelections,
     briefStartDate: startDate.toISOString().slice(0, 10),
     briefEndDate: endDate.toISOString().slice(0, 10),
+    briefDurationDays: "2 days",
+    briefDateFlexible: false,
     city,
     crewBudgetRange: "$1,500-$3,000",
     fandomTags,
@@ -916,7 +920,16 @@ export function buildUploadSeed({
   };
 }
 
-export function formatBriefDateRange(startDate?: string, endDate?: string) {
+export function formatBriefDateRange(
+  startDate?: string,
+  endDate?: string,
+  isFlexible?: boolean,
+  durationLabel?: string
+) {
+  if (isFlexible && !startDate) {
+    return durationLabel ? `Flexible date · ${durationLabel}` : "Flexible date";
+  }
+
   if (!startDate) {
     return "Dates taking shape";
   }
@@ -928,9 +941,10 @@ export function formatBriefDateRange(startDate?: string, endDate?: string) {
   const start = formatter.format(new Date(`${startDate}T12:00:00`));
 
   if (!endDate || endDate === startDate) {
-    return start;
+    return durationLabel && durationLabel !== "1 day" ? `${start} · ${durationLabel}` : start;
   }
 
   const end = formatter.format(new Date(`${endDate}T12:00:00`));
-  return `${start} - ${end}`;
+  const range = `${start} - ${end}`;
+  return isFlexible ? `${range} · flexible` : range;
 }

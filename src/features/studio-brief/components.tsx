@@ -1,29 +1,25 @@
 "use client";
 
-import { type RefObject } from "react";
-
 import { FilterChip } from "@/src/components/Chips";
-import {
-  CREW_BUDGET_OPTIONS,
-  CREW_PROCESSING_MESSAGES
-} from "@/src/data/crew-plan";
+import { CREW_BUDGET_OPTIONS, CREW_PROCESSING_MESSAGES } from "@/src/data/crew-plan";
 import {
   launchFormatOptions,
   sizeBucketOptions,
-  type BriefAttachment,
-  type BriefMoodBoardImage,
   type LaunchWizardDraft
 } from "@/src/data/launch-builder";
 import { cn } from "@/src/lib/utils";
 
 export const BRIEF_STEPS = [
-  "concept",
+  "vision",
+  "event_type",
   "city",
   "timeline",
   "budget"
 ] as const;
 
 export type BriefStepKey = (typeof BRIEF_STEPS)[number];
+
+const durationOptions = ["1 day", "2 days", "3 days", "4 days", "5+ days"] as const;
 
 export function getLaunchModeLabel(mode: LaunchWizardDraft["launchMode"]) {
   return mode === "soft" ? "Test demand first" : "Publish now";
@@ -56,47 +52,71 @@ export function BriefWizardProgress({ current }: { current: number }) {
   );
 }
 
-export function BriefConceptStep({
-  attachments,
+export function BriefVisionStep({
   draft,
-  moodBoardInputRef,
-  onFilesSelected,
-  removeAttachment,
-  removeMoodImage,
   updateDraft
 }: {
   draft: LaunchWizardDraft;
-  attachments: BriefAttachment[];
-  moodBoardInputRef: RefObject<HTMLInputElement>;
-  onFilesSelected: (files: FileList | null) => void;
-  removeAttachment: (attachmentId: string) => void;
-  removeMoodImage: (imageId: string) => void;
   updateDraft: (payload: Partial<LaunchWizardDraft>) => void;
 }) {
   return (
-    <div className="space-y-6">
-      <div className="space-y-3">
-        <p className="text-sm font-semibold text-white">Production type</p>
-        <div className="grid gap-3">
-          {launchFormatOptions
-            .filter((option) => option !== "Other")
-            .map((option) => (
-              <ChoiceCard
-                key={option}
-                onClick={() => updateDraft({ format: option })}
-                selected={draft.format === option}
-                title={option}
-              />
-            ))}
-        </div>
+    <div className="space-y-4">
+      <textarea
+        className="min-h-[176px] w-full rounded-[26px] border border-white/8 bg-[#0d1119] px-5 py-4 text-base leading-7 text-white outline-none placeholder:text-app-muted"
+        onChange={(event) => updateDraft({ conceptVision: event.target.value })}
+        placeholder="A 300-person anime cosplay ball in downtown LA with live drawing stations, a photo garden, and DJ sets..."
+        value={draft.conceptVision}
+      />
+      <div className="rounded-[22px] bg-white/[0.04] px-4 py-4">
+        <p className="text-sm font-semibold text-white">Write it like you’d pitch it to a collaborator.</p>
+        <p className="mt-1 text-sm leading-6 text-app-muted">
+          We’ll use this to infer the crew, style, and first budget recommendations automatically.
+        </p>
       </div>
+    </div>
+  );
+}
 
-      <div className="space-y-3">
+export function BriefEventTypeStep({
+  draft,
+  updateDraft
+}: {
+  draft: LaunchWizardDraft;
+  updateDraft: (payload: Partial<LaunchWizardDraft>) => void;
+}) {
+  return (
+    <div className="space-y-4">
+      <label className="block rounded-[24px] border border-white/8 bg-[#0d1119] px-4 py-4">
+        <span className="text-xs font-semibold uppercase tracking-[0.14em] text-app-muted">Event type</span>
+        <div className="mt-3 rounded-[18px] bg-white/[0.03] px-3">
+          <select
+            className="h-11 w-full bg-transparent text-sm text-white outline-none"
+            onChange={(event) =>
+              updateDraft({
+                format: event.target.value as LaunchWizardDraft["format"]
+              })
+            }
+            value={draft.format ?? ""}
+          >
+            <option disabled value="">
+              Select an event type
+            </option>
+            {launchFormatOptions.filter((option) => option !== "Other").map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </div>
+      </label>
+
+      <div className="space-y-2">
         <p className="text-sm font-semibold text-white">Expected crowd</p>
         <div className="flex flex-wrap gap-2">
           {sizeBucketOptions.map((option) => (
             <FilterChip
               active={draft.sizeBucket === option}
+              className="text-[12px]"
               key={option}
               label={option}
               onClick={() => updateDraft({ sizeBucket: option })}
@@ -105,64 +125,22 @@ export function BriefConceptStep({
         </div>
       </div>
 
-      <div className="space-y-3">
-        <p className="text-sm font-semibold text-white">Concept</p>
-        <textarea
-          className="min-h-[220px] w-full rounded-[28px] border border-white/8 bg-[#0d1119] px-5 py-4 text-base leading-7 text-white outline-none placeholder:text-app-muted"
-          onChange={(event) => updateDraft({ conceptVision: event.target.value })}
-          placeholder="A 300-person anime cosplay ball in downtown LA with live drawing stations, a photo garden, and DJ sets..."
-          value={draft.conceptVision}
-        />
-      </div>
-
-      <div className="rounded-[28px] border border-dashed border-white/12 bg-white/[0.03] p-4">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-sm font-semibold text-white">Mood board</p>
-            <p className="mt-1 text-sm text-app-muted">Optional, but helpful for style matching.</p>
-          </div>
-          <button
-            className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-semibold text-white transition hover:border-white/20 hover:bg-white/[0.06]"
-            onClick={() => moodBoardInputRef.current?.click()}
-            type="button"
-          >
-            Upload
-          </button>
-          <input
-            accept=".pdf,.doc,.docx,image/png,image/jpeg,image/jpg"
-            className="hidden"
-            multiple
-            onChange={(event) => {
-              onFilesSelected(event.target.files);
-              event.currentTarget.value = "";
-            }}
-            ref={moodBoardInputRef}
-            type="file"
-          />
-        </div>
-
-        {draft.moodBoardImages.length > 0 ? (
-          <div className="mt-4 flex gap-3 overflow-x-auto pb-1 subtle-scrollbar">
-            {draft.moodBoardImages.map((image) => (
-              <MoodThumb image={image} key={image.id} onRemove={() => removeMoodImage(image.id)} />
-            ))}
-          </div>
-        ) : null}
-
-        {attachments.length > 0 ? (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {attachments.map((attachment) => (
-              <button
-                className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-white/82 transition hover:border-white/18"
-                key={attachment.id}
-                onClick={() => removeAttachment(attachment.id)}
-                type="button"
-              >
-                {attachment.name} ×
-              </button>
-            ))}
-          </div>
-        ) : null}
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {launchFormatOptions
+          .filter((option) => option !== "Other")
+          .map((option) => (
+            <div
+              className={cn(
+                "rounded-[18px] px-3 py-3 text-center text-[11px] font-medium leading-5 transition",
+                draft.format === option
+                  ? "bg-app-purple/12 text-white ring-1 ring-app-purple/26"
+                  : "bg-white/[0.04] text-app-muted"
+              )}
+              key={option}
+            >
+              {compactTypeLabel(option)}
+            </div>
+          ))}
       </div>
     </div>
   );
@@ -176,7 +154,7 @@ export function BriefCityStep({
   updateDraft: (payload: Partial<LaunchWizardDraft>) => void;
 }) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <label className="block rounded-[24px] border border-white/8 bg-[#0d1119] px-4 py-4">
         <span className="text-xs font-semibold uppercase tracking-[0.14em] text-app-muted">City</span>
         <input
@@ -196,13 +174,6 @@ export function BriefCityStep({
           value={draft.neighborhood}
         />
       </label>
-
-      <div className="rounded-[24px] bg-white/[0.04] px-4 py-4">
-        <p className="text-sm font-semibold text-white">A city is enough for now.</p>
-        <p className="mt-1 text-sm leading-6 text-app-muted">
-          We’ll use it to weight local crew first and keep venue suggestions grounded.
-        </p>
-      </div>
     </div>
   );
 }
@@ -215,34 +186,66 @@ export function BriefTimelineStep({
   updateDraft: (payload: Partial<LaunchWizardDraft>) => void;
 }) {
   return (
-    <div className="space-y-5">
-      <div className="grid gap-3 sm:grid-cols-2">
-        <label className="rounded-[24px] border border-white/8 bg-[#0d1119] px-4 py-4">
-          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-app-muted">Start date</span>
-          <input
-            className="mt-3 w-full bg-transparent text-sm text-white outline-none"
-            onChange={(event) => updateDraft({ briefStartDate: event.target.value })}
-            type="date"
-            value={draft.briefStartDate}
-          />
-        </label>
-        <label className="rounded-[24px] border border-white/8 bg-[#0d1119] px-4 py-4">
-          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-app-muted">End date</span>
-          <input
-            className="mt-3 w-full bg-transparent text-sm text-white outline-none"
-            onChange={(event) => updateDraft({ briefEndDate: event.target.value })}
-            type="date"
-            value={draft.briefEndDate}
-          />
-        </label>
-      </div>
+    <div className="space-y-4">
+      <label className="block rounded-[24px] border border-white/8 bg-[#0d1119] px-4 py-4">
+        <span className="text-xs font-semibold uppercase tracking-[0.14em] text-app-muted">Event date</span>
+        <input
+          className="mt-3 w-full bg-transparent text-sm text-white outline-none"
+          onChange={(event) => updateDraft({ briefStartDate: event.target.value })}
+          type="date"
+          value={draft.briefStartDate}
+        />
+      </label>
 
-      <div className="rounded-[24px] bg-white/[0.04] px-4 py-4">
-        <p className="text-sm font-semibold text-white">Give us the window, not the run sheet.</p>
-        <p className="mt-1 text-sm leading-6 text-app-muted">
-          We’ll use this to scope the crew, estimate the pace, and suggest who fits the timeline.
-        </p>
-      </div>
+      <label className="block rounded-[24px] border border-white/8 bg-[#0d1119] px-4 py-4">
+        <span className="text-xs font-semibold uppercase tracking-[0.14em] text-app-muted">How many days?</span>
+        <div className="mt-3 rounded-[18px] bg-white/[0.03] px-3">
+          <select
+            className="h-11 w-full bg-transparent text-sm text-white outline-none"
+            onChange={(event) => updateDraft({ briefDurationDays: event.target.value })}
+            value={draft.briefDurationDays}
+          >
+            <option disabled value="">
+              Select duration
+            </option>
+            {durationOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </div>
+      </label>
+
+      <button
+        className={cn(
+          "flex min-h-[52px] w-full items-center gap-3 rounded-[24px] px-4 py-4 text-left transition",
+          draft.briefDateFlexible
+            ? "bg-app-purple/12 text-white ring-1 ring-app-purple/26"
+            : "bg-white/[0.04] text-app-muted hover:bg-white/[0.06]"
+        )}
+        onClick={() =>
+          updateDraft({
+            briefDateFlexible: !draft.briefDateFlexible
+          })
+        }
+        type="button"
+      >
+        <span
+          className={cn(
+            "flex h-5 w-5 items-center justify-center rounded-md border text-xs font-semibold transition",
+            draft.briefDateFlexible
+              ? "border-app-purple/40 bg-app-purple text-white"
+              : "border-white/14 bg-transparent text-transparent"
+          )}
+        >
+          ✓
+        </span>
+        <div>
+          <p className="text-sm font-semibold text-white">Date is flexible</p>
+          <p className="mt-1 text-sm leading-5 text-app-muted">We can optimize around crew and venue availability.</p>
+        </div>
+      </button>
     </div>
   );
 }
@@ -255,7 +258,7 @@ export function BriefBudgetStep({
   updateDraft: (payload: Partial<LaunchWizardDraft>) => void;
 }) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2">
         {CREW_BUDGET_OPTIONS.map((option) => (
           <ChoiceCard
@@ -268,7 +271,7 @@ export function BriefBudgetStep({
         ))}
       </div>
 
-      <div className="rounded-[24px] bg-[radial-gradient(circle_at_top,rgba(123,132,255,0.12),transparent_42%),rgba(255,255,255,0.04)] px-4 py-4">
+      <div className="rounded-[22px] bg-[radial-gradient(circle_at_top,rgba(123,132,255,0.12),transparent_42%),rgba(255,255,255,0.04)] px-4 py-4">
         <p className="text-sm font-semibold text-white">What happens next</p>
         <p className="mt-1 text-sm leading-6 text-app-muted">
           We’ll identify the first roles, estimate starting rates, and surface creator fits for your review.
@@ -332,7 +335,7 @@ function ChoiceCard({
   return (
     <button
       className={cn(
-        "surface-card-strong w-full rounded-[24px] px-4 py-4 text-left transition",
+        "surface-card-strong w-full rounded-[22px] px-4 py-4 text-left transition",
         selected
           ? "border-app-purple/35 bg-[radial-gradient(circle_at_top,rgba(123,132,255,0.14),transparent_40%),linear-gradient(180deg,rgba(21,25,40,0.98),rgba(12,15,24,1))]"
           : "hover:border-white/12"
@@ -346,27 +349,12 @@ function ChoiceCard({
   );
 }
 
-function MoodThumb({
-  image,
-  onRemove
-}: {
-  image: BriefMoodBoardImage;
-  onRemove: () => void;
-}) {
-  return (
-    <div className="relative w-[108px] shrink-0 overflow-hidden rounded-[20px] border border-white/8">
-      <img alt={image.name} className="h-[132px] w-full object-cover" src={image.src} />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-      <span className="absolute bottom-2 left-2 right-8 line-clamp-2 text-[11px] font-medium text-white">
-        {image.name}
-      </span>
-      <button
-        className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/45 text-sm text-white transition hover:bg-black/60"
-        onClick={onRemove}
-        type="button"
-      >
-        ×
-      </button>
-    </div>
-  );
+function compactTypeLabel(label: string) {
+  return label
+    .replace(" / café meetup", "")
+    .replace(" / hangout", "")
+    .replace(" / performance", "")
+    .replace(" / vendor night", "")
+    .replace(" / competition", "")
+    .replace(" / ball", "");
 }

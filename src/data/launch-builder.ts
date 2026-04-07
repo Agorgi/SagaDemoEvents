@@ -153,6 +153,8 @@ export type LaunchWizardDraft = {
   visualDirectionSelections: string[];
   briefStartDate: string;
   briefEndDate: string;
+  briefDurationDays: string;
+  briefDateFlexible: boolean;
   crewBudgetRange: string;
   deliverableSelections: string[];
   crewShortlistByRole: Record<string, string>;
@@ -664,6 +666,8 @@ export function createEmptyLaunchDraft(mode: LaunchModeType, hostId: string): La
     visualDirectionSelections: [],
     briefStartDate: "",
     briefEndDate: "",
+    briefDurationDays: "",
+    briefDateFlexible: false,
     crewBudgetRange: "",
     deliverableSelections: [],
     crewShortlistByRole: {},
@@ -731,6 +735,7 @@ export function getLaunchQuestions(draft: LaunchWizardDraft) {
 export function syncLaunchDraft(draft: LaunchWizardDraft): LaunchWizardDraft {
   const nextDraft = {
     ...draft,
+    briefEndDate: deriveBriefEndDate(draft.briefStartDate, draft.briefDurationDays, draft.briefEndDate),
     derivedJourney: deriveJourney(draft)
   };
 
@@ -921,7 +926,12 @@ function buildSummary(draft: LaunchWizardDraft, fandom: string, formatLabel: str
 
 function buildDateSummary(draft: LaunchWizardDraft) {
   if (hasCreativeBriefData(draft)) {
-    return formatBriefDateRange(draft.briefStartDate, draft.briefEndDate);
+    return formatBriefDateRange(
+      draft.briefStartDate,
+      draft.briefEndDate,
+      draft.briefDateFlexible,
+      draft.briefDurationDays
+    );
   }
 
   if (draft.launchMode === "soft") {
@@ -1147,6 +1157,18 @@ function buildVenueLabel(draft: LaunchWizardDraft) {
   }
 
   return draft.city || "Location TBD";
+}
+
+function deriveBriefEndDate(startDate?: string, durationLabel?: string, fallbackEndDate?: string) {
+  if (!startDate) {
+    return fallbackEndDate ?? "";
+  }
+
+  const parsedDays = durationLabel?.match(/^(\d+)/);
+  const dayCount = parsedDays ? Number.parseInt(parsedDays[1], 10) : 1;
+  const endDate = new Date(`${startDate}T12:00:00`);
+  endDate.setDate(endDate.getDate() + Math.max(dayCount - 1, 0));
+  return endDate.toISOString().slice(0, 10);
 }
 
 function combineDateAndTime(date?: string, time?: string) {

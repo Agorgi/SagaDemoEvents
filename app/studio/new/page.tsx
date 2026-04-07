@@ -4,14 +4,15 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { Nav } from "@/src/components/Nav";
-import { type BriefAttachment, type BriefMoodBoardImage, type LaunchDraftStatus, type LaunchWizardDraft } from "@/src/data/launch-builder";
+import { type LaunchDraftStatus, type LaunchWizardDraft } from "@/src/data/launch-builder";
 import {
   BRIEF_STEPS,
   BriefBudgetStep,
   BriefCityStep,
-  BriefConceptStep,
+  BriefEventTypeStep,
   BriefStepKey,
   BriefTimelineStep,
+  BriefVisionStep,
   BriefWizardProgress,
   getLaunchModeLabel,
   getLaunchModeSubtitle,
@@ -43,7 +44,6 @@ function NewStudioLaunchPageContent() {
   const [currentStep, setCurrentStep] = useState(0);
   const [processing, setProcessing] = useState(false);
   const [processingMessageIndex, setProcessingMessageIndex] = useState(0);
-  const moodBoardInputRef = useRef<HTMLInputElement>(null);
   const initializedDraftId = useRef<string | null>(null);
 
   const resolvedDraftId = draftId ?? bootDraftId;
@@ -134,64 +134,6 @@ function NewStudioLaunchPageContent() {
     updateLaunchDraft(activeDraft.id, payload);
   }
 
-  function removeMoodImage(imageId: string) {
-    patchDraft({
-      moodBoardImages: activeDraft.moodBoardImages.filter((image) => image.id !== imageId),
-      briefAttachments: activeDraft.briefAttachments.filter((attachment) => attachment.id !== imageId)
-    });
-  }
-
-  function removeAttachment(attachmentId: string) {
-    patchDraft({
-      briefAttachments: activeDraft.briefAttachments.filter((attachment) => attachment.id !== attachmentId)
-    });
-  }
-
-  function handleFilesSelected(files: FileList | null) {
-    if (!files?.length) {
-      return;
-    }
-
-    const newAttachments: BriefAttachment[] = [];
-    const imageReaders: Promise<BriefMoodBoardImage>[] = [];
-
-    Array.from(files).forEach((file, index) => {
-      const id = `${Date.now()}-${index}-${file.name}`;
-      const isImage = file.type.startsWith("image/");
-
-      newAttachments.push({
-        id,
-        name: file.name,
-        kind: isImage ? "image" : "document"
-      });
-
-      if (isImage) {
-        imageReaders.push(
-          new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = () => {
-              resolve({
-                id,
-                name: file.name,
-                src: typeof reader.result === "string" ? reader.result : ""
-              });
-            };
-            reader.readAsDataURL(file);
-          })
-        );
-      }
-    });
-
-    Promise.all(imageReaders).then((moodBoardImages) => {
-      patchDraft({
-        briefAttachments: [...activeDraft.briefAttachments, ...newAttachments],
-        moodBoardImages: [...activeDraft.moodBoardImages, ...moodBoardImages].slice(0, 6),
-        posterImage: moodBoardImages[0]?.src ?? activeDraft.posterImage,
-        posterImageSourceTitle: moodBoardImages[0]?.name ?? activeDraft.posterImageSourceTitle
-      });
-    });
-  }
-
   function goBack() {
     if (processing) {
       return;
@@ -258,8 +200,10 @@ function NewStudioLaunchPageContent() {
 
   const title = (() => {
     switch (activeStep) {
-      case "concept":
-        return "Describe your production";
+      case "vision":
+        return "Describe your event";
+      case "event_type":
+        return "Pick the event type";
       case "city":
         return "Where is this happening?";
       case "timeline":
@@ -273,12 +217,14 @@ function NewStudioLaunchPageContent() {
 
   const helperText = (() => {
     switch (activeStep) {
-      case "concept":
-        return "Give us the shape of the production and the brief in your own words.";
+      case "vision":
+        return "Start with the concept. We’ll use it to infer the crew and creative direction.";
+      case "event_type":
+        return "Choose the closest event format and expected crowd size.";
       case "city":
         return "A city is enough to start building the right local team.";
       case "timeline":
-        return "A rough window is enough. We’ll use it to scope the crew.";
+        return "Give us the date, duration, and whether the timing is still flexible.";
       case "budget":
         return "We’ll balance role coverage and starting rates against this number.";
       default:
@@ -289,8 +235,8 @@ function NewStudioLaunchPageContent() {
   return (
     <div className="min-h-screen">
       <Nav />
-      <main className="mx-auto flex min-h-[calc(100vh-88px)] w-full max-w-[760px] flex-col px-4 pb-28 pt-5 sm:px-6 sm:pb-12 sm:pt-8">
-        <header className="space-y-5">
+      <main className="mx-auto flex h-[calc(100vh-88px)] w-full max-w-[760px] flex-col overflow-hidden px-4 pb-24 pt-4 sm:px-6 sm:pb-10 sm:pt-6">
+        <header className="space-y-4">
           <div className="flex items-center justify-between gap-3">
             <button
               className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.02] text-white transition hover:border-white/20"
@@ -318,29 +264,24 @@ function NewStudioLaunchPageContent() {
           />
         ) : (
           <>
-            <section className="flex flex-1 flex-col justify-center py-6">
+            <section className="flex flex-1 flex-col justify-center py-3">
               <div className="space-y-3">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-app-muted">
                   {getLaunchModeLabel(activeDraft.launchMode)}
                 </p>
-                <h1 className="max-w-[12ch] text-[34px] font-semibold leading-tight text-white sm:text-[44px]">
+                <h1 className="max-w-[12ch] text-[30px] font-semibold leading-tight text-white sm:text-[40px]">
                   {title}
                 </h1>
                 <p className="max-w-[34ch] text-sm leading-6 text-app-muted">{helperText}</p>
                 <p className="text-sm text-white/58">{getLaunchModeSubtitle(activeDraft.launchMode)}</p>
               </div>
 
-              <div className="mt-8">
-                {activeStep === "concept" ? (
-                  <BriefConceptStep
-                    attachments={activeDraft.briefAttachments}
-                    draft={activeDraft}
-                    moodBoardInputRef={moodBoardInputRef}
-                    onFilesSelected={handleFilesSelected}
-                    removeAttachment={removeAttachment}
-                    removeMoodImage={removeMoodImage}
-                    updateDraft={patchDraft}
-                  />
+              <div className="mt-5">
+                {activeStep === "vision" ? (
+                  <BriefVisionStep draft={activeDraft} updateDraft={patchDraft} />
+                ) : null}
+                {activeStep === "event_type" ? (
+                  <BriefEventTypeStep draft={activeDraft} updateDraft={patchDraft} />
                 ) : null}
                 {activeStep === "city" ? (
                   <BriefCityStep draft={activeDraft} updateDraft={patchDraft} />
@@ -388,30 +329,35 @@ function NewStudioLaunchPageContent() {
 }
 
 function resolveCurrentStep(draft: LaunchWizardDraft) {
-  if (!draft.format || !draft.sizeBucket || !draft.conceptVision.trim()) {
+  if (!draft.conceptVision.trim()) {
     return 0;
   }
-  if (!draft.city.trim()) {
+  if (!draft.format || !draft.sizeBucket) {
     return 1;
   }
-  if (!draft.briefStartDate || !draft.briefEndDate) {
+  if (!draft.city.trim()) {
     return 2;
   }
-  if (!draft.crewBudgetRange) {
+  if ((!draft.briefStartDate && !draft.briefDateFlexible) || !draft.briefDurationDays) {
     return 3;
   }
+  if (!draft.crewBudgetRange) {
+    return 4;
+  }
 
-  return 3;
+  return 4;
 }
 
 function validateStep(step: BriefStepKey, draft: LaunchWizardDraft) {
   switch (step) {
-    case "concept":
-      return Boolean(draft.format && draft.sizeBucket && draft.conceptVision.trim().length > 24);
+    case "vision":
+      return draft.conceptVision.trim().length > 24;
+    case "event_type":
+      return Boolean(draft.format && draft.sizeBucket);
     case "city":
       return draft.city.trim().length > 1;
     case "timeline":
-      return Boolean(draft.briefStartDate && draft.briefEndDate);
+      return Boolean((draft.briefStartDate || draft.briefDateFlexible) && draft.briefDurationDays);
     case "budget":
       return Boolean(draft.crewBudgetRange);
     default:
